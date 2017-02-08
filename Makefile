@@ -1,9 +1,11 @@
+# for Linux, use g++
 CC=g++
+# for MacOsX users, use clang
+#CC=clang++
 INCLUDE=/usr/local/include
 LIBPATH=/usr/local/lib
-CFLAGS= -O2 -pipe -fPIC -g -std=c++0x -mcmodel=large -I $(INCLUDE)
+CFLAGS= -O2 -pipe -fPIC -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++11 -m64 -mcmodel=large -I $(INCLUDE)
 LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
-#LINKFLAGS=
 OBJECT= runTest
 LIBRARY=libalpide.so
 CLASS= TReadoutBoard.cpp TAlpide.cpp AlpideConfig.cpp AlpideDecoder.cpp USB.cpp USBHelpers.cpp TReadoutBoardDAQ.cpp \
@@ -14,7 +16,6 @@ CLASS= TReadoutBoard.cpp TAlpide.cpp AlpideConfig.cpp AlpideDecoder.cpp USB.cpp 
  MosaicSrc/mexception.cpp MosaicSrc/mruncontrol.cpp MosaicSrc/mtriggercontrol.cpp MosaicSrc/mwbbslave.cpp \
  MosaicSrc/pexception.cpp MosaicSrc/pulser.cpp MosaicSrc/mboard.cpp MosaicSrc/TAlpideDataParser.cpp \
  TScan.cpp TThresholdScan.cpp TScanConfig.cpp
-#CLASS=  USB.cpp TDaqboard.cpp TPalpidefs.cpp TDut.cpp TTestsetup.cpp chiptests.cpp TConfig.cpp TModuleSetup.cpp
 OBJS = $(CLASS:.cpp=.o)
 $(info OBJS="$(OBJS)")
 
