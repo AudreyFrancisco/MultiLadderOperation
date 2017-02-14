@@ -35,9 +35,16 @@
 #include "wishbonebus.h"
 #include <mutex>
 
-#define IPBUS_PROTOCOL_VERSION		2
-#define DEFAULT_PACKET_SIZE 		1400
-
+namespace MosaicIPbus {
+    // Constant Definitions
+    const int DEFAULT_PACKET_SIZE = 1400;
+    const int DEFAULT_UDP_PORT = 2000;
+    const int DEFAULT_TCP_BUFFER_SIZE = (512*1024); // if set to 0 : automatic
+    const int DEFAULT_TCP_PORT = 3333;
+    const int HEADER_SIZE	= 64;
+    const int DATA_INPUT_BUFFER_SIZE = 64*1024;
+    const int IPBUS_PROTOCOL_VERSION = 2;
+};
 
 class IPbusTransaction
 {
@@ -53,7 +60,7 @@ class IPbusTransaction
 class IPbus : public WishboneBus
 {
 public:
-    IPbus( int pktSize = DEFAULT_PACKET_SIZE );
+    IPbus( int pktSize = MosaicIPbus::DEFAULT_PACKET_SIZE );
     ~IPbus();
 	void addIdle();
 	void addWrite(uint32_t address, uint32_t data);
@@ -100,7 +107,7 @@ public:
 		typeIdRMWsum		 	= 0x5,
 		typeIdIdle			 	= 0xf
 		};
-		
+    
 protected:
 	uint8_t *txBuffer;
 	uint8_t *rxBuffer;

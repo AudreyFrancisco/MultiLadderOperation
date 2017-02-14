@@ -109,11 +109,11 @@ int  TAlpideDataParser::ReadEventData(int &nBytes, unsigned char *buffer)
 	evSize = checkEvent(p, &evFlags);
 	
 	// copy the block header to the user buffer
-	memcpy(buffer, blockHeader, MOSAIC_HEADER_SIZE);
+	memcpy(buffer, blockHeader, MosaicIPbus::HEADER_SIZE);
 
 	// copy data to user buffer
-	memcpy(buffer+MOSAIC_HEADER_SIZE, dBuffer, evSize);
-	nBytes = MOSAIC_HEADER_SIZE + evSize;
+    memcpy(buffer+MosaicIPbus::HEADER_SIZE, dBuffer, evSize);
+    nBytes = MosaicIPbus::HEADER_SIZE + evSize;
 
 	// move unused bytes to the begin of buffer
 	size_t bytesToMove = dataBufferUsed - evSize;

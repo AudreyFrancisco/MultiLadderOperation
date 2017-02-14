@@ -38,6 +38,8 @@
 #include "mdatareceiver.h"
 #include "mboard.h"
 
+using namespace std;
+
 #define PLATFORM_IS_LITTLE_ENDIAN
 
 void MBoard::init()
@@ -229,7 +231,7 @@ long MBoard::pollTCP(int timeout, MDataReceiver **drPtr)
 {
 	const unsigned int bufferSize = 64*1024;
 	unsigned char rcvbuffer[bufferSize];
-	const unsigned int headerSize = MOSAIC_HEADER_SIZE;
+    const unsigned int headerSize = MosaicIPbus::HEADER_SIZE;
 	unsigned char header[headerSize];
 	unsigned int flags;
 	long blockSize, readBlockSize;
@@ -278,7 +280,7 @@ long MBoard::pollTCP(int timeout, MDataReceiver **drPtr)
 	MDataReceiver *dr = receivers[dataSrc];
 	dr->blockFlags = flags;
 	dr->blockSrc = dataSrc;
-	memcpy(dr->blockHeader, header, MOSAIC_HEADER_SIZE);
+    memcpy(dr->blockHeader, header, MosaicIPbus::HEADER_SIZE);
 	*drPtr = dr;
 
 	if (readBlockSize != 0) {

@@ -34,6 +34,7 @@
 #include <vector>
 #include <stdlib.h>
 #include "mboard.h"
+#include "ipbus.h"
 
 typedef std::vector<char> dataBuffer_t;
 
@@ -55,7 +56,7 @@ protected:
 	long blockFlags;
 	long blockSrc;
 	dataBuffer_t dataBuffer;
-	unsigned char blockHeader[MOSAIC_HEADER_SIZE];
+    unsigned char blockHeader[MosaicIPbus::HEADER_SIZE];
 
 protected:
 	void *getWritePtr(size_t size) 

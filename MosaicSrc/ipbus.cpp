@@ -111,7 +111,7 @@ void IPbus::addHeader(uint16_t words, uint8_t typeId, uint32_t *readDataPtr)
 	transactionList[numTransactions].readDataPtr = readDataPtr;
 	
 	// Add the header to the tx buffer
-	addWord((IPBUS_PROTOCOL_VERSION<<28) | (words<<16) | (transactionId<<8) | (typeId<<4) | infoCodeRequest);
+    addWord((MosaicIPbus::IPBUS_PROTOCOL_VERSION<<28) | (words<<16) | (transactionId<<8) | (typeId<<4) | infoCodeRequest);
 
 	transactionId++;
 	transactionId &= 0xff;
@@ -234,7 +234,7 @@ void IPbus::processAnswer()
 			getHeader(&tr);
 		
 			// check the header
-			if (tr.version != IPBUS_PROTOCOL_VERSION)
+            if (tr.version != MosaicIPbus::IPBUS_PROTOCOL_VERSION)
 				throw MIPBusError("Wrong version in answer");
 
 			if (tr.transactionId != transactionList[i].transactionId)

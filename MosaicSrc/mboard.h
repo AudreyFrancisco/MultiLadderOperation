@@ -41,16 +41,9 @@
 #include "mtriggercontrol.h"
 #include "i2csyspll.h"
 
+#include "ipbus.h"
 #include "i2cbus.h"
 #include "wbb.h"
-
-#define DEFAULT_PACKET_SIZE 		1400
-#define DEFAULT_UDP_PORT			2000
-#define DEFAULT_TCP_BUFFER_SIZE		(512*1024)			// if set to 0 : automatic
-#define DEFAULT_TCP_PORT			3333
-#define MOSAIC_HEADER_SIZE			64
-
-using namespace std;
 
 class MDataReceiver;
 
@@ -58,12 +51,12 @@ class MBoard
 {
 public:
 	MBoard();
-	MBoard(const char *IPaddr, int UDPport=DEFAULT_UDP_PORT);
+    MBoard(const char *IPaddr, int UDPport=MosaicIPbus::DEFAULT_UDP_PORT);
     ~MBoard();
 
-	void setIPaddress(const char *IPaddr, int UDPport=DEFAULT_UDP_PORT);
+	void setIPaddress(const char *IPaddr, int UDPport=MosaicIPbus::DEFAULT_UDP_PORT);
 	void initHardware();
-	void connectTCP(int port=DEFAULT_TCP_PORT, int rcvBufferSize=DEFAULT_TCP_BUFFER_SIZE);
+    void connectTCP(int port=MosaicIPbus::DEFAULT_TCP_PORT, int rcvBufferSize=MosaicIPbus::DEFAULT_TCP_BUFFER_SIZE);
 	void closeTCP();
 	long pollTCP(int timeout, MDataReceiver **dr);
 	long pollData(int timeout);
@@ -97,7 +90,7 @@ public:
 		flagCloseRun			= (1 << 3)
 		};
 
-	string IPaddress;
+    std::string IPaddress;
 };
 
 #endif // MBOARD_H

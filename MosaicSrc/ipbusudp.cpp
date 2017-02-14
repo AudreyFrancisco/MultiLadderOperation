@@ -44,6 +44,7 @@ IPbusUDP::IPbusUDP(int pktSize)
 		: IPbus(pktSize)
 {
 	sockfd = -1;
+    port = -1;
 }
 
 IPbusUDP::IPbusUDP(const char *IPaddr, int port, int pktSize) 

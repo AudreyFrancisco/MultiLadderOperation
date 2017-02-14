@@ -38,18 +38,13 @@
 #include <mutex>
 #include "ipbus.h"
 
-#define DEFAULT_PACKET_SIZE 		1400
-#define DEFAULT_PORT				2000
-#define RCV_LONG_TIMEOUT			2000	// timeout in ms for the first rx datagrams
-#define RCV_SHORT_TIMEOUT			100		// timeout in ms for rx datagrams
-
 class IPbusUDP : public IPbus
 {
 public:
-	IPbusUDP(int pktSize=DEFAULT_PACKET_SIZE);
-    IPbusUDP(const char *brdName, int port=DEFAULT_PORT, int pktsize=DEFAULT_PACKET_SIZE);
+    IPbusUDP(int pktSize=MosaicIPbus::DEFAULT_PACKET_SIZE);
+    IPbusUDP(const char *brdName, int port=MosaicIPbus::DEFAULT_UDP_PORT, int pktsize=MosaicIPbus::DEFAULT_PACKET_SIZE);
     ~IPbusUDP();
-	void setIPaddress(const char *brdName, int port=DEFAULT_PORT);
+    void setIPaddress(const char *brdName, int port=MosaicIPbus::DEFAULT_UDP_PORT);
 	void execute();
 
 private:
@@ -62,6 +57,8 @@ private:
 	int sockfd;
 	struct sockaddr_in sockAddress;
 	int rcvTimoutTime;
+    static const int RCV_LONG_TIMEOUT = 2000; // timeout in ms for the first rx datagrams
+    static const int RCV_SHORT_TIMEOUT = 100; // timeout in ms for rx datagrams
 };
 
 #endif // IPBUSUDP_H
