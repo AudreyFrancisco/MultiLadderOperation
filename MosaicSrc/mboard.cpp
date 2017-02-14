@@ -162,7 +162,7 @@ ssize_t MBoard::recvTCP(void *rxBuffer, size_t count, int timeout)
 	if (ufds.revents & POLLIN) {
 		rxSize = recv(tcp_sockfd, rxBuffer, count, 0);
 		if (rxSize==0 || rxSize == -1)
-			throw MDataReceiveError("Board connection closed. Fatal error!");
+			throw MDataReceiveError("Board connection closed. Buffer overflow or fatal error!");
 	} else if (ufds.revents & POLLNVAL){
 		throw MDataReceiveError("Invalid file descriptor in poll system call");
 	}

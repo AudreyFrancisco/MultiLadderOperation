@@ -75,6 +75,13 @@ void ControlInterface::setPhase(uint8_t phase)
 	wbb->execute();
 }
 
+//
+//	Read error counter (Works only on dedicated firmware)
+//
+void ControlInterface::addGetErrorCounter(uint32_t *ctr)
+{
+    wbb->addRead(baseAddress+regDataPhase, ctr);
+}
 
 //
 // schedule a broadcast command
