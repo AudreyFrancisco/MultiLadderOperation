@@ -1,7 +1,7 @@
 # for Linux, use g++
-CC=g++
-# for MacOsX users, use clang
-#CC=clang++
+#CC=g++
+# for MacOsX users, you can use clang instead
+CC=clang++
 INCLUDE=/usr/local/include
 LIBPATH=/usr/local/lib
 CFLAGS= -O2 -pipe -fPIC -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++11 -m64 -mcmodel=large -I $(INCLUDE)
