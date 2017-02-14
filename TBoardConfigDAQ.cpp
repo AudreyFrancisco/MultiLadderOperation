@@ -35,7 +35,7 @@ TBoardConfigDAQ::TBoardConfigDAQ(const char *fName, int boardIndex) {
   ////---- TRIGGER module
   
   // Busy configuration register
-  uint32_t fBusyDuration = 4;   
+  //uint32_t fBusyDuration = 4;
   // Trigger configuration register
   fNTriggers      = 1; // TODO: feature ever used? 
   fTriggerMode    = TRIGGER_MODE; 

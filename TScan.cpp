@@ -36,8 +36,8 @@ void TScan::CountEnabledChips()
   for (int i = 0; i < MAXBOARDS; i++) {
     m_enabled[i] = 0;
   }
-  for (int iboard = 0; iboard < m_boards.size(); iboard ++) {
-    for (int ichip = 0; ichip < m_chips.size(); ichip ++) {
+  for (unsigned int iboard = 0; iboard < m_boards.size(); iboard ++) {
+    for (unsigned int ichip = 0; ichip < m_chips.size(); ichip ++) {
       if ((m_chips.at(ichip)->GetConfig()->IsEnabled()) && (m_chips.at(ichip)->GetReadoutBoard() == m_boards.at(iboard))) {
         m_enabled[iboard] ++;
       }

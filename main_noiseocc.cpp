@@ -65,7 +65,7 @@ void ClearHitData() {
 
 
 void CopyHitData(std::vector <TPixHit> *Hits) {
-  for (int ihit = 0; ihit < Hits->size(); ihit ++) {
+  for (int ihit = 0; ihit < (int)Hits->size(); ihit ++) {
 	int chipId  = Hits->at(ihit).chipId;
 	int dcol    = Hits->at(ihit).dcol;
 	int region  = Hits->at(ihit).region;
@@ -99,7 +99,7 @@ void WriteDataToFile (const char *fName, bool Recreate) {
   sprintf(fNameTemp,"%s", fName);
   strtok (fNameTemp, ".");
 
-  for (int ichip = 0; ichip < fChips.size(); ichip ++) {
+  for (int ichip = 0; ichip < (int)fChips.size(); ichip ++) {
     int chipId = fChips.at(ichip)->GetConfig()->GetChipId() & 0xf;
     if (!HasData(chipId)) continue;  // write files only for chips with data
     if (fChips.size() > 1) {
@@ -234,7 +234,8 @@ void scan() {
           }
           // decode Chip event
           int n_bytes_chipevent=n_bytes_data-n_bytes_header-n_bytes_trailer;
-          bool Decode = AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits);
+          //bool Decode = AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits);
+            AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits);
           //if (!Decode) {
           //  printf("Bad Event: ");
           //  for (int i = 0; i < n_bytes_chipevent; i++) {
@@ -271,7 +272,7 @@ int main() {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (int i = 0; i < (int)fChips.size(); i ++) {
       if (! fChips.at(i)->GetConfig()->IsEnabled()) continue;
       fEnabled ++;
       configureChip (fChips.at(i));

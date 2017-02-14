@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <vector>
+#include <string>
 #include "TChipConfig.h"
 #include "TBoardConfig.h"
 #include "TReadoutBoard.h"
@@ -38,7 +39,7 @@ class TConfig {
   TChipConfig  *GetChipConfigById  (int chipId);
   TBoardConfig *GetBoardConfig     (int iBoard);
   TScanConfig  *GetScanConfig      () {return fScanConfig;};
-  void          WriteToFile        (const char *fName);
+    void          WriteToFile        (std::string fName);
 
 };
 

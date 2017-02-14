@@ -15,6 +15,7 @@
 #include <exception>
 #include <string>
 #include <deque>
+#include <iostream>
 
 #include "TReadoutBoard.h"
 #include "TConfig.h"
@@ -37,15 +38,9 @@
 #include "MosaicSrc/TAlpideDataParser.h"
 
 // Constant Definitions
-#define DEFAULT_PACKET_SIZE 		1400
-#define DEFAULT_UDP_PORT			2000
-#define DEFAULT_TCP_BUFFER_SIZE		(512*1024)			// if set to 0 : automatic
-#define DEFAULT_TCP_PORT			3333
-
-#define DATA_INPUT_BUFFER_SIZE	64*1024
 
 //class string;
-using namespace std;
+//using namespace std;
 
 
 extern std::vector<unsigned char> fDebugBuffer;
@@ -63,7 +58,6 @@ public:
 
 class TReadoutBoardMOSAIC : public TReadoutBoard, private MBoard
 {
-
 // Methods
 public:
 	TReadoutBoardMOSAIC(TConfig* config, TBoardConfigMOSAIC *boardConfig);
@@ -83,8 +77,13 @@ public:
 	void StartRun();
 	void StopRun();
 
-	int ReadRegister      (uint16_t Address, uint32_t &Value) { return(0);};
-	int WriteRegister     (uint16_t Address, uint32_t Value)  { return(0);};
+    int ReadRegister      (uint16_t Address, uint32_t &Value) {
+        std::cout << "TReadoutBoardMOSAIC::ReadRegister( " << Address << " , " << &Value << ") - doing nothing" << std::endl;
+        return(0);};
+	int WriteRegister     (uint16_t Address, uint32_t Value)  {
+        std::cout << "TReadoutBoardMOSAIC::WriteRegister( " << Address << " , " << Value << ") - doing nothing" << std::endl;
+
+        return(0);};
 
 private:
 	void init();
@@ -113,7 +112,7 @@ private:
 	ALPIDErcv			*alpideRcv[MAX_MOSAICTRANRECV];
 	TAlpideDataParser	*alpideDataParser[MAX_MOSAICTRANRECV];
 	DummyReceiver 		*dr;
-	TBoardHeader 		theHeaderOfReadData;  // This will host the info catch from Packet header/trailer
+	//TBoardHeader 		theHeaderOfReadData;  // This will host the info catch from Packet header/trailer
 
 private:
 	// status register bits
@@ -123,6 +122,6 @@ private:
 		BOARD_STATUS_GTPLL_LOCK			= 0x0004,
 		BOARD_STATUS_GTP_RESET_DONE		= 0x3ff0000
 	};
-
+    
 };
 #endif    /* READOUTBOARDMOSAIC_H */

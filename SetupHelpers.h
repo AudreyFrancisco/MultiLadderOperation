@@ -2,13 +2,17 @@
 #define SETUPHELPERS_H
 
 #include <unistd.h>
-#include "TReadoutBoardDAQ.h"
-#include "TReadoutBoardMOSAIC.h"
+#include <vector>
+#include "TReadoutBoard.h"
 
 // definition of standard setup types: 
 //   - single chip with DAQ board
 //   - IB stave with MOSAIC
 //   - OB module with MOSAIC
+
+class TConfig;
+class TAlpide;
+class TReadoutBoardDAQ;
 
 typedef enum {setupSingle, setupIB, setupOB, setupSingleM} TSetupType;
 

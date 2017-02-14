@@ -75,7 +75,7 @@ void ClearHitData() {
 
 
 void CopyHitData(std::vector <TPixHit> *Hits, int charge) {
-  for (int ihit = 0; ihit < Hits->size(); ihit ++) {
+  for (unsigned int ihit = 0; ihit < Hits->size(); ihit ++) {
     HitData[Hits->at(ihit).chipId][charge-myChargeStart][Hits->at(ihit).dcol + Hits->at(ihit).region * 16][Hits->at(ihit).address] ++;
   }
   Hits->clear();
@@ -91,7 +91,7 @@ void WriteDataToFile (const char *fName, bool Recreate) {
   strtok (fNameTemp, "."); 
   bool  HasData;
 
-  for (int ichip = 0; ichip < fChips.size(); ichip ++) {
+  for (unsigned int ichip = 0; ichip < fChips.size(); ichip ++) {
     int chipId = fChips.at(ichip)->GetConfig()->GetChipId() & 0xf;
     if (!fChips.at(ichip)->GetConfig()->IsEnabled()) continue;  // write files only for enabled chips
     if (fChips.size() > 1) {
@@ -182,20 +182,20 @@ void scan() {
     myMOSAIC->StartRun();
   }
 
-  for (int i = 0; i < fChips.size(); i++) { //Read VPULSEH from Config and save it at vector temporarily
+  for (unsigned int i = 0; i < fChips.size(); i++) { //Read VPULSEH from Config and save it at vector temporarily
     myVPULSEH.push_back(fChips.at(i)->GetConfig()->GetParamValue("VPULSEH"));
   }
  
   for (int istage = 0; istage < myMaskStages; istage ++) {
     std::cout << "Mask stage " << istage << std::endl;
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (unsigned int i = 0; i < fChips.size(); i ++) {
       if (! fChips.at(i)->GetConfig()->IsEnabled()) continue;
       AlpideConfig::ConfigureMaskStage(fChips.at(i), myPixPerRegion, istage);
     }
 
     for (int icharge = myChargeStart; icharge < myChargeStop; icharge ++) {
       //std::cout << "Charge = " << icharge << std::endl;
-      for (int i = 0; i < fChips.size(); i ++) {
+      for (unsigned int i = 0; i < fChips.size(); i ++) {
         if (! fChips.at(i)->GetConfig()->IsEnabled()) continue;
         fChips.at(i)->WriteRegister (Alpide::REG_VPULSEL, myVPULSEH[i] - icharge);  //Automatically matches max pulse = VPULSEH in config
       }
@@ -247,7 +247,7 @@ void scan() {
               fprintf (fDebug, "%02x ", (int) buffer[iByte]);
             }
             fprintf(fDebug, "\nFull Event:\n"); 
-            for (int ibyte = 0; ibyte < fDebugBuffer.size(); ibyte ++) {
+            for (unsigned int ibyte = 0; ibyte < fDebugBuffer.size(); ibyte ++) {
               fprintf (fDebug, "%02x ", (int) fDebugBuffer.at(ibyte));
             }
             fprintf(fDebug, "\n\n");
@@ -273,7 +273,7 @@ void scan() {
 int main() {
   initSetup(fConfig,  &fBoards,  &fBoardType, &fChips);
   InitScanParameters();
-  char Suffix[20], fName[100], Config[1000];
+    char Suffix[20], fName[100]; //Config[1000];
 
   ClearHitData();
   time_t       t = time(0);   // get time now
@@ -287,7 +287,7 @@ int main() {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (unsigned int i = 0; i < fChips.size(); i ++) {
       if (!fChips.at(i)->GetConfig()->IsEnabled()) continue;
       fEnabled ++;        
       configureChip (fChips.at(i));

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string.h>
 
+using namespace std;
+
 //construct Config from config file
 TConfig::TConfig (const char *fName) {
   fDeviceType = TYPE_UNKNOWN;   // will be overwritten in read config file
@@ -40,7 +42,7 @@ void TConfig::Init (int nBoards, std::vector <int> chipIds, TBoardType boardType
       std::cout << "TConfig: Unknown board type" << std::endl;
     }
   }
-  for (int ichip = 0; ichip < chipIds.size(); ichip ++) {
+  for (int ichip = 0; ichip < (int)chipIds.size(); ichip ++) {
     fChipConfigs.push_back (new TChipConfig(chipIds.at(ichip)));
   } 
 }
@@ -66,7 +68,7 @@ void TConfig::Init (int chipId, TBoardType boardType) {
 
 // getter functions for chip and board config
 TChipConfig *TConfig::GetChipConfigById  (int chipId) {
-  for (int i = 0; i < fChipConfigs.size(); i++) {
+  for (int i = 0; i < (int)fChipConfigs.size(); i++) {
     if (fChipConfigs.at(i)->GetChipId() == chipId) 
       return fChipConfigs.at(i);
   }
@@ -77,7 +79,7 @@ TChipConfig *TConfig::GetChipConfigById  (int chipId) {
 
 
 TChipConfig *TConfig::GetChipConfig (int iChip) {
-  if (iChip < fChipConfigs.size()) {
+  if ( iChip < (int)fChipConfigs.size()) {
     return fChipConfigs.at(iChip);
   }
   else {
@@ -87,7 +89,7 @@ TChipConfig *TConfig::GetChipConfig (int iChip) {
 
 
 TBoardConfig *TConfig::GetBoardConfig (int iBoard){
-  if (iBoard < fBoardConfigs.size()) {
+  if ( iBoard < (int)fBoardConfigs.size()) {
     return fBoardConfigs.at(iBoard);
   }
   else {  // throw exception
@@ -279,6 +281,6 @@ void TConfig::DecodeLine(const char *Line)
 }
 
 // write config to file, has to call same function for all sub-configs (chips and boards)
-void TConfig::WriteToFile (const char *fName) {
-
+void TConfig::WriteToFile (string fName) {
+    cout << "TConfig::WriteToFile() - filename = " << fName << " , doing nothing (not implemented)" << endl;
 }

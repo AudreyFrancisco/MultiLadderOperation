@@ -8,18 +8,16 @@
 #include "TReadoutBoardDAQ.h"
 
 // constructor
-TReadoutBoardDAQ::TReadoutBoardDAQ (libusb_device *ADevice, TBoardConfigDAQ *config) : TUSBBoard (ADevice), TReadoutBoard(config)
+TReadoutBoardDAQ::TReadoutBoardDAQ (libusb_device *ADevice, TBoardConfigDAQ *config) : TUSBBoard (ADevice), TReadoutBoard(config),
+    fIsTriggerThreadRunning( false ),
+    fTrigCnt( 0 ),
+    fIsReadDataThreadRunning( false ),
+    fEvtCnt( 0 ),
+    //fMaxDiffTrigEvtCnt( MAX_DIFF_TRIG_EVT_CNT ),
+    fMaxEventBufferSize( MAX_EVT_BUFFSIZE ),
+    fNTriggersTotal( 0 ),
+    fMaxNTriggersTrain( MAX_NTRIG_TRAIN )
 {
-  fTrigCnt            = 0; 
-  fEvtCnt             = 0; 
-  fNTriggersTotal     = 0;
-  fMaxDiffTrigEvtCnt  = MAX_DIFF_TRIG_EVT_CNT; 
-  fMaxEventBufferSize = MAX_EVT_BUFFSIZE;      
-  fMaxNTriggersTrain  = MAX_NTRIG_TRAIN;      
-
-  fIsTriggerThreadRunning   = false; 
-  fIsReadDataThreadRunning  = false;
-
   fBoardConfigDAQ = config;
 
   //WriteDelays();
@@ -102,7 +100,7 @@ int TReadoutBoardDAQ::WriteRegister (uint16_t address, uint32_t value)
 
 int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId)
 {
-  //int err;
+  int err;
   uint32_t address32 = (uint32_t) address;
   uint32_t chipId32  = (uint32_t) chipId; 
   uint32_t newAddress = (address32 << 16) | (chipId32 << 8) | Alpide::OPCODE_WROP;
@@ -115,7 +113,7 @@ int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8
   //if(err < 0) return -1;
 
     uint32_t command[4];
-    bool err;
+    //bool err;
 
     //std::cout << "[ CHIP ] ADDRESS: " << std::hex << address << " (" << newAddress << ") " << " VALUE " << value << std::dec << std::endl;
     command[0] = CMU_DATA + (MODULE_CMU << DAQBOARD_REG_ADDR_SIZE);
@@ -124,7 +122,6 @@ int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8
     command[3] = newAddress;
     SendWord((uint32_t)command[0]);
     SendWord((uint32_t)command[1]);
-    //err=ReadAck();
     //if(err==false) return -1;
     err = ReadAcknowledge();
     if (err < 0) return -1;
@@ -136,8 +133,6 @@ int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8
     if (err < 0) return -1;
 
     return 1;
-  
-
   //return 0;
 }
 
@@ -218,7 +213,7 @@ void TReadoutBoardDAQ::DAQTrigger() {
   fMtx.unlock();
 
   fStatusTrigger = 0;
-  int evtbuffer_size = 0;
+  unsigned int evtbuffer_size = 0;
 
   if (fBoardConfig->GetTriggerEnable() && !fBoardConfigDAQ->GetPulseEnable()) { // TRIGGERING
     std::cout << "Number of triggers: " << fNTriggersTotal << std::endl;
@@ -405,7 +400,7 @@ void TReadoutBoardDAQ::DAQReadData() {
                                                  { 0xfe, 0xab, 0xfe, 0xab } }; // pALPIDE-1 event trailer
     bool timeout = false;
     int packet_length = 0;
-    int length_tmp    = 0;
+    unsigned int length_tmp    = 0;
 
 
     while (fEvtCnt<=fNTriggersTotal || fRawBuffer.size()!=0) { // at fEvtCnt==fNTriggersTotal it should find stop-trigger marker
@@ -564,7 +559,7 @@ void TReadoutBoardDAQ::DAQReadData() {
   // check if buffer is empty
   if (fRawBuffer.size() != 0) {
     std::cout << "WARNING: fRawBuffer not empty, but should be at this point!" << std::endl;
-    for (int iByte=0; iByte<fRawBuffer.size(); ++iByte) {
+    for (unsigned int iByte=0; iByte<fRawBuffer.size(); ++iByte) {
       std::cout << std::hex << (int)fRawBuffer[iByte] << std::dec;
     }
   }

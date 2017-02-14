@@ -62,8 +62,8 @@ uint16_t setTheDacMonitor(int ChipIndex, uint16_t VoltageDAC, uint16_t CurrentDA
 int CalibrateADC(int ChipIndex, bool &bDiscrSign, bool &bHalfBit)
 {
 	uint16_t theVal2,theVal1;
-	bool isAVoltDAC, isACurrDAC, isATemperature, isAVoltageBuffered;
-	int theSelInput;
+    //bool isAVoltDAC, isACurrDAC, isATemperature, isAVoltageBuffered;
+	//int theSelInput;
 	uint16_t Bias;
 
 	// Calibration Phase 1
@@ -101,10 +101,14 @@ int CalibrateADC(int ChipIndex, bool &bDiscrSign, bool &bHalfBit)
 void readTemp() {
 
   TReadoutBoardMOSAIC *myMOSAIC = dynamic_cast<TReadoutBoardMOSAIC*> (fBoards.at(0));
-
+    if ( myMOSAIC == nullptr ) {
+        std::cerr << "readTemp() - no MOSAIC board fourd" << std::endl;
+        return;
+    }
+    
   // Allocate the memory for host the results
   uint16_t *theResult = (uint16_t *)malloc(sizeof(uint16_t) * (fChips.size()+1) ); //
-  if( theResult == NULL ) {
+  if( theResult == nullptr ) {
 	  std::cerr << "Test_temperature : Error to allocate memory" << std::endl;
 	  return;
   }
@@ -115,7 +119,7 @@ void readTemp() {
 
   std::cout <<  "\tChipId\tBias\tRaw\tTemp."  << std::endl;
   // Set all chips for Temperature Measurement
-  for (int i = 0; i < fChips.size(); i ++) {
+  for (unsigned int i = 0; i < fChips.size(); i ++) {
 	  if (! fChips.at(i)->GetConfig()->IsEnabled()) continue;
 
 	  Bias = CalibrateADC(i, Sign, Half);
@@ -154,12 +158,16 @@ int main() {
 	char TimeStamp[20];
 
 	TReadoutBoardDAQ *myDAQBoard = dynamic_cast<TReadoutBoardDAQ*> (fBoards.at(0));
+    if ( myDAQBoard == nullptr ) {
+        std::cerr << "No MOSAIC board fourd" << std::endl;
+        return 0;
+    }
 
 	if (fBoards.size() == 1) {
 		fBoards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
 		fBoards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-		for (int i = 0; i < fChips.size(); i ++) {
+		for (int i = 0; i < (int)fChips.size(); i ++) {
 			if (!fChips.at(i)->GetConfig()->IsEnabled()) continue;
 			fEnabled ++;
 //			configureChip (fChips.at(i));

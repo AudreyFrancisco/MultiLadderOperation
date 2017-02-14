@@ -148,8 +148,8 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
   std::thread fThreadReadData;    // thread for DAQReadData
   bool fIsReadDataThreadRunning;       // boolan to check if thread is still running
   int fEvtCnt;                    // counter of events read/in queue
-  int fDiffTrigEvtCnt;            // difference between number triggers and events read
-  int fMaxDiffTrigEvtCnt;         // maximum allowed difference between number triggers and events read
+  //int fDiffTrigEvtCnt;            // difference between number triggers and events read
+  //int fMaxDiffTrigEvtCnt;         // maximum allowed difference between number triggers and events read
   uint32_t fMaxEventBufferSize;   // maximum number of events in fEventBuffer; TODO: maximum queue size ~1 Gb?
   int fNTriggersTotal;            // total number of triggers to be launched
   int fMaxNTriggersTrain;         // fNTriggersTotal will be subdivided into trigger trains with fMaxNTriggersAtOnce
@@ -177,7 +177,7 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
 
   // DAQ board has only one control interface -> both methods are identical
   int  SendOpCode        (uint16_t  OpCode) ;
-  int  SendOpCode        (uint16_t  OpCode, uint8_t chipId) {return SendOpCode (OpCode);};
+    int  SendOpCode        (uint16_t  OpCode, uint8_t chipId) { std::cout << "chip ID = " << chipId << std::endl; return SendOpCode (OpCode);};
 
   int  SetTriggerConfig  (bool enablePulse, bool enableTrigger, int triggerDelay, int pulseDelay);
   void SetTriggerSource  (TTriggerSource triggerSource);

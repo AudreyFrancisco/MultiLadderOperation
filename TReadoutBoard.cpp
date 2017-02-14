@@ -31,7 +31,7 @@ int TReadoutBoard::AddChip (uint8_t chipId, int controlInterface, int receiver)
 
 int TReadoutBoard::GetChipById (uint8_t chipId)
 {
-  for (int i = 0; i < fChipPositions.size(); i ++) {
+  for (int i = 0; i < (int)fChipPositions.size(); i ++) {
     if (fChipPositions.at(i).chipId == chipId) return i;
   }
   return -1;   // throw exception, non existing chip
@@ -72,7 +72,7 @@ void TReadoutBoard::SetReceiver (uint8_t chipId, int receiver)
 
 void TReadoutBoard::SetChipEnable(uint8_t chipId, bool Enable) 
 {
-  for (int i = 0; i < fChipPositions.size(); i ++) {
+  for (int i = 0; i < (int)fChipPositions.size(); i ++) {
     if (fChipPositions.at(i).chipId == chipId) {
       fChipPositions.at(i).enabled = Enable;
     }

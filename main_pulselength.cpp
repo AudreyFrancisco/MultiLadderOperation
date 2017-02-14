@@ -89,7 +89,7 @@ void WriteDataToFile (const char *fName, std::vector<TPixHit> *Hits, int charge,
   for (int ireg = 0; ireg < 32; ireg ++) {
     nHits = 0;
     //std::cout << ireg << std::endl;
-    for (int i = 0; i < Hits->size(); i ++) {
+    for (unsigned int i = 0; i < Hits->size(); i ++) {
       col = AddressToColumn(Hits->at(i).region, Hits->at(i).dcol, Hits->at(i).address);
       row = AddressToRow   (Hits->at(i).region, Hits->at(i).dcol, Hits->at(i).address);
 
@@ -156,6 +156,7 @@ int configureMask(TAlpide *chip) {
     AlpideConfig::WritePixRegSingle (chip, Alpide::PIXREG_MASK,   false, myRow, ireg*32+myCol);
     AlpideConfig::WritePixRegSingle (chip, Alpide::PIXREG_SELECT, true,  myRow, ireg*32+myCol);
   }
+    return 0;
 }
 
 
@@ -238,7 +239,7 @@ int main() {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (unsigned int i = 0; i < fChips.size(); i ++) {
       configureChip (fChips.at(i));
     }
 

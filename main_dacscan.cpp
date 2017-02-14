@@ -187,7 +187,7 @@ int main() {
     boards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
     boards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-    for (int i = 0; i < chips.size(); i ++) {
+    for (unsigned int i = 0; i < chips.size(); i ++) {
       configureChip (chips.at(i));
     }
 

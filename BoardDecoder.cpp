@@ -4,7 +4,9 @@
 #include "MosaicSrc/mboard.h"
 #include "MosaicSrc/TAlpideDataParser.h"
 
-bool BoardDecoder::DecodeEvent(TBoardType boardType, unsigned char *data, int nBytes, int &nBytesHeader, int &nBytesTrailer, TBoardHeader &boardInfo, uint32_t firmwareVersion, int headerType) {
+bool BoardDecoder::DecodeEvent(TBoardType boardType, unsigned char *data, int nBytes, int &nBytesHeader, int &nBytesTrailer, TBoardHeader &boardInfo, uint32_t firmwareVersion, int headerType)
+{
+    std::cout << "TBoardDecoder::DecodeEvent() - firmware version = " << firmwareVersion << std::endl;
   if (boardType == boardDAQ) {
     return DecodeEventDAQ(data, nBytes, nBytesHeader, nBytesTrailer, boardInfo);
   }
@@ -137,7 +139,7 @@ bool BoardDecoder::DecodeEventDAQ(unsigned char *data, int nBytes, int &nBytesHe
 
   //    return DecodeEventTrailer(Trailer, AHeader);
   //bool TDAQBoard::DecodeEventTrailer (int * Trailer, TEventHeader *ATrailer) {
-  if (Trailer[1] != DAQ_TRAILER_WORD) {
+  if (Trailer[1] != (int)DAQ_TRAILER_WORD) {
     std::cout << "Corrupt trailer, expecting 0x " << std::hex << DAQ_TRAILER_WORD << ", found 0x" << Trailer[1] << std::dec << std::endl;
     return false;
   }

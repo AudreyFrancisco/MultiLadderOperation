@@ -68,7 +68,7 @@ void TThresholdScan::ConfigureChip(TAlpide *chip)
 
 void TThresholdScan::Init() {
   CountEnabledChips();
-  for (int i = 0; i < m_boards.size(); i++) {
+  for (int i = 0; i < (int)m_boards.size(); i++) {
     std::cout << "Board " << i << ", found " << m_enabled[i] << " enabled chips" << std::endl;
     ConfigureBoard(m_boards.at(i));
 
@@ -76,12 +76,12 @@ void TThresholdScan::Init() {
     m_boards.at(i)->SendOpCode (Alpide::OPCODE_PRST);
   }
 
-  for (int i = 0; i < m_chips.size(); i ++) {
+  for (int i = 0; i < (int)m_chips.size(); i ++) {
     if (! (m_chips.at(i)->GetConfig()->IsEnabled())) continue;
     ConfigureChip (m_chips.at(i));
   }
 
-  for (int i = 0; i < m_boards.size(); i++) {
+  for (int i = 0; i < (int)m_boards.size(); i++) {
     m_boards.at(i)->SendOpCode (Alpide::OPCODE_RORST);     
     TReadoutBoardMOSAIC *myMOSAIC = dynamic_cast<TReadoutBoardMOSAIC*> (m_boards.at(i));
 
@@ -96,13 +96,13 @@ void TThresholdScan::PrepareStep (int loopIndex)
 {
   switch (loopIndex) {
   case 0:    // innermost loop: change VPULSEL
-    for (int ichip = 0; ichip < m_chips.size(); ichip ++) {
+    for (int ichip = 0; ichip < (int)m_chips.size(); ichip ++) {
       if (! m_chips.at(ichip)->GetConfig()->IsEnabled()) continue;
       m_chips.at(ichip)->WriteRegister(Alpide::REG_VPULSEL, m_VPULSEH - m_value[0]);
     }
     break;
   case 1:    // 2nd loop: mask staging
-    for (int ichip = 0; ichip < m_chips.size(); ichip ++) {
+    for (int ichip = 0; ichip < (int)m_chips.size(); ichip ++) {
       if (! m_chips.at(ichip)->GetConfig()->IsEnabled()) continue;
       ConfigureMaskStage(m_chips.at(ichip), m_value[1]);
     }
@@ -121,11 +121,11 @@ void TThresholdScan::Execute()
   TBoardHeader          boardInfo;
   std::vector<TPixHit> *Hits = new std::vector<TPixHit>;
 
-  for (int iboard = 0; iboard < m_boards.size(); iboard ++) {
+  for (int iboard = 0; iboard < (int)m_boards.size(); iboard ++) {
     m_boards.at(iboard)->Trigger(m_nTriggers);
   }
 
-  for (int iboard = 0; iboard < m_boards.size(); iboard ++) {
+  for (int iboard = 0; iboard < (int)m_boards.size(); iboard ++) {
     int itrg = 0;
     int trials = 0;
     while(itrg < m_nTriggers * m_enabled[iboard]) {
@@ -155,7 +155,7 @@ void TThresholdScan::Execute()
             fprintf (fDebug, "%02x ", (int) buffer[iByte]);
           }
           fprintf(fDebug, "\nFull Event:\n"); 
-          for (int ibyte = 0; ibyte < fDebugBuffer.size(); ibyte ++) {
+          for (int ibyte = 0; ibyte < (int)fDebugBuffer.size(); ibyte ++) {
             fprintf (fDebug, "%02x ", (int) fDebugBuffer.at(ibyte));
           }
           fprintf(fDebug, "\n\n");
@@ -173,7 +173,7 @@ void TThresholdScan::Execute()
 void TThresholdScan::Terminate() 
 {
   // write Data;
-  for (int iboard = 0; iboard < m_boards.size(); iboard ++) {
+  for (int iboard = 0; iboard < (int)m_boards.size(); iboard ++) {
     TReadoutBoardMOSAIC *myMOSAIC = dynamic_cast<TReadoutBoardMOSAIC*> (m_boards.at(iboard));
     if (myMOSAIC) {
       myMOSAIC->StopRun();

@@ -61,7 +61,7 @@ void ClearHitData() {
 
 
 void CopyHitData(std::vector <TPixHit> *Hits) {
-  for (int ihit = 0; ihit < Hits->size(); ihit ++) {
+  for (unsigned int ihit = 0; ihit < Hits->size(); ihit ++) {
     HitData[Hits->at(ihit).dcol + Hits->at(ihit).region * 16][Hits->at(ihit).address] ++;
   }
   Hits->clear();
@@ -70,7 +70,7 @@ void CopyHitData(std::vector <TPixHit> *Hits) {
 
 void WriteRawData (FILE *fp, std::vector <TPixHit> *Hits, int oldHits, TBoardHeader boardInfo) {
   int dcol, address, event;
-  for (int ihit = oldHits; ihit < Hits->size(); ihit ++) {
+  for (unsigned int ihit = oldHits; ihit < Hits->size(); ihit ++) {
     dcol     = Hits->at(ihit).dcol + Hits->at(ihit).region * 16;
     address  = Hits->at(ihit).address;
     if (fBoards.at(0)->GetConfig()->GetBoardType() == boardDAQ) {
@@ -86,7 +86,7 @@ void WriteRawData (FILE *fp, std::vector <TPixHit> *Hits, int oldHits, TBoardHea
 
 void WriteDataToFile (const char *fName, bool Recreate) {
   FILE *fp;
-  bool  HasData;
+  //bool  HasData;
   if (Recreate) fp = fopen(fName, "w");
   else          fp = fopen(fName, "a");
 
@@ -232,7 +232,7 @@ int main() {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (unsigned int i = 0; i < fChips.size(); i ++) {
       configureChip (fChips.at(i));
     }
 

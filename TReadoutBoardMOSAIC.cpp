@@ -285,7 +285,7 @@ void TReadoutBoardMOSAIC::enableDefinedReceivers()
   }
 
   int dataLink;
-  for(int i=0;i< fChipPositions.size(); i++) { //for each defined chip
+  for(int i=0; i< (int)fChipPositions.size(); i++) { //for each defined chip
     dataLink = fChipPositions.at(i).receiver;
     if(dataLink >= 0) { // Enable the data receiver
       if (fConfig->GetChipConfigById(fChipPositions.at(i).chipId)->IsEnabled()) {

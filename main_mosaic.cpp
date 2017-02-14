@@ -41,7 +41,7 @@ int main()
 
         uint16_t Value;
 
-        for (int i = 0; i < fChips.size(); i++) {
+        for (unsigned int i = 0; i < fChips.size(); i++) {
 	  // std::cout << "About to write chip " << chipIDs.at(i) << std::endl;
           //for (int ii = 5; ii >0; ii --) {
 	  //  std::cout << "  in " << ii << " s." << std::endl;
@@ -52,7 +52,7 @@ int main()
             fChips.at(i)->ReadRegister (0x60d, Value);
     	    std::cout << "Chip ID " << chipIDs.at(i) << ", Value = 0x" << std::hex << (int) Value << std::dec << std::endl;
 	  }
-          catch (exception &e) {
+            catch (std::exception &e) {
     	    std::cout << "Chip ID " << chipIDs.at(i) << ", not answering, exception: " << e.what() << std::endl;
 	  }
 	}

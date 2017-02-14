@@ -133,7 +133,7 @@ int main() {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (unsigned int i = 0; i < fChips.size(); i ++) {
       configureChip (fChips.at(i));
     }
 
@@ -141,7 +141,7 @@ int main() {
 
     fTotalErr  = 0;
 
-    for (int ichip = 0; ichip < fChips.size(); ichip++) {
+    for (unsigned int ichip = 0; ichip < fChips.size(); ichip++) {
       if (! fChips.at(ichip)->GetConfig()->IsEnabled()) continue;
      
       std::cout << std::endl << "Doing FIFO test on chip ID " << fChips.at(ichip)->GetConfig()->GetChipId() << std::endl;
