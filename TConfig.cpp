@@ -43,7 +43,7 @@ void TConfig::Init (int nBoards, std::vector <int> chipIds, TBoardType boardType
     }
   }
   for (int ichip = 0; ichip < (int)chipIds.size(); ichip ++) {
-    fChipConfigs.push_back (new TChipConfig(chipIds.at(ichip)));
+    fChipConfigs.push_back (new TChipConfig(this, chipIds.at(ichip)));
   } 
 }
 
@@ -62,7 +62,7 @@ void TConfig::Init (int chipId, TBoardType boardType) {
     std::cout << "TConfig: Unknown board type" << std::endl;
   }
 
-  fChipConfigs. push_back (new TChipConfig (chipId));
+  fChipConfigs. push_back (new TChipConfig (this, chipId));
 }
 
 
