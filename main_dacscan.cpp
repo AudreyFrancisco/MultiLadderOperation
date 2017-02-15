@@ -197,13 +197,13 @@ int main() {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_GRST);
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_PRST);
 
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (int i = 0; i < (int)fChips.size(); i ++) {
  //     configureChip (fChips.at(i));
     }
 
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_RORST);     
 
-    for (int i = 0; i < fChips.size(); i ++) {
+    for (int i = 0; i < (int)fChips.size(); i ++) {
 
     	scanVoltageDac (fChips.at(i), Alpide::REG_VRESETP, "VRESETP", mySampleDist);
     	scanVoltageDac (fChips.at(i), Alpide::REG_VRESETD, "VRESETD", mySampleDist);

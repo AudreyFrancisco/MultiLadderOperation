@@ -314,8 +314,8 @@ void TAlpide::SetTheDacMonitor(Alpide::TRegister ADac, Alpide::TDACMonIref IRef)
 int TAlpide::CalibrateADC()
 {
 	uint16_t theVal2,theVal1;
-	bool isAVoltDAC, isACurrDAC, isATemperature, isAVoltageBuffered;
-	int theSelInput;
+//	bool isAVoltDAC, isACurrDAC, isATemperature, isAVoltageBuffered;
+//	int theSelInput;
 
 	// Calibration Phase 1
 	fADCHalfLSB = false;

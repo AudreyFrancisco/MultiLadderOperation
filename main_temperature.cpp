@@ -48,8 +48,8 @@ void readTemp() {
 	  std::cerr << "Test_temperature : Error to allocate memory" << std::endl;
 	  return;
   }
-  uint16_t Bias;
-  bool Sign, Half;
+  //uint16_t Bias;
+  //bool Sign, Half;
   float theValue;
   uint16_t theChipId;
 
