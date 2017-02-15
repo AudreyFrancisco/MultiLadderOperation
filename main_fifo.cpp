@@ -124,7 +124,7 @@ void MemTest (TAlpide *chip, int ARegion, int AOffset) {
 
 int main() {
 
-  initSetup(fConfig, &fBoards, &fBoardType, &fChips);
+  initSetup(fConfig, &fBoards, &fBoardType, &fChips, "ConfigSingleChipMOSAIC.cfg");
 
   TReadoutBoardDAQ *myDAQBoard = dynamic_cast<TReadoutBoardDAQ*> (fBoards.at(0));
   
