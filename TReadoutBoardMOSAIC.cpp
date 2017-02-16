@@ -44,6 +44,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <poll.h>
+#include "TChip.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "BoardDecoder.h"
 #include "AlpideDecoder.h"
@@ -285,10 +286,10 @@ void TReadoutBoardMOSAIC::enableDefinedReceivers()
   }
 
   int dataLink;
-  for(int i=0; i< (int)fChipPositions.size(); i++) { //for each defined chip
-    dataLink = fChipPositions.at(i).receiver;
+  for( int i=0; i < (int)fChipPositions.size(); i++ ) { //for each defined chip
+    dataLink = fChipPositions.at(i)->GetReceiver();
     if(dataLink >= 0) { // Enable the data receiver
-      if (fConfig->GetChipConfigById(fChipPositions.at(i).chipId)->IsEnabled()) {
+      if ( fConfig->GetChipConfigById( fChipPositions.at(i)->GetChipId() )->IsEnabled() ) {
         std::cout << "!!!!!! ENabling receiver " << dataLink << std::endl;
         alpideRcv[dataLink]->addEnable(true);
         Used[dataLink] = true;
@@ -303,7 +304,7 @@ void TReadoutBoardMOSAIC::enableDefinedReceivers()
   return;
 }
 
-void TReadoutBoardMOSAIC::setSpeedMode(Mosaic::TReceiverSpeed ASpeed, int Aindex)
+void TReadoutBoardMOSAIC::setSpeedMode(Mosaic::TReceiverSpeed ASpeed)
 {
   mRunControl->setSpeed (ASpeed);
 }

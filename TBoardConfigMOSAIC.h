@@ -53,7 +53,7 @@ protected:
 
 
 public:
-	TBoardConfigMOSAIC(const char *fName = 0, int boardIndex = 0);
+	TBoardConfigMOSAIC(const char *fName = 0);
 
 	// Info methods
 

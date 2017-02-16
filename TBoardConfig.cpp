@@ -3,7 +3,7 @@
 
 using namespace BoardConfig;
 
-TBoardConfig::TBoardConfig(const char *fName, int boardIndex)
+TBoardConfig::TBoardConfig()
 {
   fTriggerDelay = STROBEDELAY;
   fPulseDelay   = PULSEDELAY;
