@@ -1,6 +1,7 @@
 #include "TBoardConfigDAQ.h"
 
-TBoardConfigDAQ::TBoardConfigDAQ(const char *fName, int boardIndex) {
+TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
+{
   // fill default value from header file
   ////---- ADC module
 

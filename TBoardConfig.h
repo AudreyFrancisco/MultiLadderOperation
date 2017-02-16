@@ -2,9 +2,12 @@
 #define BOARDCONFIG_H
 
 #include "stdint.h"
-#include "TReadoutBoard.h"
 #include <string>
 #include <map>
+
+typedef enum {trigInt, trigExt} TTriggerSource;
+typedef enum {boardDAQ, boardMOSAIC} TBoardType;
+
 
 namespace BoardConfig {
   const int PULSEDELAY  = 1000;
@@ -25,7 +28,7 @@ class TBoardConfig {
   TTriggerSource fTriggerSource;
   TBoardType     fBoardType;
  public:
-  TBoardConfig(const char *fName = 0, int boardIndex = 0);
+  TBoardConfig();
   virtual void InitParamMap ();
   bool SetParamValue        (const char *Name, const char *Value);
   int  GetParamValue        (const char *Name) ;

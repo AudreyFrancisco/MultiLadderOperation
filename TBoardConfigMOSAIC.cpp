@@ -18,7 +18,7 @@
 using namespace std;
 
 
-TBoardConfigMOSAIC::TBoardConfigMOSAIC(const char *AConfigFileName, int ABoardIndex)
+TBoardConfigMOSAIC::TBoardConfigMOSAIC( const char *AConfigFileName ) : TBoardConfig()
 {
 	fBoardType = boardMOSAIC;
 

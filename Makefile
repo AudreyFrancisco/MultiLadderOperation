@@ -8,7 +8,7 @@ CFLAGS= -O2 -pipe -fPIC -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++
 LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
 OBJECT= runTest
 LIBRARY=libalpide.so
-CLASS= TReadoutBoard.cpp TAlpide.cpp AlpideConfig.cpp AlpideDecoder.cpp USB.cpp USBHelpers.cpp TReadoutBoardDAQ.cpp \
+CLASS= TChip.cpp TReadoutBoard.cpp TAlpide.cpp AlpideConfig.cpp AlpideDecoder.cpp USB.cpp USBHelpers.cpp TReadoutBoardDAQ.cpp \
  TReadoutBoardMOSAIC.cpp TChipConfig.cpp TBoardConfig.cpp TBoardConfigDAQ.cpp TBoardConfigMOSAIC.cpp TConfig.cpp \
  BoardDecoder.cpp SetupHelpers.cpp \
  MosaicSrc/alpidercv.cpp MosaicSrc/controlinterface.cpp MosaicSrc/i2cbus.cpp MosaicSrc/i2cslave.cpp MosaicSrc/i2csyspll.cpp \

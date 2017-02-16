@@ -1,83 +1,99 @@
+#include "TChip.h"
 #include "TReadoutBoard.h"
 
-
-TReadoutBoard::TReadoutBoard (TBoardConfig *config) 
+TReadoutBoard::TReadoutBoard() :
+fBoardConfig( nullptr )
 {
-  fNChips = 0;
-  //fChipPositions (0);
-  fBoardConfig = config;
+    
 }
 
-
-
-int TReadoutBoard::AddChip (uint8_t chipId, int controlInterface, int receiver) 
+TReadoutBoard::TReadoutBoard (TBoardConfig *config)
 {
-  if (GetControlInterface (chipId) >= 0) {
-    // throw exception -> duplicate chip id
-    return -1; 
-  }
-
-  TChipPos newChip;
-  newChip.chipId           = chipId; 
-  newChip.controlInterface = controlInterface;
-  newChip.receiver         = receiver;
-  newChip.enabled          = true;                 // create chip positions by default enabled? 
-
-  fChipPositions.push_back(newChip);
-  fNChips ++;
-  return 0;
+    fBoardConfig = config;
 }
 
-
-int TReadoutBoard::GetChipById (uint8_t chipId)
+TReadoutBoard::~TReadoutBoard()
 {
-  for (int i = 0; i < (int)fChipPositions.size(); i ++) {
-    if (fChipPositions.at(i).chipId == chipId) return i;
-  }
-  return -1;   // throw exception, non existing chip
+    fChipPositions.clear();
 }
 
-
-int TReadoutBoard::GetControlInterface (uint8_t chipId) 
+int TReadoutBoard::AddChip( uint8_t chipId, int controlInterface, int receiver )
 {
-  int chip = GetChipById (chipId);
-  if (chip > -1) return fChipPositions.at(chip).controlInterface;
-
-  return -1; 
-}
-
-
-int TReadoutBoard::GetReceiver(uint8_t chipId)
-{
-  int chip = GetChipById (chipId);
-  if (chip > -1) return fChipPositions.at(chip).receiver;
-
-  return -1; 
-}
-
-
-void TReadoutBoard::SetControlInterface (uint8_t chipId, int controlInterface) 
-{
-  int chip = GetChipById (chipId);
-  if (chip > -1) fChipPositions.at(chip).controlInterface = controlInterface;
-}
-
-
-void TReadoutBoard::SetReceiver (uint8_t chipId, int receiver) 
-{
-  int chip = GetChipById (chipId);
-  if (chip > -1) fChipPositions.at(chip).receiver = receiver;
-}
-
-
-void TReadoutBoard::SetChipEnable(uint8_t chipId, bool Enable) 
-{
-  for (int i = 0; i < (int)fChipPositions.size(); i ++) {
-    if (fChipPositions.at(i).chipId == chipId) {
-      fChipPositions.at(i).enabled = Enable;
+    if ( GetControlInterface( chipId ) > TChipData::kInitValue ) {
+        throw TReadoutBoardError( "TReadoutBoard::AddChip() - duplicate chip id" );
     }
-  }
-  // throw exception -> non-existing chip  
+    auto newChip = make_shared<TChip>( chipId, controlInterface, receiver );
+    newChip->SetEnable( true );                 // create chip positions by default enabled?
+    fChipPositions.push_back( move(newChip) );
+    return 0;
 }
+
+
+int TReadoutBoard::GetChipById( uint8_t chipId )
+{
+    bool found = false;
+    int position = TChipData::kInitValue;
+    for ( int i = 0; i < (int)fChipPositions.size(); i++ ) {
+        if ( (fChipPositions.at(i))->GetChipId() == chipId ) {
+            position = i;
+            found = true;
+            break;
+        }
+    }
+    if ( !found ) {
+        throw TReadoutBoardError( "TReadoutBoard::GetChipById() - non existing chip" );
+    }
+    return position;
+}
+
+
+int TReadoutBoard::GetControlInterface( uint8_t chipId )
+{
+    int chip = GetChipById( chipId );
+    return (fChipPositions.at(chip))->GetControlInterface();
+}
+
+
+int TReadoutBoard::GetReceiver( uint8_t chipId )
+{
+    int chip = GetChipById( chipId );
+    return (fChipPositions.at(chip))->GetReceiver();
+}
+
+
+void TReadoutBoard::SetControlInterface( uint8_t chipId, int controlInterface )
+{
+    int chip = GetChipById( chipId );
+    (fChipPositions.at(chip))->SetControlInterface( controlInterface );
+}
+
+
+void TReadoutBoard::SetReceiver( uint8_t chipId, int receiver )
+{
+    int chip = GetChipById( chipId );
+    (fChipPositions.at(chip))->SetReceiver( receiver );
+}
+
+
+void TReadoutBoard::SetChipEnable( uint8_t chipId, bool Enable )
+{
+    bool found = false;
+    for ( int i = 0; i < (int)fChipPositions.size(); i++ ) {
+        if ( (fChipPositions.at(i))->GetChipId() == chipId) {
+            (fChipPositions.at(i))->SetEnable( Enable );
+            found = true;
+            break;
+        }
+    }
+    if ( !found ) {
+        throw TReadoutBoardError( "TReadoutBoard::SetChipEnable() - non existing chip" );
+    }
+}
+
+TReadoutBoardError::TReadoutBoardError( const string& arg )
+{
+    msg = "ERROR > " + arg;
+}
+
 
 

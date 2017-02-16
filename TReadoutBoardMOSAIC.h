@@ -95,7 +95,7 @@ private:
 			return;
 		};
 
-	void setSpeedMode(Mosaic::TReceiverSpeed ASpeed, int Aindex = -1);
+	void setSpeedMode(Mosaic::TReceiverSpeed ASpeed);
 	void setInverted (bool AInverted, int Aindex = -1);
 
 	uint32_t decodeError();
