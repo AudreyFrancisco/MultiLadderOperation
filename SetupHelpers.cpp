@@ -3,7 +3,15 @@
 #include "USBHelpers.h"
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
+#include <string.h>
 
+
+#define NEWALPIDEVERSION "1.0"
+
+// ----- Global variables (deprecated but ) -
+int VerboseLevel = 0;
+char ConfigurationFileName[1024] = "Config.cfg";
+// --------------------------------------
 
 // Setup definition for outer barrel module with MOSAIC
 //    - module ID (3 most significant bits of chip ID) defined by moduleId 
@@ -32,12 +40,24 @@ int initSetupOB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardT
     chips->push_back(new TAlpide(chipConfig));
     chips->at(i) -> SetReadoutBoard(boards->at(0));
     if (i < 7) {              // first master-slave row
-      if (receiver < 0) receiver = 9;
-      if (control  < 0) control  = 1;
+      if (control < 0) {
+        control = 1;
+        chipConfig->SetParamValue("CONTROLINTERFACE", 1);
+      }
+      if (receiver < 0) {
+        receiver = 9;
+        chipConfig->SetParamValue("RECEIVER", 9);
+      }
     }
     else {                    // second master-slave row
-      if (receiver < 0) receiver = 0;
-      if (control  < 0) control  = 0;
+      if (control < 0) {
+        control = 0;
+        chipConfig->SetParamValue("CONTROLINTERFACE", 0);
+      }
+      if (receiver < 0) {
+        receiver = 0;
+        chipConfig->SetParamValue("RECEIVER", 0);
+      }
     }
     boards->at(0)-> AddChip        (chipId, control, receiver);
   }
@@ -151,46 +171,6 @@ void MakeDaisyChain(TConfig* config, std::vector <TReadoutBoard *> * boards, TBo
 }
 
 
-
-
-void MakeDaisyChainOld(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
-  for (int i = 0; i < chips->size(); i++) {
-    if (!chips->at(i)->GetConfig()->IsEnabled()) continue;
-    int chipId   = chips->at(i)->GetConfig()->GetChipId();
-    int previous = -1;
-    if (!(chipId & 0x7)) {   // Master, has initial token, previous chip is last enabled chip in row
-      chips->at(i)->GetConfig()->SetInitialToken(true);
-      for (int iprev = chipId + 6; (iprev > chipId) && (previous == -1); iprev--) { 
-        if (config->GetChipConfigById(iprev)->IsEnabled()) {
-          previous = iprev; 
-	}
-      }
-      if (previous == -1) {
-        chips->at(i)->GetConfig()->SetPreviousId(chipId);
-      }
-      else {
-         chips->at(i)->GetConfig()->SetPreviousId(previous);
-      }
-    }
-    else {    // Slave, does not have token, previous chip is last enabled chip before
-      chips->at(i)->GetConfig()->SetInitialToken(false);
-      for (int iprev = chipId - 1; (iprev >= (chipId & 0x78)) && (previous == -1); iprev--) {
-        if (config->GetChipConfigById(iprev)->IsEnabled()) {
-          previous = iprev; 
-	}
-      }
-      if (previous == -1) {
-        chips->at(i)->GetConfig()->SetPreviousId(chipId);
-      }
-      else {
-         chips->at(i)->GetConfig()->SetPreviousId(previous);
-      }
-    }
-    std::cout << "Chip Id " << chipId << ", token = " << (bool) chips->at(i)->GetConfig()->GetInitialToken() << ", previous = " << chips->at(i)->GetConfig()->GetPreviousId() << std::endl;
-  }
-}
-
-
 // Try to communicate with all chips, disable chips that are not answering
 int CheckControlInterface(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
   uint16_t WriteValue = 10;
@@ -263,8 +243,14 @@ int initSetupIB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardT
     chips->push_back(new TAlpide(chipConfig));
     chips->at(i) -> SetReadoutBoard(boards->at(0));
 
-    if (control  < 0) control  = 0;
-    if (receiver < 0) receiver = RCVMAP[i];
+    if (control  < 0) {
+      chipConfig->SetParamValue("CONTROLINTERFACE", "0");
+      control = 0;
+    }
+    if (receiver < 0) {
+      chipConfig->SetParamValue("RECEIVER", RCVMAP[i]);
+      receiver = RCVMAP[i];
+    }
 
     boards->at(0)-> AddChip        (chipConfig->GetChipId(), control, receiver);
   }
@@ -282,8 +268,15 @@ int initSetupSingleMosaic(TConfig* config, std::vector <TReadoutBoard *> * board
   int                 control     = chipConfig->GetParamValue("CONTROLINTERFACE");
   int                 receiver    = chipConfig->GetParamValue("RECEIVER");
 
-  if (receiver < 0) receiver = 3;   // HSData is connected to pins for first chip on a stave
-  if (control  < 0) control  = 0; 
+
+  if (receiver < 0) {
+    chipConfig->SetParamValue("RECEIVER", 3);
+    receiver = 3;   // HSData is connected to pins for first chip on a stave
+  }
+  if (control  < 0) {
+    chipConfig->SetParamValue("CONTROLINTERFACE", 0);
+    control  = 0; 
+  }
 
   boardConfig->SetInvertedData (false);
   boardConfig->SetSpeedMode    (Mosaic::RCV_RATE_400);
@@ -303,8 +296,8 @@ int initSetupSingle(TConfig* config, std::vector <TReadoutBoard *> * boards, TBo
   chipConfig->SetParamValue("LINKSPEED", "-1");
   (*boardType)                    = boardDAQ;
   // values for control interface and receiver currently ignored for DAQ board
-  //int               control     = chipConfig->GetParamValue("CONTROLINTERFACE");
-  //int               receiver    = chipConfig->GetParamValue("RECEIVER");
+  int               control     = chipConfig->GetParamValue("CONTROLINTERFACE");
+  int               receiver    = chipConfig->GetParamValue("RECEIVER");
   
   InitLibUsb(); 
   //  The following code searches the USB bus for DAQ boards, creates them and adds them to the readout board vector: 
@@ -353,7 +346,11 @@ int powerOn (TReadoutBoardDAQ *aDAQBoard) {
 
 
 int initSetup(TConfig*& config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips, const char *configFileName) {
-  config = new TConfig (configFileName);
+
+  if(strlen(configFileName) == 0) // if length is 0 => use the default name or the Command Parameter
+	  config = new TConfig (ConfigurationFileName);
+  else // Assume that the config name if defined in the code !
+	  config = new TConfig (configFileName);
 
   switch (config->GetDeviceType())
     {
@@ -375,4 +372,46 @@ int initSetup(TConfig*& config, std::vector <TReadoutBoard *> * boards, TBoardTy
     }
   return 0;
 }
+
+
+// ---------- Decode line command parameters ----------
+
+int decodeCommandParameters(int argc, char **argv)
+{
+	int c;
+
+	while ((c = getopt (argc, argv, "hv:c:")) != -1)
+		switch (c) {
+		case 'h':  // prints the Help of usage
+			std::cout << "**  ALICE new-alpide-software   v." << NEWALPIDEVERSION << " **" << std::endl<< std::endl;
+			std::cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> "<< std::endl;
+			std::cout << "-h  :  Display this message" << std::endl;
+			std::cout << "-v <level> : Sets the verbosity level (not yet implemented)" << std::endl;
+			std::cout << "-c <configuration_file> : Sets the configuration file used" << std::endl << std::endl;
+			exit(0);
+			break;
+		case 'v':  // sets the verbose level
+			VerboseLevel = atoi(optarg);
+	        break;
+	    case 'c':  // the name of Configuration file
+	        strncpy(ConfigurationFileName, optarg, 1023);
+	        break;
+	    case '?':
+	        if (optopt == 'c') {
+	        	std::cerr << "Option -" << optopt << " requires an argument." << std::endl;
+	        } else {
+	        	if (isprint (optopt)) {
+	        		std::cerr << "Unknown option `-" << optopt << "`" << std::endl;
+	        	} else {
+	        		std::cerr << "Unknown option character `" << std::hex << optopt << std::dec << "`" << std::endl;
+	        	}
+	        }
+	        exit(0);
+	      default:
+	        return 0;
+		}
+
+	return 1;
+}
+
 
