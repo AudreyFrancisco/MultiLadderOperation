@@ -24,8 +24,8 @@ int  initSetupSingleMosaic(TConfig* config, std::vector <TReadoutBoard *> * boar
 int  initSetupHalfStave   (TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips);
 int  initSetup            (TConfig*& config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips, const char *configFileName = "");
 int  powerOn              (TReadoutBoardDAQ *aDAQBoard);
-int  CheckControlInterface(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips);
-void MakeDaisyChain       (TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips);
+int  CheckControlInterface(std::vector <TAlpide *> * chips);
+void MakeDaisyChain       (TConfig* config, std::vector <TAlpide *> * chips);
 int  decodeCommandParameters(int argc, char **argv);
 
 #endif

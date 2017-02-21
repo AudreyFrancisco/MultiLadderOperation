@@ -20,7 +20,6 @@ protected:
 
     virtual int WriteChipRegister   (uint16_t Address, uint16_t Value, uint8_t chipId = 0)  = 0;
     int         GetControlInterface (uint8_t chipId);
-    int         GetReceiver         (uint8_t chipId);
     int         GetChipById         (uint8_t chipId);
     friend class TAlpide;     // could be reduced to the relevant methods ReadRegister, WriteRegister
 
@@ -36,6 +35,7 @@ public:
     void         SetControlInterface (uint8_t chipId, int controlInterface);
     void         SetReceiver         (uint8_t chipId, int receiver);
     
+    int         GetReceiver         (uint8_t chipId);
     TBoardConfig *GetConfig        () {return fBoardConfig;};
     
     virtual int  ReadRegister      (uint16_t Address, uint32_t &Value) = 0;

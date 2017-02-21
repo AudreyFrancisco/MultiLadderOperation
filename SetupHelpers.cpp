@@ -61,10 +61,10 @@ int initSetupOB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardT
     }
     boards->at(0)-> AddChip        (chipId, control, receiver);
   }
-  int nWorking = CheckControlInterface(config, boards, boardType, chips);
+  int nWorking = CheckControlInterface(chips);
     std::cout << "initSetupOB() - nWorking = " << nWorking << std::endl;
   sleep(5);
-  MakeDaisyChain(config, boards, boardType, chips);
+  MakeDaisyChain(config, chips);
   return 0;
 }
 
@@ -96,17 +96,17 @@ int initSetupHalfStave(TConfig* config, std::vector <TReadoutBoard *> * boards, 
     boards->at(mosaic)-> AddChip(chipId, ci, rcv);
   }
 
-  int nWorking = CheckControlInterface(config, boards, boardType, chips);
+  int nWorking = CheckControlInterface(chips);
     std::cout << "initSetupHalfStave() - nWorking = " << nWorking << std::endl;
   sleep(5);
-  MakeDaisyChain(config, boards, boardType, chips);
+  MakeDaisyChain(config, chips);
   return 0;
 }
 
 
 // Make the daisy chain for OB readout, based on enabled chips
 // i.e. to be called after CheckControlInterface
-void MakeDaisyChain(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
+void MakeDaisyChain(TConfig* config, std::vector <TAlpide *> * chips) {
   int firstLow[8], firstHigh[8], lastLow[8], lastHigh[8];
   
   for (int imod = 0; imod < 8; imod ++) {
@@ -172,7 +172,7 @@ void MakeDaisyChain(TConfig* config, std::vector <TReadoutBoard *> * boards, TBo
 
 
 // Try to communicate with all chips, disable chips that are not answering
-int CheckControlInterface(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
+int CheckControlInterface(std::vector <TAlpide *> * chips) {
   uint16_t WriteValue = 10;
   uint16_t Value;
   int      nWorking = 0;
@@ -255,7 +255,7 @@ int initSetupIB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardT
     boards->at(0)-> AddChip        (chipConfig->GetChipId(), control, receiver);
   }
 
-  int nWorking = CheckControlInterface(config, boards, boardType, chips);
+  int nWorking = CheckControlInterface(chips);
     std::cout << "initSetupIB() - nWorking = " << nWorking << std::endl;
   return 0;
 }
@@ -296,8 +296,8 @@ int initSetupSingle(TConfig* config, std::vector <TReadoutBoard *> * boards, TBo
   chipConfig->SetParamValue("LINKSPEED", "-1");
   (*boardType)                    = boardDAQ;
   // values for control interface and receiver currently ignored for DAQ board
-  int               control     = chipConfig->GetParamValue("CONTROLINTERFACE");
-  int               receiver    = chipConfig->GetParamValue("RECEIVER");
+//  int               control     = chipConfig->GetParamValue("CONTROLINTERFACE");
+//  int               receiver    = chipConfig->GetParamValue("RECEIVER");
   
   InitLibUsb(); 
   //  The following code searches the USB bus for DAQ boards, creates them and adds them to the readout board vector: 

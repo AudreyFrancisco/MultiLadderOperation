@@ -234,7 +234,8 @@ void scan() {
           }
           // decode Chip event
           int n_bytes_chipevent=n_bytes_data-n_bytes_header-n_bytes_trailer;
-          bool Decode = AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits);
+          //bool Decode = AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits);
+          AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits);
           //if (!Decode) {
           //  printf("Bad Event: ");
           //  for (int i = 0; i < n_bytes_chipevent; i++) {
