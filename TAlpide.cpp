@@ -265,16 +265,6 @@ void TAlpide::DumpConfig( const char *fName, const bool writeFile, char *config 
 
 #pragma mark - operations with ADC or DAC
 
-/* ------------------------------------------------------
- * Reads the temperature sensor by means of internal ADC
- *
- * Returns  : the value in Celsius degree.
- *
- * Note  : if this was the first measure after the chip
- *         configuration phase, a calibration will be
- *         automatically executed.
- *
- */
 //___________________________________________________________________
 float TAlpide::ReadTemperature() const
 {
@@ -294,18 +284,6 @@ float TAlpide::ReadTemperature() const
     return theValue;
 }
 
-/* ------------------------------------------------------
- * Reads the output voltage of one DAC by means of internal ADC
- *
- * Parameter : the Index that define the DAC register
- *
- * Returns  : the value in Volts.
- *
- * Note  : if this was the first measure after the chip
- *         configuration phase, a calibration will be
- *         automatically executed.
- *
- */
 //___________________________________________________________________
 float TAlpide::ReadDACVoltage( Alpide::TRegister ADac ) const
 {
@@ -325,18 +303,6 @@ float TAlpide::ReadDACVoltage( Alpide::TRegister ADac ) const
     return theValue;
 }
 
-/* ------------------------------------------------------
- * Reads the output current of one DAC by means of internal ADC
- *
- * Parameter : the Index that define the DAC register
- *
- * Returns  : the value in Micro Ampere.
- *
- * Note  : if this was the first measure after the chip
- *         configuration phase, a calibration will be
- *         automatically executed.
- *
- */
 //___________________________________________________________________
 float TAlpide::ReadDACCurrent( Alpide::TRegister ADac ) const
 {
