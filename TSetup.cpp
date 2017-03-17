@@ -1246,7 +1246,7 @@ void TSetup::InitSetupOB()
     }
     
     shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC> GetBoardConfig(0);
-    boardConfig->SetInvertedData(boardConfig->IsInverted()); // FIXME: circular definition? (AR)
+    boardConfig->SetInvertedData(boardConfig->IsInverted()); // ???: circular definition? (AR)
     boardConfig->SetSpeedMode( Mosaic::RCV_RATE_400 );
     auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
     fBoards.push_back( move(newBoard) );
