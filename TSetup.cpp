@@ -19,6 +19,9 @@ using namespace std;
 
 const string TSetup::NEWALPIDEVERSION = "1.0_mft";
 
+#pragma mark - Constructors/destructor
+
+//___________________________________________________________________
 TSetup::TSetup() :
     fInitialisedSetup( false ),
     fCreatedConfig( false ),
@@ -37,6 +40,7 @@ TSetup::TSetup() :
          << " **" << endl<< endl;
 }
 
+//___________________________________________________________________
 TSetup::~TSetup()
 {
     fScanConfig.reset();
@@ -49,6 +53,8 @@ TSetup::~TSetup()
     }
 }
 
+#pragma mark - setters
+//___________________________________________________________________
 void TSetup::SetConfigFileName( const string name )
 {
     if ( name.empty() ) {
@@ -69,6 +75,8 @@ void TSetup::SetConfigFileName( const string name )
     }
 }
 
+#pragma mark - getters
+//___________________________________________________________________
 shared_ptr<TReadoutBoard> TSetup::GetBoard(const int iBoard)
 {
     if ( (!fInitialisedSetup) || fBoards.empty() ) {
@@ -88,6 +96,7 @@ shared_ptr<TReadoutBoard> TSetup::GetBoard(const int iBoard)
     return myBoard;
 }
 
+//___________________________________________________________________
 shared_ptr<TBoardConfig> TSetup::GetBoardConfig(const int iBoard)
 {
     if ( (!fCreatedConfig) || fBoardConfigs.empty() ) {
@@ -107,6 +116,7 @@ shared_ptr<TBoardConfig> TSetup::GetBoardConfig(const int iBoard)
     return myBoardConfig;
 }
 
+//___________________________________________________________________
 shared_ptr<TAlpide> TSetup::GetChip(const int iChip)
 {
     if ( (!fInitialisedSetup) || fChips.empty() ) {
@@ -126,6 +136,7 @@ shared_ptr<TAlpide> TSetup::GetChip(const int iChip)
     return myChip;
 }
 
+//___________________________________________________________________
 shared_ptr<TChipConfig> TSetup::GetChipConfig(const int iChip )
 {
     if ( (!fCreatedConfig) || fChipConfigs.empty()  ) {
@@ -145,6 +156,7 @@ shared_ptr<TChipConfig> TSetup::GetChipConfig(const int iChip )
     return myChipConfig;
 }
 
+//___________________________________________________________________
 shared_ptr<TChipConfig> TSetup::GetChipConfigById( const int chipId )
 {
     if ( (!fCreatedConfig) || fChipConfigs.empty() ) {
@@ -165,6 +177,7 @@ shared_ptr<TChipConfig> TSetup::GetChipConfigById( const int chipId )
 }
 
 
+//___________________________________________________________________
 int TSetup::GetNChips() const
 {
     if ( fCreatedConfig ) {
@@ -174,6 +187,7 @@ int TSetup::GetNChips() const
     }
 }
 
+//___________________________________________________________________
 int TSetup::GetStartChipID() const
 {
     if ( fCreatedConfig ) {
@@ -183,6 +197,7 @@ int TSetup::GetStartChipID() const
     }
 }
 
+//___________________________________________________________________
 bool TSetup::IsMFTLadder() const
 {
     if ( !fCreatedConfig ) {
@@ -198,7 +213,9 @@ bool TSetup::IsMFTLadder() const
     }
 }
 
+#pragma mark - other public methods
 // Decode line command parameters
+//___________________________________________________________________
 void TSetup::DecodeCommandParameters(int argc, char **argv)
 {
     int c;
@@ -236,6 +253,15 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
         }
 }
 
+//___________________________________________________________________
+void TSetup::DumpConfigToFile( string fName )
+{
+    // FIXME: not implemented yet
+    cout << "TSetup::InitSetupTelescopeDAQ() - NOT IMPLEMENTED YET, filename = "
+    << fName << endl;
+}
+
+//___________________________________________________________________
 void TSetup::InitSetup()
 {
     if ( fInitialisedSetup || fChips.size() ) {
@@ -291,6 +317,7 @@ void TSetup::InitSetup()
     }
 }
 
+//___________________________________________________________________
 void TSetup::ReadConfigFile()
 {
     char        Line[1024], Param[50], Rest[50];
@@ -344,6 +371,256 @@ void TSetup::ReadConfigFile()
     }
 }
 
+#pragma mark - other private methods
+
+// Try to communicate with all chips, disable chips that are not answering
+//___________________________________________________________________
+void TSetup::CheckControlInterface()
+{
+    uint16_t WriteValue = 10;
+    uint16_t Value;
+    if ( fVerboseLevel ) {
+        cout << endl
+        << "TSetup::CheckControlInterface() - Before starting actual test:"
+        << endl
+        << "TSetup::CheckControlInterface() - Checking the control interfaces of all chips by doing a single register readback test"
+        << endl;
+    }
+    
+    if ( !fChips.size() ) {
+        throw runtime_error( "TSetup::CheckControlInterface() - no chip defined!" );
+    }
+    
+    for ( unsigned int i = 0; i < fChips.size(); i++ ) {
+        
+        if ( !GetChipConfig(i)->IsEnabled() ) continue;
+        
+        GetChip(i)->WriteRegister( 0x60d, WriteValue );
+        try {
+            GetChip(i)->ReadRegister( 0x60d, Value );
+            if ( WriteValue == Value ) {
+                if ( fVerboseLevel ) {
+                    cout << "TSetup::CheckControlInterface() -  Chip ID " << GetChipConfig(i)->GetChipId() << ", readback correct." << endl;
+                }
+                fNWorkingChips++;
+            } else {
+                cerr << "TSetup::CheckControlInterface() - Chip ID " << GetChipConfig(i)->GetChipId() << ", wrong readback value (" << Value << " instead of " << WriteValue << "), disabling." << endl;
+                GetChipConfig(i)->SetEnable(false);
+            }
+        } catch (std::exception &e) {
+            cerr << "TSetup::CheckControlInterface() - Chip ID " << GetChipConfig(i)->GetChipId() << ", not answering, disabling." << endl;
+            GetChipConfig(i)->SetEnable(false);
+        }
+        
+    }
+    cout << "TSetup::CheckControlInterface() - Found " << GetNWorkingChips() << " working chips." << endl << endl;
+    
+    if ( GetNWorkingChips() == 0 ) {
+        throw runtime_error( "TSetup::CheckControlInterface() - no working chip found!" );
+    }
+}
+
+//___________________________________________________________________
+void TSetup::DecodeLine(const char* Line)
+{
+    int Chip, Start, ChipStop, BoardStop;
+    char Param[128], Rest[896];
+    if ((Line[0] == '\n') || (Line[0] == '#')) {   // empty Line or comment
+        return;
+    }
+    
+    ParseLine(Line, Param, Rest, &Chip);
+    
+    if (Chip == -1) {
+        Start     = 0;
+        ChipStop  = fChipConfigs.size();
+        BoardStop = fBoardConfigs.size();
+    }
+    else {
+        Start     = Chip;
+        ChipStop  = Chip+1;
+        BoardStop = Chip+1;
+    }
+    
+    // Todo: correctly handle the number of readout boards
+    // currently only one is written
+    // Note: having a config file with parameters for the mosaic board, but a setup with a DAQ board
+    // (or vice versa) will issue unknown-parameter warnings...
+    if (fChipConfigs.at(0)->IsParameter(Param)) {
+        for (int i = Start; i < ChipStop; i++) {
+            fChipConfigs.at(i)->SetParamValue (Param, Rest);
+        }
+    }
+    else if (fBoardConfigs.at(0)->IsParameter(Param)) {
+        for (int i = Start; i < BoardStop; i++) {
+            fBoardConfigs.at(i)->SetParamValue (Param, Rest);
+        }
+    }
+    else if (fScanConfig->IsParameter(Param)) {
+        fScanConfig->SetParamValue (Param, Rest);
+    }
+    else if ((!strcmp(Param, "ADDRESS")) && (fBoardConfigs.at(0)->GetBoardType() == boardMOSAIC)) {
+        for (int i = Start; i < BoardStop; i++) {
+            shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fBoardConfigs.at(i));
+            boardConfig->SetIPaddress(Rest);
+        }
+    }
+    else {
+        std::cout << "Warning: Unknown parameter " << Param << std::endl;
+    }
+}
+
+//___________________________________________________________________
+void TSetup::EnableSlave( const int mychip )
+{
+    bool toggle = false;
+    TChipConfig* mychipConfig = GetChipConfig( mychip );
+    int mychipID = mychipConfig->GetChipId();
+    if ( mychipConfig->IsOBMaster() ) {
+        for ( int i = mychipID + 1; i <= mychipID + 6; i++ ) {
+            if ( GetChipConfig(i)->IsEnabled() ) {
+                toggle = true;
+                break;
+            }
+        }
+    }
+    mychipConfig->SetEnableSlave( toggle );
+}
+
+// Make the daisy chain for OB readout, based on enabled chips
+// i.e. to be called after CheckControlInterface
+//___________________________________________________________________
+void TSetup::MakeDaisyChain()
+{
+    //   TConfig* config, std::vector <TAlpide *> * chips
+    int firstLow[8], firstHigh[8], lastLow[8], lastHigh[8];
+    
+    for (int imod = 0; imod < 8; imod ++) {
+        firstLow  [imod] = 0x77;
+        firstHigh [imod] = 0x7f;
+        lastLow   [imod] = 0x0;
+        lastHigh  [imod] = 0x8;
+    }
+    
+    // find the first and last enabled chip in each row
+    for (unsigned int i = 0; i < fChips.size(); i++) {
+        if (!GetChipConfig(i)->IsEnabled()) continue;
+        int chipId   = GetChipConfig(i)->GetChipId();
+        int modId    = (chipId & 0x70) >> 4;
+        
+        if ( (chipId & 0x8) && (chipId < firstHigh [modId])) firstHigh [modId] = chipId;
+        if (!(chipId & 0x8) && (chipId < firstLow  [modId])) firstLow  [modId] = chipId;
+        
+        if ( (chipId & 0x8) && (chipId > lastHigh [modId])) lastHigh [modId] = chipId;
+        if (!(chipId & 0x8) && (chipId > lastLow  [modId])) lastLow  [modId] = chipId;
+    }
+    
+    for (unsigned int i = 0; i < fChips.size(); i++) {
+        if (!GetChipConfig(i)->IsEnabled()) continue;
+        int chipId   = GetChipConfig(i)->GetChipId();
+        int modId    = (chipId & 0x70) >> 4;
+        int previous = -1;
+        
+        // first chip in row gets token and previous chip is last chip in row (for each module)
+        // (first and last can be same chip)
+        if (chipId == firstLow [modId]) {
+            GetChipConfig(i)->SetInitialToken(true);
+            GetChipConfig(i)->SetPreviousId(lastLow [modId]);
+        }
+        else if (chipId == firstHigh [modId]) {
+            GetChipConfig(i)->SetInitialToken(true);
+            GetChipConfig(i)->SetPreviousId(lastHigh [modId]);
+        }
+        // chip is enabled, but not first in row; no token, search previous chip
+        // search range: first chip in row on same module .. chip -1
+        else if (chipId & 0x8) {
+            GetChipConfig(i)->SetInitialToken(false);
+            for (int iprev = chipId - 1; (iprev >= firstHigh [modId]) && (previous == -1); iprev--) {
+                if (GetChipConfigById(iprev)->IsEnabled()) {
+                    previous = iprev;
+                }
+            }
+            GetChipConfig(i)->SetPreviousId(previous);
+        }
+        else if (!(chipId & 0x8)) {
+            GetChipConfig(i)>SetInitialToken(false);
+            for (int iprev = chipId - 1; (iprev >= firstLow [modId]) && (previous == -1); iprev--) {
+                if (GetChipConfigById(iprev)->IsEnabled()) {
+                    previous = iprev;
+                }
+            }
+            GetChipConfig(i)->SetPreviousId(previous);
+        }
+        
+        cout << "TSetup::MakeDaisyChain()  - Chip Id " << chipId
+        << ", token = " << (bool)GetChipConfig(i)->GetInitialToken()
+        << ", previous = " << GetChipConfig(i)->GetPreviousId() << endl;
+    }
+}
+
+//___________________________________________________________________
+void TSetup::ParseLine(const char* Line, char* Param, char* Rest, int* Chip)
+{
+    char MyParam[132];
+    char *MyParam2;
+    if (!strchr(Line, '_')) {
+        *Chip = -1;
+        sscanf (Line,"%s\t%s",Param, Rest);
+    }
+    else {
+        sscanf (Line,"%s\t%s", MyParam, Rest);
+        MyParam2 = strtok(MyParam, "_");
+        sprintf(Param, "%s", MyParam2);
+        sscanf (strpbrk(Line, "_")+1, "%d", Chip);
+    }
+}
+
+//___________________________________________________________________
+void TSetup::ReadDeviceType( const char* deviceName )
+{
+    if ( !strcmp (deviceName, "CHIPDAQ")) {
+        fDeviceType = TYPE_CHIP_DAQ;
+    }
+    else if (!strcmp(deviceName, "TELESCOPE")) {
+        fDeviceType = TYPE_TELESCOPE;
+    }
+    else if (!strcmp(deviceName, "OBHIC")) {
+        fDeviceType = TYPE_OBHIC;
+    }
+    else if (!strcmp(deviceName, "IBHIC")) {
+        
+        fDeviceType = TYPE_IBHIC;
+    }
+    else if (!strcmp(deviceName, "MFT5")) {
+        fDeviceType = TYPE_MFT_LADDER5;
+    }
+    else if (!strcmp(deviceName, "MFT4")) {
+        fDeviceType = TYPE_MFT_LADDER4;
+    }
+    else if (!strcmp(deviceName, "MFT3")) {
+        fDeviceType = TYPE_MFT_LADDER3;
+    }
+    else if (!strcmp(deviceName, "MFT2")) {
+        fDeviceType = TYPE_MFT_LADDER2;
+    }
+    else if (!strcmp(deviceName, "OBCHIPMOSAIC")) {
+        fDeviceType = TYPE_OBCHIP_MOSAIC;
+    }
+    else if (!strcmp(deviceName, "IBCHIPMOSAIC")) {
+        fDeviceType = TYPE_IBCHIP_MOSAIC;
+    }
+    else if (!strcmp(deviceName, "HALFSTAVE")) {
+        fDeviceType = TYPE_HALFSTAVE;
+    }
+    else {
+        cerr << "TSetup::ReadDeviceType() - device name = " << deviceName << endl;
+        throw runtime_error( "TSetup::ReadDeviceType() - unknown setup type." );
+    }
+}
+
+#pragma mark - device creation
+
+//___________________________________________________________________
 void TSetup::CreateDeviceConfig()
 {
     if ( fCreatedConfig ) {
@@ -432,6 +709,7 @@ void TSetup::CreateDeviceConfig()
     }
 }
 
+//___________________________________________________________________
 void TSetup::CreateHalfStave()
 {
     if ( fCreatedConfig ) {
@@ -461,6 +739,7 @@ void TSetup::CreateHalfStave()
     fCreatedConfig = true;
 }
 
+//___________________________________________________________________
 void TSetup::CreateIB()
 {
     if ( fCreatedConfig ) {
@@ -481,6 +760,7 @@ void TSetup::CreateIB()
     fCreatedConfig = true;
 }
 
+//___________________________________________________________________
 void TSetup::CreateIBSingleMosaic()
 {
     if ( fCreatedConfig ) {
@@ -499,6 +779,7 @@ void TSetup::CreateIBSingleMosaic()
     fCreatedConfig = true;
 }
 
+//___________________________________________________________________
 void TSetup::CreateMFTLadder()
 {
     if ( fCreatedConfig ) {
@@ -519,6 +800,7 @@ void TSetup::CreateMFTLadder()
     fCreatedConfig = true;
 }
 
+//___________________________________________________________________
 void TSetup::CreateOB()
 {
     if ( fCreatedConfig ) {
@@ -543,6 +825,7 @@ void TSetup::CreateOB()
     fCreatedConfig = true;
 }
 
+//___________________________________________________________________
 void TSetup::CreateOBSingleDAQ()
 {
     if ( fCreatedConfig ) {
@@ -562,6 +845,7 @@ void TSetup::CreateOBSingleDAQ()
     fCreatedConfig = true;
 }
 
+//___________________________________________________________________
 void TSetup::CreateOBSingleMosaic()
 {
     if ( fCreatedConfig ) {
@@ -581,6 +865,7 @@ void TSetup::CreateOBSingleMosaic()
     fCreatedConfig = true;
 }
 
+//___________________________________________________________________
 void TSetup::CreateTelescopeDAQ()
 {
     if ( fCreatedConfig ) {
@@ -606,57 +891,11 @@ void TSetup::CreateTelescopeDAQ()
     fCreatedConfig = true;
 }
 
-void TSetup::DecodeLine(const char* Line)
-{
-    int Chip, Start, ChipStop, BoardStop;
-    char Param[128], Rest[896];
-    if ((Line[0] == '\n') || (Line[0] == '#')) {   // empty Line or comment
-        return;
-    }
-    
-    ParseLine(Line, Param, Rest, &Chip);
-    
-    if (Chip == -1) {
-        Start     = 0;
-        ChipStop  = fChipConfigs.size();
-        BoardStop = fBoardConfigs.size();
-    }
-    else {
-        Start     = Chip;
-        ChipStop  = Chip+1;
-        BoardStop = Chip+1;
-    }
-    
-    // Todo: correctly handle the number of readout boards
-    // currently only one is written
-    // Note: having a config file with parameters for the mosaic board, but a setup with a DAQ board
-    // (or vice versa) will issue unknown-parameter warnings...
-    if (fChipConfigs.at(0)->IsParameter(Param)) {
-        for (int i = Start; i < ChipStop; i++) {
-            fChipConfigs.at(i)->SetParamValue (Param, Rest);
-        }
-    }
-    else if (fBoardConfigs.at(0)->IsParameter(Param)) {
-        for (int i = Start; i < BoardStop; i++) {
-            fBoardConfigs.at(i)->SetParamValue (Param, Rest);
-        }
-    }
-    else if (fScanConfig->IsParameter(Param)) {
-        fScanConfig->SetParamValue (Param, Rest);
-    }
-    else if ((!strcmp(Param, "ADDRESS")) && (fBoardConfigs.at(0)->GetBoardType() == boardMOSAIC)) {
-        for (int i = Start; i < BoardStop; i++) {
-            shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fBoardConfigs.at(i));
-            boardConfig->SetIPaddress(Rest);
-        }
-    }
-    else {
-        std::cout << "Warning: Unknown parameter " << Param << std::endl;
-    }
-}
+#pragma mark - setup initialisation
 
 // implicit assumptions on the setup in this method
 // - chips of master 0 of all modules are connected to 1st mosaic, chips of master 8 to 2nd MOSAIC
+//___________________________________________________________________
 void TSetup::InitSetupHalfStave()
 {
     if ( fInitialisedSetup || !fCreatedConfig ) {
@@ -720,6 +959,7 @@ void TSetup::InitSetupHalfStave()
 // Setup definition for inner barrel stave with MOSAIC
 //    - all chips connected to same control interface
 //    - each chip has its own receiver, mapping defined in RCVMAP
+//___________________________________________________________________
 void TSetup::InitSetupIB()
 {
     if ( fInitialisedSetup ) {
@@ -803,6 +1043,7 @@ void TSetup::InitSetupIB()
 
 // Setup for a single chip in inner barrel mode with MOSAIC
 // Assumption : ICM_H board is used to interface the chip and the MOSAIC
+//___________________________________________________________________
 void TSetup::InitSetupIBSingleMosaic()
 {
     if ( fInitialisedSetup ) {
@@ -879,6 +1120,7 @@ void TSetup::InitSetupIBSingleMosaic()
 // Setup definition for MFT ladder with MOSAIC
 //    - all chips connected to same control interface
 //    - each chip has its own receiver, mapping is a non-trivial function of RCVMAP
+//___________________________________________________________________
 void TSetup::InitSetupMFTLadder()
 {
     if ( fInitialisedSetup ) {
@@ -977,6 +1219,7 @@ void TSetup::InitSetupMFTLadder()
 //    - masters send data to two different receivers (0 and 1)
 //    - receiver number for slaves set to -1 (not connected directly to receiver)
 //      (this ensures that a receiver is disabled only if the connected master is disabled)
+//___________________________________________________________________
 void TSetup::InitSetupOB()
 {
     if ( fInitialisedSetup ) {
@@ -1059,6 +1302,7 @@ void TSetup::InitSetupOB()
     fInitialisedSetup = true;
 }
 
+//___________________________________________________________________
 void TSetup::InitSetupOBSingleDAQ()
 {
     if ( fInitialisedSetup ) {
@@ -1120,6 +1364,7 @@ void TSetup::InitSetupOBSingleDAQ()
 // Setup for a single chip in outer barrel mode with MOSAIC
 // Assumption : ITS adaptors are used to interface the chip and the MOSAIC
 // (see https://twiki.cern.ch/twiki/bin/view/ALICE/ALPIDE-adaptor-boards)
+//___________________________________________________________________
 void TSetup::InitSetupOBSingleMosaic()
 {
     if ( fInitialisedSetup ) {
@@ -1177,6 +1422,7 @@ void TSetup::InitSetupOBSingleMosaic()
 }
 
 
+//___________________________________________________________________
 void TSetup::InitSetupTelescopeDAQ()
 {
     if ( fInitialisedSetup ) {
@@ -1203,6 +1449,7 @@ void TSetup::InitSetupTelescopeDAQ()
     }
 
     // FIXME: not implemeted yet
+    cout << "TSetup::InitSetupTelescopeDAQ() - NOT IMPLEMENTED YET" << endl;
     
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupOBSingleMosaic() - end" << endl;
@@ -1211,239 +1458,10 @@ void TSetup::InitSetupTelescopeDAQ()
 
 }
 
+#pragma mark - Specific to DAQ board settings
 
-// Make the daisy chain for OB readout, based on enabled chips
-// i.e. to be called after CheckControlInterface
-void TSetup::MakeDaisyChain()
-{
-//   TConfig* config, std::vector <TAlpide *> * chips
-  int firstLow[8], firstHigh[8], lastLow[8], lastHigh[8];
-  
-  for (int imod = 0; imod < 8; imod ++) {
-    firstLow  [imod] = 0x77;
-    firstHigh [imod] = 0x7f; 
-    lastLow   [imod] = 0x0;
-    lastHigh  [imod] = 0x8;
-  }
-
-  // find the first and last enabled chip in each row
-  for (unsigned int i = 0; i < fChips.size(); i++) {
-    if (!GetChipConfig(i)->IsEnabled()) continue;
-    int chipId   = GetChipConfig(i)->GetChipId();
-    int modId    = (chipId & 0x70) >> 4;
-
-    if ( (chipId & 0x8) && (chipId < firstHigh [modId])) firstHigh [modId] = chipId;
-    if (!(chipId & 0x8) && (chipId < firstLow  [modId])) firstLow  [modId] = chipId;
-
-    if ( (chipId & 0x8) && (chipId > lastHigh [modId])) lastHigh [modId] = chipId;
-    if (!(chipId & 0x8) && (chipId > lastLow  [modId])) lastLow  [modId] = chipId;
-  }
-
-  for (unsigned int i = 0; i < fChips.size(); i++) {
-    if (!GetChipConfig(i)->IsEnabled()) continue;
-    int chipId   = GetChipConfig(i)->GetChipId();
-    int modId    = (chipId & 0x70) >> 4;
-    int previous = -1;
-    
-    // first chip in row gets token and previous chip is last chip in row (for each module)
-    // (first and last can be same chip)
-    if (chipId == firstLow [modId]) {
-      GetChipConfig(i)->SetInitialToken(true);
-      GetChipConfig(i)->SetPreviousId(lastLow [modId]);
-    }
-    else if (chipId == firstHigh [modId]) {
-      GetChipConfig(i)->SetInitialToken(true);
-      GetChipConfig(i)->SetPreviousId(lastHigh [modId]);
-    }
-    // chip is enabled, but not first in row; no token, search previous chip
-    // search range: first chip in row on same module .. chip -1
-    else if (chipId & 0x8) {
-      GetChipConfig(i)->SetInitialToken(false);
-      for (int iprev = chipId - 1; (iprev >= firstHigh [modId]) && (previous == -1); iprev--) {
-        if (GetChipConfigById(iprev)->IsEnabled()) {
-          previous = iprev;
-        }
-      }
-      GetChipConfig(i)->SetPreviousId(previous);
-    }
-    else if (!(chipId & 0x8)) {
-      GetChipConfig(i)>SetInitialToken(false);
-      for (int iprev = chipId - 1; (iprev >= firstLow [modId]) && (previous == -1); iprev--) {
-        if (GetChipConfigById(iprev)->IsEnabled()) {
-          previous = iprev;
-        }
-      }
-      GetChipConfig(i)->SetPreviousId(previous);
-    }
-
-    cout << "TSetup::MakeDaisyChain()  - Chip Id " << chipId
-         << ", token = " << (bool)GetChipConfig(i)->GetInitialToken()
-         << ", previous = " << GetChipConfig(i)->GetPreviousId() << endl;
-  }
-}
-
-
-// Try to communicate with all chips, disable chips that are not answering
-void TSetup::CheckControlInterface()
-{
-    uint16_t WriteValue = 10;
-    uint16_t Value;
-    if ( fVerboseLevel ) {
-        cout << endl
-             << "TSetup::CheckControlInterface() - Before starting actual test:"
-             << endl
-             << "TSetup::CheckControlInterface() - Checking the control interfaces of all chips by doing a single register readback test"
-             << endl;
-    }
-    
-    if ( !fChips.size() ) {
-        throw runtime_error( "TSetup::CheckControlInterface() - no chip defined!" );
-    }
-    
-    for ( unsigned int i = 0; i < fChips.size(); i++ ) {
-        
-        if ( !GetChipConfig(i)->IsEnabled() ) continue;
-        
-        GetChip(i)->WriteRegister( 0x60d, WriteValue );
-        try {
-            GetChip(i)->ReadRegister( 0x60d, Value );
-            if ( WriteValue == Value ) {
-                if ( fVerboseLevel ) {
-                    cout << "TSetup::CheckControlInterface() -  Chip ID " << GetChipConfig(i)->GetChipId() << ", readback correct." << endl;
-                }
-                fNWorkingChips++;
-            } else {
-                cerr << "TSetup::CheckControlInterface() - Chip ID " << GetChipConfig(i)->GetChipId() << ", wrong readback value (" << Value << " instead of " << WriteValue << "), disabling." << endl;
-                GetChipConfig(i)->SetEnable(false);
-            }
-        } catch (std::exception &e) {
-            cerr << "TSetup::CheckControlInterface() - Chip ID " << GetChipConfig(i)->GetChipId() << ", not answering, disabling." << endl;
-            GetChipConfig(i)->SetEnable(false);
-        }
-        
-    }
-    cout << "TSetup::CheckControlInterface() - Found " << GetNWorkingChips() << " working chips." << endl << endl;
-    
-    if ( GetNWorkingChips() == 0 ) {
-        throw runtime_error( "TSetup::CheckControlInterface() - no working chip found!" );
-    }
-}
-
-void TSetup::PowerOnDaqBoard( shared_ptr<TReadoutBoardDAQ> aDAQBoard )
-{
-  int overflow;
-
-  if ( aDAQBoard->PowerOn(overflow) ) cout << "LDOs are on" << endl;
-  else cout << "LDOs are off" << endl;
-  cout << "Version = " << std::hex << aDAQBoard->ReadFirmwareVersion()
-       << std::dec << endl;
-  aDAQBoard->SendOpCode(Alpide::OPCODE_GRST);
-  //sleep(1); // sleep necessary after GRST? or PowerOn?
-
-  cout << "Analog Current  = " << aDAQBoard->ReadAnalogI()     << endl;
-  cout << "Digital Current = " << aDAQBoard->ReadDigitalI()    << endl;
-  cout << "Temperature     = " << aDAQBoard->ReadTemperature() << endl;
-}
-
-void TSetup::ParseLine(const char* Line, char* Param, char* Rest, int* Chip)
-{
-    char MyParam[132];
-    char *MyParam2;
-    if (!strchr(Line, '_')) {
-        *Chip = -1;
-        sscanf (Line,"%s\t%s",Param, Rest);
-    }
-    else {
-        sscanf (Line,"%s\t%s", MyParam, Rest);
-        MyParam2 = strtok(MyParam, "_");
-        sprintf(Param, "%s", MyParam2);
-        sscanf (strpbrk(Line, "_")+1, "%d", Chip);
-    }
-}
-
-void TSetup::ReadDeviceType( const char* deviceName )
-{
-    if ( !strcmp (deviceName, "CHIPDAQ")) {
-        fDeviceType = TYPE_CHIP_DAQ;
-     }
-    else if (!strcmp(deviceName, "TELESCOPE")) {
-        fDeviceType = TYPE_TELESCOPE;
-    }
-    else if (!strcmp(deviceName, "OBHIC")) {
-        fDeviceType = TYPE_OBHIC;
-    }
-    else if (!strcmp(deviceName, "IBHIC")) {
-
-        fDeviceType = TYPE_IBHIC;
-    }
-    else if (!strcmp(deviceName, "MFT5")) {
-        fDeviceType = TYPE_MFT_LADDER5;
-    }
-    else if (!strcmp(deviceName, "MFT4")) {
-        fDeviceType = TYPE_MFT_LADDER4;
-    }
-    else if (!strcmp(deviceName, "MFT3")) {
-        fDeviceType = TYPE_MFT_LADDER3;
-    }
-    else if (!strcmp(deviceName, "MFT2")) {
-        fDeviceType = TYPE_MFT_LADDER2;
-    }
-    else if (!strcmp(deviceName, "OBCHIPMOSAIC")) {
-        fDeviceType = TYPE_OBCHIP_MOSAIC;
-    }
-    else if (!strcmp(deviceName, "IBCHIPMOSAIC")) {
-        fDeviceType = TYPE_IBCHIP_MOSAIC;
-    }
-    else if (!strcmp(deviceName, "HALFSTAVE")) {
-        fDeviceType = TYPE_HALFSTAVE;
-    }
-    else {
-        cerr << "TSetup::ReadDeviceType() - device name = " << deviceName << endl;
-        throw runtime_error( "TSetup::ReadDeviceType() - unknown setup type." );
-    }
-}
-
-void TSetup::EnableSlave( const int mychip )
-{
-    bool toggle = false;
-    TChipConfig* mychipConfig = GetChipConfig( mychip );
-    int mychipID = mychipConfig->GetChipId();
-    if ( mychipConfig->IsOBMaster() ) {
-        for ( int i = mychipID + 1; i <= mychipID + 6; i++ ) {
-            if ( GetChipConfig(i)->IsEnabled() ) {
-                toggle = true;
-                break;
-            }
-        }
-    }
-    mychipConfig->SetEnableSlave( toggle );
-}
-
-void TSetup::InitLibUsb()
-{
-    int err = libusb_init(&fContext);
-    if (err) {
-        cerr << "TSetup::InitLibUsb() - Error " << err << endl;
-        throw runtime_error( "TSetup::InitLibUsb() - Error while trying to init libusb." );
-    }
-}
-
-bool TSetup::IsDAQBoard( libusb_device *device )
-{
-    libusb_device_descriptor desc;
-    libusb_get_device_descriptor(device, &desc);
-    
-    // std::cout << std::hex << "Vendor id " << (int)desc.idVendor << ", Product id " << (int)desc.idProduct << std::dec << std::endl;
-    
-    if ((desc.idVendor == DAQ_BOARD_VENDOR_ID) && (desc.idProduct == DAQ_BOARD_PRODUCT_ID)) {
-        //std::cout << "Serial number " << (int)desc.iSerialNumber << std::endl;
-        return true;
-    }
-    
-    return false;
-}
-
-bool TSetup::AddDAQBoard( libusb_device *device )
+//___________________________________________________________________
+bool TSetup::AddDAQBoard( shared_ptr<libusb_device> device )
 {
     // note: this should change to use the correct board config according to index or geographical id
     shared_ptr<TBoardConfigDAQ> boardConfig = dynamic_pointer_cast<TBoardConfigDAQ>(GetBoardConfig(0));
@@ -1456,14 +1474,15 @@ bool TSetup::AddDAQBoard( libusb_device *device )
     return false;
 }
 
+//___________________________________________________________________
 void TSetup::FindDAQBoards()
 {
     libusb_device **list;
     
-    if ( fContext == 0 ) {
+    if ( Setup::fContext == 0 ) {
         throw runtime_error( "TSetup::FindDAQBoards() - Error, libusb not initialised." );
     }
-    ssize_t cnt = libusb_get_device_list(fContext, &list);
+    ssize_t cnt = libusb_get_device_list( Setup::fContext, &list );
     
     if ( cnt < 0 ) {
         throw runtime_error( "TSetup::FindDAQBoards() - Error getting device list." );
@@ -1484,6 +1503,48 @@ void TSetup::FindDAQBoards()
     libusb_free_device_list(list, 1);
 }
 
+//___________________________________________________________________
+void TSetup::InitLibUsb()
+{
+    int err = libusb_init( &Setup::fContext );
+    if (err) {
+        cerr << "TSetup::InitLibUsb() - Error " << err << endl;
+        throw runtime_error( "TSetup::InitLibUsb() - Error while trying to init libusb." );
+    }
+}
+
+//___________________________________________________________________
+bool TSetup::IsDAQBoard( shared_ptr<libusb_device> device )
+{
+    libusb_device_descriptor desc;
+    libusb_get_device_descriptor(device, &desc);
+    
+    // std::cout << std::hex << "Vendor id " << (int)desc.idVendor << ", Product id " << (int)desc.idProduct << std::dec << std::endl;
+    
+    if ((desc.idVendor == DAQ_BOARD_VENDOR_ID) && (desc.idProduct == DAQ_BOARD_PRODUCT_ID)) {
+        //std::cout << "Serial number " << (int)desc.iSerialNumber << std::endl;
+        return true;
+    }
+    
+    return false;
+}
+
+//___________________________________________________________________
+void TSetup::PowerOnDaqBoard( shared_ptr<TReadoutBoardDAQ> aDAQBoard )
+{
+    int overflow;
+    
+    if ( aDAQBoard->PowerOn(overflow) ) cout << "LDOs are on" << endl;
+    else cout << "LDOs are off" << endl;
+    cout << "Version = " << std::hex << aDAQBoard->ReadFirmwareVersion()
+    << std::dec << endl;
+    aDAQBoard->SendOpCode(Alpide::OPCODE_GRST);
+    //sleep(1); // sleep necessary after GRST? or PowerOn?
+    
+    cout << "Analog Current  = " << aDAQBoard->ReadAnalogI()     << endl;
+    cout << "Digital Current = " << aDAQBoard->ReadDigitalI()    << endl;
+    cout << "Temperature     = " << aDAQBoard->ReadTemperature() << endl;
+}
 
 
 

@@ -34,21 +34,22 @@ namespace Setup {
         TYPE_HALFSTAVE,
         TYPE_UNKNOWN
     };
+    static struct libusb_context *fContext = 0;
 }
-
-static struct libusb_context *fContext = 0;
 
 class TSetup {
 
 public:
+
+    #pragma mark - Constructors/destructor
     TSetup();
-    ~TSetup();
-    
-    // Setters
+    virtual ~TSetup();
+
+    #pragma mark - setters
     inline void         SetVerboseLevel( const int level ) { fVerboseLevel = level; }
     void                SetConfigFileName( const std::string name );
 
-    // Getters
+    #pragma mark - getters
     std::shared_ptr<TReadoutBoard>  GetBoard(const int iBoard);
     std::shared_ptr<TBoardConfig>   GetBoardConfig(const int iBoard);
     inline TBoardType               GetBoardType() const { return fBoardType; }
@@ -65,15 +66,23 @@ public:
     int                             GetStartChipID() const;
     bool                            IsMFTLadder() const;
     
-    // Other
-    void DecodeCommandParameters(int argc, char **argv);
-    void DumpConfigToFile(std::string fName);
+    #pragma mark - other public methods
+    void DecodeCommandParameters( int argc, char **argv );
+    void DumpConfigToFile( std::string fName );
     void InitSetup();
     void ReadConfigFile();
 
     
 private:
+    
+    #pragma mark - other private methods
     void CheckControlInterface();
+    void DecodeLine(const char* Line);
+    void EnableSlave( const int mychip );
+    void MakeDaisyChain();
+    void ParseLine( const char* Line, char* Param, char* Rest, int* Chip );
+    void ReadDeviceType( const char* deviceName );
+    #pragma mark - device creation
     void CreateDeviceConfig();
     void CreateHalfStave();
     void CreateIB();
@@ -83,7 +92,7 @@ private:
     void CreateOBSingleDAQ();
     void CreateOBSingleMosaic();
     void CreateTelescopeDAQ();
-    void DecodeLine(const char* Line);
+    #pragma mark - setup initialisation
     void InitSetupHalfStave();
     void InitSetupIB();
     void InitSetupIBSingleMosaic();
@@ -92,16 +101,12 @@ private:
     void InitSetupOBSingleDAQ();
     void InitSetupOBSingleMosaic();
     void InitSetupTelescopeDAQ();
-    void MakeDaisyChain();
-    void ParseLine(const char* Line, char* Param, char* Rest, int* Chip);
-    void PowerOnDaqBoard( shared_ptr<TReadoutBoardDAQ> aDAQBoard );
-    void ReadDeviceType(const char* deviceName);
-    void EnableSlave( const int mychip );
-    // Specific to DAQ board settings
-    void InitLibUsb();
-    bool IsDAQBoard( libusb_device *device );
-    bool AddDAQBoard( libusb_device *device );
+    #pragma mark - Specific to DAQ board settings
+    bool AddDAQBoard( std::shared_ptr<libusb_device> device );
     void FindDAQBoards();
+    void InitLibUsb();
+    bool IsDAQBoard( std::shared_ptr<libusb_device> device );
+    void PowerOnDaqBoard( shared_ptr<TReadoutBoardDAQ> aDAQBoard );
 
     
 private:
