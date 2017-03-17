@@ -7,15 +7,15 @@ INCLUDE=/usr/local/include
 LIBPATH=/usr/local/lib
 #
 # for Linux, use option "-mcmodel=large"
-#CFLAGS= -O2 -pipe -fPIC -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++11 -m64 -mcmodel=large -I $(INCLUDE)
+#CFLAGS= -O2 -pipe -fPIC -Wno-unknown-pragmas -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++11 -m64 -mcmodel=large -I $(INCLUDE)
 # for MacOsX, remove option "-mcmodel=large" as it lead to non-usable executables
 # after a clumsy linking (see for e.g. the warning below)
 #ld: warning: PIE disabled. Absolute addressing (perhaps -mdynamic-no-pic) not allowed in code signed PIE, but used in __ZN5TChipC2Eiii from TChip.o. To fix this warning, don't compile with -mdynamic-no-pic or link with -Wl,-no_pie
-CFLAGS= -O2 -pipe -fPIC -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++11 -m64 -I $(INCLUDE)
+CFLAGS= -O2 -pipe -fPIC -Wno-unknown-pragmas -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++11 -m64 -I $(INCLUDE)
 LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
 OBJECT= runTest
 LIBRARY=libalpide.so
-CLASS= TChip.cpp TReadoutBoard.cpp TAlpide.cpp AlpideConfig.cpp AlpideDecoder.cpp USB.cpp USBHelpers.cpp TReadoutBoardDAQ.cpp \
+CLASS= TChip.cpp TReadoutBoard.cpp TAlpide.cpp AlpideDecoder.cpp USB.cpp TReadoutBoardDAQ.cpp \
  TReadoutBoardMOSAIC.cpp TChipConfig.cpp TBoardConfig.cpp TBoardConfigDAQ.cpp TBoardConfigMOSAIC.cpp \
  BoardDecoder.cpp TSetup.cpp THisto.cpp TScanAnalysis.cpp\
  MosaicSrc/alpidercv.cpp MosaicSrc/controlinterface.cpp MosaicSrc/i2cbus.cpp MosaicSrc/i2cslave.cpp MosaicSrc/i2csyspll.cpp \
