@@ -2,8 +2,8 @@
 #define ALPIDE_H
 
 #include <unistd.h>
-#include "TReadoutBoard.h"
-#include "TConfig.h"
+#include <stdint.h>
+#include <memory>
 
 namespace Alpide {
   typedef enum {
@@ -173,53 +173,106 @@ namespace Alpide {
   	RAMP_2us = 2,
   	RAMP_4us = 3
   } TADCRampSpeed;
-
-
 };
 
+class TChipConfig;
+class TReadoutBoard;
+
 class TAlpide {
+    
  private:
-  TChipConfig   *fConfig;
-  int            fChipId;
-  TReadoutBoard *fReadoutBoard;
+    std::weak_ptr<TChipConfig> fConfig;
+    int fChipId;
+    std::weak_ptr<TReadoutBoard> fReadoutBoard;
 
-  // ADC calibration parameters
-  int		fADCBias;
-  bool		fADCHalfLSB;
-  bool		fADCSign;
+    // ADC calibration parameters
+    int fADCBias;
+    bool fADCHalfLSB;
+    bool fADCSign;
 
-
- protected: 
  public:
-  TAlpide (TChipConfig *config);
-  TAlpide (TChipConfig *config, TReadoutBoard *readoutBoard);
-  TChipConfig *GetConfig () {return fConfig;};
-  void SetReadoutBoard (TReadoutBoard *readoutBoard) {fReadoutBoard = readoutBoard;};
-  TReadoutBoard *GetReadoutBoard() {return fReadoutBoard;};  
-  int  ReadRegister       (Alpide::TRegister address, uint16_t &value);
-  int  WriteRegister      (Alpide::TRegister address, uint16_t value, bool verify = false);
-  int  ReadRegister       (uint16_t address, uint16_t &value);
-  int  WriteRegister      (uint16_t address, uint16_t value, bool verify = false);
-  int  ModifyRegisterBits (Alpide::TRegister address, uint8_t lowBit, uint8_t nBits, uint16_t value, bool verify = false);
+    
+    #pragma mark - Constructors/destructor
+    // ctor
+    TAlpide();
+    TAlpide( std::shared_ptr<TChipConfig> config );
+    TAlpide( std::shared_ptr<TChipConfig> config,
+             std::shared_ptr<TReadoutBoard> readoutBoard );
+    // dtor
+    virtual ~TAlpide();
 
-  void SetEnable          (bool Enable);
-  //int SendOpCode         (Alpide::TOpCode opcode);
+    #pragma mark - setters/getters
+    // setter
+    void SetReadoutBoard( std::shared_ptr<TReadoutBoard> readoutBoard ) { fReadoutBoard = readoutBoard; }
+    void SetEnable( bool Enable );
+    // getter
+    std::weak_ptr<TChipConfig> GetConfig() { return fConfig; }
+    std::weak_ptr<TReadoutBoard> GetReadoutBoard() { return fReadoutBoard; }
+    int GetADCBias() const { return fADCBias; }
 
-  //int SendCommandSequence (vector <> sequence);
+    #pragma mark - basic operations with registers
+    int  ReadRegister( const Alpide::TRegister address, uint16_t &value );
+    int  ReadRegister( const uint16_t address, uint16_t &value );
+    int  WriteRegister( const Alpide::TRegister address,
+                        uint16_t value,
+                        const bool verify = false );
+    int WriteRegister( const uint16_t address,
+                        uint16_t value,
+                        const bool verify = false );
+    int ModifyRegisterBits( const Alpide::TRegister address,
+                            const uint8_t lowBit,
+                            const uint8_t nBits, uint16_t value,
+                            const bool verify = false );
+    #pragma mark - dump
+    void DumpConfig( const char *fName, const bool writeFile=true, char *Config = 0 );
 
-  void DumpConfig(const char *fName, bool writeFile=true, char *Config=0);
+    #pragma mark - operations with ADC or DAC
+    float ReadTemperature() const;
+    float ReadDACVoltage( Alpide::TRegister ADac ) const;
+    float ReadDACCurrent( Alpide::TRegister ADac ) const;
+    
+    #pragma mark - chip configuration operations
+    void Init();
+    void WritePixConfReg( Alpide::TPixReg reg, const bool data);
+     /// This method writes data to the selected pixel register in the whole matrix simultaneously.
+    void WritePixRegAll( Alpide::TPixReg reg, const bool data);
+     /// Writes data to complete row. This assumes that select bits have been cleared before.
+    void WritePixRegRow( Alpide::TPixReg reg, const bool data, const int row);
+    void WritePixRegSingle( Alpide::TPixReg reg, const bool data,
+                            const int row, const int col);
+    void ApplyStandardDACSettings( const float backBias );
+    void ConfigureFromu( const Alpide::TPulseType pulseType,
+                         const bool testStrobe );
+    void ConfigureBuffers();
+    void ConfigureCMU();
+    /// return value: active row (needed for threshold scan histogramming)
+    int  ConfigureMaskStage( int nPix, int iStage );
+    void WriteControlReg( const Alpide::TChipMode chipMode );
+    void BaseConfigPLL();
+    void BaseConfigMask();
+    void BaseConfigFromu();
+    void BaseConfigDACs();
+    void BaseConfig();
+    void PrintDebugStream();
 
-
-
-public:
-  int GetADCBias() { return(fADCBias); };
-  int CalibrateADC();
-  void SetTheDacMonitor(Alpide::TRegister ADac, Alpide::TDACMonIref IRef = Alpide::IREF_100uA);
-  uint16_t SetTheADCCtrlRegister(Alpide::TADCMode Mode, Alpide::TADCInput SelectInput, Alpide::TADCComparator ComparatorCurrent, Alpide::TADCRampSpeed RampSpeed);
-  float ReadTemperature();
-  float ReadDACVoltage(Alpide::TRegister ADac);
-  float ReadDACCurrent(Alpide::TRegister ADac);
-
+private:
+    
+    #pragma mark - needed to operate with ADC or DAC
+    int CalibrateADC();
+    uint16_t SetTheADCCtrlRegister( Alpide::TADCMode Mode,
+                                    Alpide::TADCInput SelectInput,
+                                    Alpide::TADCComparator ComparatorCurrent,
+                                    Alpide::TADCRampSpeed RampSpeed );
+    void SetTheDacMonitor( Alpide::TRegister ADac,
+                            Alpide::TDACMonIref IRef = Alpide::IREF_100uA );
+    
+    #pragma mark - needed for chip config. operations
+    /// Clear all column and row select bits.
+    /**
+     \param clearPulseGating If set, the pulse gating registers will also be reset
+     (possibly useful at startup, but not in-between setting of mask patterns).
+     */
+    void ClearPixSelectBits( const bool clearPulseGating );
 
 };
 
