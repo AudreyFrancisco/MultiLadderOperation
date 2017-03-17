@@ -1,6 +1,16 @@
 #ifndef TSETUP_H
 #define TSETUP_H
 
+/// \class TSetup
+/// \brief Container of configs (chips and boards), vector of chips, vector of boards
+///
+/// This class is a container for configurations (vector of TChipConfig, TBoardConfig),
+/// chips (vector of TAlpide) and readout boards (vector of TReadoutBoard). It creates
+/// and fills the configurations from the config file. The chips and readout boards are
+/// then instanciated according to the configurations. A systematic check of the whole
+/// system is conducted in order to disable non-working chips in case of device with
+/// multiple chips.
+
 #include <unistd.h>
 #include <vector>
 #include <string.h>
