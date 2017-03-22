@@ -689,15 +689,6 @@ void TAlpide::PrintDebugStream()
 
 #pragma mark - needed to operate with ADC or DAC
 
-/* ------------------------------------------------------
- * Calibrate the internal ADC
- *
- * Returns  : the value of the calculated Bias.
- *
- * Note  : the calibration parameter are stored into the
- *         devoted class members.
- *
- */
 //___________________________________________________________________
 int TAlpide::CalibrateADC()
 {
@@ -742,17 +733,6 @@ int TAlpide::CalibrateADC()
     return fADCBias;
 }
 
-/* ------------------------------------------------------
- * Set the ADC Control Register
- *
- * Parameter  : Mode of ADC measurement [0:Manual 1:Calibrate 2:Auto 3:SupoerManual]
- *              SelectInput the source specification [0:AVSS 1:DVSS 2:AVDD 3:DVDD
- *              									4:VBGthVolScal 5:DACMONV 6:DACMONI
- *              									7:Bandgap 8:Temperature]
- *              ComparatorCurrent  [0:180uA 1:190uA 2:296uA 3:410uA]
- * 				RampSpeed 	[0:500ms 1:1us 2:2us 3:4us]
- *
- */
 //___________________________________________________________________
 uint16_t TAlpide::SetTheADCCtrlRegister( Alpide::TADCMode Mode,
 										Alpide::TADCInput SelectInput,
@@ -765,15 +745,6 @@ uint16_t TAlpide::SetTheADCCtrlRegister( Alpide::TADCMode Mode,
 	return Data;
 }
 
-/* ------------------------------------------------------
- * Sets the DAC Monitor multiplexer
- *
- * Parameter  : the Index of the DAC register.
- *              the IRef value
- *
- * Note  : Iref =  0:0.25ua 1:0.75uA 2:1.00uA 3:1.25uA
- *
- */
 //___________________________________________________________________
 void TAlpide::SetTheDacMonitor( Alpide::TRegister ADac, Alpide::TDACMonIref IRef )
 {

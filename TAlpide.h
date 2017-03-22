@@ -284,11 +284,30 @@ class TAlpide {
 private:
     
     #pragma mark - needed to operate with ADC or DAC
+    /// Calibrate the internal ADC
+    /**
+     Returns the value of the calculated Bias.
+     - Note:
+     
+     the calibration parameter are stored into the devoted class members.
+     */
     int CalibrateADC();
+    /// Set the ADC Control Register
+    /**
+     \param Mode Mode of ADC measurement [0:Manual 1:Calibrate 2:Auto 3:SupoerManual]
+     \param SelectInput the source specification [0:AVSS 1:DVSS 2:AVDD 3:DVDD 4:VBGthVolScal 5:DACMONV 6:DACMONI 7:Bandgap 8:Temperature]
+     \param ComparatorCurrent [0:180uA 1:190uA 2:296uA 3:410uA]
+     \param RampSpeed [0:500ms 1:1us 2:2us 3:4us]
+     */
     uint16_t SetTheADCCtrlRegister( Alpide::TADCMode Mode,
                                     Alpide::TADCInput SelectInput,
                                     Alpide::TADCComparator ComparatorCurrent,
                                     Alpide::TADCRampSpeed RampSpeed );
+    /// Sets the DAC Monitor multiplexer
+    /**
+     \param ADac the Index of the DAC register
+     \param IRef the IRef value [Iref =  0:0.25ua 1:0.75uA 2:1.00uA 3:1.25uA]
+     */
     void SetTheDacMonitor( Alpide::TRegister ADac,
                             Alpide::TDACMonIref IRef = Alpide::IREF_100uA );
     
