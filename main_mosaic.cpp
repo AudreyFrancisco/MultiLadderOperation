@@ -9,10 +9,9 @@
 #include "TReadoutBoardMOSAIC.h"
 #include "TBoardConfig.h"
 #include "TBoardConfigMOSAIC.h"
-#include "TConfig.h"
 #include "TAlpide.h"
 #include <exception>
-#include "SetupHelpers.h"
+#include "TSetup.h"
 
 int main(int argc, char** argv) {
 
@@ -81,7 +80,7 @@ int main(int argc, char** argv) {
 
 	// sets the trigger
 	theBoard->SetTriggerConfig (enablePulse, enableTrigger, triggerDelay, pulseDelay);
-	theBoard->SetTriggerSource (TTriggerSource::trigInt);
+	theBoard->SetTriggerSource (TTriggerSource::kTRIG_INT);
 
 	((TReadoutBoardMOSAIC *)theBoard)->StartRun(); // Activate the data taking ...
 

@@ -1,12 +1,12 @@
 #include "TBoardConfig.h"
 #include <stdio.h>
 
-using namespace BoardConfig;
+using namespace std;
 
 TBoardConfig::TBoardConfig()
 {
-  fTriggerDelay = STROBEDELAY;
-  fPulseDelay   = PULSEDELAY;
+  fTriggerDelay = fSTROBEDELAY;
+  fPulseDelay   = fPULSEDELAY;
 }
 
 

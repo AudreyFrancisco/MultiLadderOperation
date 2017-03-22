@@ -31,7 +31,7 @@ TSetup::TSetup() :
     fNChips( 0 ),
     fNModules( 0 ),
     fStartChipId( 0 ),
-    fBoardType( board_UNKNOWN ),
+    fBoardType( kBOARD_UNKNOWN ),
     fDeviceType( TYPE_UNKNOWN ),
     fScanConfig( nullptr ),
     fConfigFile( nullptr )
@@ -459,7 +459,7 @@ void TSetup::DecodeLine(const char* Line)
     else if (fScanConfig->IsParameter(Param)) {
         fScanConfig->SetParamValue (Param, Rest);
     }
-    else if ((!strcmp(Param, "ADDRESS")) && (fBoardConfigs.at(0)->GetBoardType() == boardMOSAIC)) {
+    else if ((!strcmp(Param, "ADDRESS")) && (fBoardConfigs.at(0)->GetBoardType() == kBOARD_MOSAIC)) {
         for (int i = Start; i < BoardStop; i++) {
             shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fBoardConfigs.at(i));
             boardConfig->SetIPaddress(Rest);
@@ -718,7 +718,7 @@ void TSetup::CreateHalfStave()
     if ( !GetNModules() ) {
         throw runtime_error( "TSetup::CreateHalfStave() - no module!" );
     }
-    fBoardType = boardMOSAIC;
+    fBoardType = kBOARD_MOSAIC;
     const int nBoards = 2;
     for (int iboard = 0; iboard < nBoards; i++) {
         auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
@@ -745,7 +745,7 @@ void TSetup::CreateIB()
     if ( fCreatedConfig ) {
         return;
     }
-    fBoardType = boardMOSAIC;
+    fBoardType = kBOARD_MOSAIC;
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
@@ -766,7 +766,7 @@ void TSetup::CreateIBSingleMosaic()
     if ( fCreatedConfig ) {
         return;
     }
-    fBoardType = boardMOSAIC;
+    fBoardType = kBOARD_MOSAIC;
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
@@ -785,7 +785,7 @@ void TSetup::CreateMFTLadder()
     if ( fCreatedConfig ) {
         return;
     }
-    fBoardType = boardMOSAIC;
+    fBoardType = kBOARD_MOSAIC;
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
@@ -806,7 +806,7 @@ void TSetup::CreateOB()
     if ( fCreatedConfig ) {
         return;
     }
-    fBoardType = boardMOSAIC;
+    fBoardType = kBOARD_MOSAIC;
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
@@ -831,7 +831,7 @@ void TSetup::CreateOBSingleDAQ()
     if ( fCreatedConfig ) {
         return;
     }
-    fBoardType = boardDAQ;
+    fBoardType = kBOARD_DAQ;
     auto newBoardConfig = make_shared<TBoardConfigDAQ>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
@@ -851,7 +851,7 @@ void TSetup::CreateOBSingleMosaic()
     if ( fCreatedConfig ) {
         return;
     }
-    fBoardType = boardMOSAIC;
+    fBoardType = kBOARD_MOSAIC;
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
@@ -874,7 +874,7 @@ void TSetup::CreateTelescopeDAQ()
     if ( GetNChips() < 1 ) {
         throw runtime_error( "TSetup::ReadDeviceType() - TELESCOPE not useable with less than 1 chips." );
     }
-    fBoardType = boardDAQ;
+    fBoardType = kBOARD_DAQ;
     int nBoards = fNChips; // one DAQ board per chip
     for (int iboard = 0; iboard < nBoards; iboard ++) {
         auto newBoardConfig = make_shared<TBoardConfigDAQ>();
@@ -910,7 +910,7 @@ void TSetup::InitSetupHalfStave()
         exit();
     }
     try {
-        if ( fBoardType != boardMOSAIC ) {
+        if ( fBoardType != kBOARD_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupIB() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -974,7 +974,7 @@ void TSetup::InitSetupIB()
         exit();
     }
     try {
-        if ( fBoardType != boardMOSAIC ) {
+        if ( fBoardType != kBOARD_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupIB() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -1058,7 +1058,7 @@ void TSetup::InitSetupIBSingleMosaic()
         exit();
     }
     try {
-        if ( fBoardType != boardMOSAIC ) {
+        if ( fBoardType != kBOARD_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupIBSingleMosaic() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -1135,7 +1135,7 @@ void TSetup::InitSetupMFTLadder()
         exit();
     }
     try {
-        if ( fBoardType != boardMOSAIC ) {
+        if ( fBoardType != kBOARD_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupMFTLadder() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -1234,7 +1234,7 @@ void TSetup::InitSetupOB()
         exit();
     }
     try {
-        if ( fBoardType != boardMOSAIC ) {
+        if ( fBoardType != kBOARD_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupOB() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -1317,7 +1317,7 @@ void TSetup::InitSetupOBSingleDAQ()
         exit();
     }
     try {
-        if ( fBoardType != boardDAQ ) {
+        if ( fBoardType != kBOARD_DAQ ) {
             throw runtime_error( "TSetup::InitSetupOBSingleDAQ() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -1379,7 +1379,7 @@ void TSetup::InitSetupOBSingleMosaic()
         exit();
     }
     try {
-        if ( fBoardType != boardMOSAIC ) {
+        if ( fBoardType != kBOARD_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupOBSingleMosaic() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -1437,7 +1437,7 @@ void TSetup::InitSetupTelescopeDAQ()
         exit();
     }
     try {
-        if ( fBoardType != boardDAQ ) {
+        if ( fBoardType != kBOARD_DAQ ) {
             throw runtime_error( "TSetup::InitSetupTelescopeDAQ() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {

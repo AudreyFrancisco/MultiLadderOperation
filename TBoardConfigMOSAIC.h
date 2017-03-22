@@ -50,7 +50,10 @@ protected:
 
     char IPAddress[30];
 //	Mosaic::TReceiverSpeed  SpeedMode;
-
+    
+    // Receiver map to data links
+    static const int RCVMAP[];
+    static const int RCVMAPsize = 9;
 
 public:
 	TBoardConfigMOSAIC(const char *fName = 0);
@@ -68,6 +71,7 @@ public:
 	uint32_t GetPollingDataTimeout () {return((uint32_t)pollDataTimeout);}
 	bool     IsInverted            () {return((bool)Inverted);}
     Mosaic::TReceiverSpeed    GetSpeedMode        ();
+    int GetRCVMAP( const int i ) const;
 
 	// Setters
 	void SetIPaddress          (const char *AIPaddress);

@@ -49,7 +49,7 @@
 #include "BoardDecoder.h"
 #include "AlpideDecoder.h"
 #include "TAlpide.h"
-#include "SetupHelpers.h"
+#include "TSetup.h"
 #include "MosaicSrc/mexception.h"
 
 using namespace std;
@@ -136,7 +136,7 @@ int TReadoutBoardMOSAIC::SetTriggerConfig (bool enablePulse, bool enableTrigger,
 
 void TReadoutBoardMOSAIC::SetTriggerSource (TTriggerSource triggerSource)
 {
-	if(triggerSource == trigInt) {
+	if(triggerSource == kTRIG_INT) {
 		// Internal Trigger
 		mTriggerControl->addEnableExtTrigger(false, 0);
 	} else {

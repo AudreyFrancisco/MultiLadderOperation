@@ -21,10 +21,9 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "USBHelpers.h"
-#include "TConfig.h"
 #include "AlpideDecoder.h"
 #include "BoardDecoder.h"
-#include "SetupHelpers.h"
+#include "TSetup.h"
 
 
 int configureChip(TAlpide *chip) {

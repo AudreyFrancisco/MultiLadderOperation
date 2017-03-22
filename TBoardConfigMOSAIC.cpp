@@ -17,10 +17,11 @@
 
 using namespace std;
 
+const int TBoardConfigMOSAIC::RCVMAP[] = { 3, 5, 7, 8, 6, 4, 2, 1, 0 };
 
 TBoardConfigMOSAIC::TBoardConfigMOSAIC( const char *AConfigFileName ) : TBoardConfig()
 {
-	fBoardType = boardMOSAIC;
+	fBoardType = kBOARD_MOSAIC;
 
 	// Default values set
 	NumberOfControlInterfaces = MAX_MOSAICCTRLINT;
@@ -77,6 +78,19 @@ Mosaic::TReceiverSpeed TBoardConfigMOSAIC::GetSpeedMode()
 		return(Mosaic::RCV_RATE_400);
 		break;
 	}
+}
+
+int TBoardConfigMOSAIC::GetRCVMAP( const int i ) const
+{
+    try {
+        if ( (i < 0) || (i>= RCVMAPsize) ) {
+            cerr << "TBoardConfigMOSAIC::GetRCVMAP() - index = " << i << endl;
+            throw out_of_range("TBoardConfigMOSAIC::GetRCVMAP() - index out of range!");
+        }
+        return RCVMAP[i];
+    } catch ( std::out_of_range &err ) {
+        exit();
+    }
 }
 
 void TBoardConfigMOSAIC::SetSpeedMode(Mosaic::TReceiverSpeed ASpeedMode)
