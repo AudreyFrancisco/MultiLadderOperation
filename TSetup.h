@@ -30,20 +30,20 @@ class TScanConfig;
 //   - MFT 5-chips ladder with MOSAIC
 //   - etc ...
 namespace Setup {
-    enum TDeviceType {
-        TYPE_CHIP_DAQ,
-        TYPE_TELESCOPE,
-        TYPE_OBHIC,
-        TYPE_IBHIC,
-        TYPE_MFT_LADDER5,
-        TYPE_MFT_LADDER4,
-        TYPE_MFT_LADDER3,
-        TYPE_MFT_LADDER2,
-        TYPE_OBCHIP_MOSAIC,
-        TYPE_IBCHIP_MOSAIC,
-        TYPE_HALFSTAVE,
-        TYPE_UNKNOWN
-    };
+    typedef enum {
+        kDEVICE_CHIP_DAQ,
+        kDEVICE_TELESCOPE,
+        kDEVICE_OBHIC,
+        kDEVICE_IBHIC,
+        kDEVICE_MFT_LADDER5,
+        kDEVICE_MFT_LADDER4,
+        kDEVICE_MFT_LADDER3,
+        kDEVICE_MFT_LADDER2,
+        kDEVICE_OBCHIP_MOSAIC,
+        kDEVICE_IBCHIP_MOSAIC,
+        kDEVICE_HALFSTAVE,
+        kDEVICE_UNKNOWN
+    } TDeviceType;
     static struct libusb_context *fContext = 0;
 }
 
@@ -67,13 +67,13 @@ public:
     std::shared_ptr<TChipConfig>    GetChipConfig(const int iChip);
     std::shared_ptr<TChipConfig>    GetChipConfigById(const int chipId);
     inline std::string              GetConfigurationFileName() const { return fConfigFileName; }
-    inline TDeviceType              GetDeviceType() const { return fDeviceType; }
+    inline Setup::TDeviceType              GetDeviceType() const { return fDeviceType; }
     int                             GetNChips() const;
     int                             GetNBoards() const { return (int)fBoardConfigs.size(); }
     int                             GetNModules() const { return fNModules; }
     inline int                      GetNWorkingChips() const { return fNWorkingChips; }
     std::shared_ptr<TScanConfig>    GetScanConfig() { return fScanConfig; }
-    int                             GetStartChipID() const;
+    int                             GetStartChipId();
     bool                            IsMFTLadder() const;
     
     #pragma mark - other public methods
@@ -116,7 +116,7 @@ private:
     void FindDAQBoards();
     void InitLibUsb();
     bool IsDAQBoard( std::shared_ptr<libusb_device> device );
-    void PowerOnDaqBoard( shared_ptr<TReadoutBoardDAQ> aDAQBoard );
+    void PowerOnDaqBoard( std::shared_ptr<TReadoutBoardDAQ> aDAQBoard );
 
     
 private:
@@ -129,7 +129,7 @@ private:
     int fNModules;
     int fStartChipId;
     TBoardType fBoardType;
-    TDeviceType fDeviceType;
+    Setup::TDeviceType fDeviceType;
     std::shared_ptr<TScanConfig> fScanConfig;
     FILE* fConfigFile;
     std::vector<std::shared_ptr<TReadoutBoard>> fBoards;

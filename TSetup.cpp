@@ -1,5 +1,5 @@
 #include <iostream>
-#include <ifstream>
+#include <fstream>
 #include "TSetup.h"
 #include "USB.h"
 #include "TReadoutBoard.h"
@@ -12,10 +12,10 @@
 #include <string.h>
 #include <exception>
 #include <stdexcept>
-
-#define
+#include <stdlib.h>
 
 using namespace std;
+using namespace Setup;
 
 const string TSetup::NEWALPIDEVERSION = "1.0_mft";
 
@@ -32,7 +32,7 @@ TSetup::TSetup() :
     fNModules( 0 ),
     fStartChipId( 0 ),
     fBoardType( kBOARD_UNKNOWN ),
-    fDeviceType( TYPE_UNKNOWN ),
+    fDeviceType( kDEVICE_UNKNOWN ),
     fScanConfig( nullptr ),
     fConfigFile( nullptr )
 {
@@ -70,7 +70,7 @@ void TSetup::SetConfigFileName( const string name )
             }
         } catch ( std::invalid_argument &err ) {
             cerr << err.what() << endl;
-            exit();
+            exit(0);
         }
     }
 }
@@ -82,7 +82,7 @@ shared_ptr<TReadoutBoard> TSetup::GetBoard(const int iBoard)
     if ( (!fInitialisedSetup) || fBoards.empty() ) {
         throw runtime_error( "TSetup::GetBoard() - no board defined!" );
     }
-    if ( (iBoard < 0) || (iBoard >= fBoards.size()) ) {
+    if ( (iBoard < 0) || (iBoard >= (int)fBoards.size()) ) {
         cerr << "TSetup::GetBoard() - iBoard = " << iBoard << endl;
         throw out_of_range( "TSetup::GetBoard() - wrong board index!" );
     }
@@ -91,7 +91,7 @@ shared_ptr<TReadoutBoard> TSetup::GetBoard(const int iBoard)
         myBoard = fBoards.at( iBoard );
     } catch ( ... ) {
         cerr << "TSetup::GetBoard() - error, exit!" << endl;
-        exit();
+        exit(0);
     }
     return myBoard;
 }
@@ -102,7 +102,7 @@ shared_ptr<TBoardConfig> TSetup::GetBoardConfig(const int iBoard)
     if ( (!fCreatedConfig) || fBoardConfigs.empty() ) {
         throw runtime_error( "TSetup::GetBoardConfig() - no config defined!" );
     }
-    if ( (iBoard < 0) || (iBoard >= fBoardConfigs.size()) ) {
+    if ( (iBoard < 0) || (iBoard >= (int)fBoardConfigs.size()) ) {
         cerr << "TSetup::GetBoardConfig() - iBoard = " << iBoard << endl;
         throw out_of_range( "TSetup::GetBoardConfig() - wrong board config index!" );
     }
@@ -111,7 +111,7 @@ shared_ptr<TBoardConfig> TSetup::GetBoardConfig(const int iBoard)
         myBoardConfig = fBoardConfigs.at( iBoard );
     } catch ( ... ) {
         cerr << "TSetup::GetBoardConfig() - error, exit!" << endl;
-        exit();
+        exit(0);
     }
     return myBoardConfig;
 }
@@ -122,7 +122,7 @@ shared_ptr<TAlpide> TSetup::GetChip(const int iChip)
     if ( (!fInitialisedSetup) || fChips.empty() ) {
         throw runtime_error( "TSetup::GetChip() - no chip defined!" );
     }
-    if ( (iChip < 0) || (iChip >= fChips.size()) ) {
+    if ( (iChip < 0) || (iChip >= (int)fChips.size()) ) {
         cerr << "TSetup::GetChip() - iChip = " << iChip << endl;
         throw out_of_range( "TSetup::GetChip() - wrong chip index!" );
     }
@@ -131,7 +131,7 @@ shared_ptr<TAlpide> TSetup::GetChip(const int iChip)
         myChip = fChips.at( iChip );
     } catch ( ... ) {
         cerr << "TSetup::GetChip() - error, exit!" << endl;
-        exit();
+        exit(0);
     }
     return myChip;
 }
@@ -142,7 +142,7 @@ shared_ptr<TChipConfig> TSetup::GetChipConfig(const int iChip )
     if ( (!fCreatedConfig) || fChipConfigs.empty()  ) {
         throw runtime_error( "TSetup::GetChipConfig() - no config defined!" );
     }
-    if ( (iChip < 0) || (iChip >= fChipConfigs.size()) ) {
+    if ( (iChip < 0) || (iChip >= (int)fChipConfigs.size()) ) {
         cerr << "TSetup::GetChipConfig() - iChip = " << iChip << endl;
         throw out_of_range( "TSetup::GetChipConfig() - wrong chip config index!" );
     }
@@ -151,7 +151,7 @@ shared_ptr<TChipConfig> TSetup::GetChipConfig(const int iChip )
         myChipConfig = fChipConfigs.at( iChip );
     } catch ( ... ) {
         cerr << "TSetup::GetChipConfig() - error, exit!" << endl;
-        exit();
+        exit(0);
     }
     return myChipConfig;
 }
@@ -188,7 +188,7 @@ int TSetup::GetNChips() const
 }
 
 //___________________________________________________________________
-int TSetup::GetStartChipID() const
+int TSetup::GetStartChipId()
 {
     if ( fCreatedConfig ) {
         return GetChipConfig(0)->GetChipId();
@@ -203,10 +203,10 @@ bool TSetup::IsMFTLadder() const
     if ( !fCreatedConfig ) {
         throw runtime_error( "TSetup::IsMFTLadder() - device not created yet." );
     }
-    if ( (GetDeviceType() == TYPE_MFT_LADDER5)
-        || (GetDeviceType() == TYPE_MFT_LADDER4)
-        || (GetDeviceType() == TYPE_MFT_LADDER3)
-        || (GetDeviceType() == TYPE_MFT_LADDER2) ) {
+    if ( (GetDeviceType() == kDEVICE_MFT_LADDER5)
+        || (GetDeviceType() == kDEVICE_MFT_LADDER4)
+        || (GetDeviceType() == kDEVICE_MFT_LADDER3)
+        || (GetDeviceType() == kDEVICE_MFT_LADDER2) ) {
         return true;
     } else {
         return false;
@@ -227,7 +227,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 cout << "-h  :  Display this message" << endl;
                 cout << "-v <level> : Sets the verbosity level (partly implemented)" << endl;
                 cout << "-c <configuration_file> : Sets the configuration file used" << endl << endl;
-                exit();
+                exit(0);
                 break;
             case 'v':  // sets the verbose level
                 SetVerboseLevel( atoi(optarg) );
@@ -247,7 +247,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                         cerr << "Unknown option character `" << std::hex << optopt << std::dec << "`" << endl;
                     }
                 }
-                exit();
+                exit(0);
             default:
                 return;
         }
@@ -273,42 +273,42 @@ void TSetup::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
 
     switch ( fDeviceType )
     {
-        case TYPE_CHIP_DAQ:
+        case kDEVICE_CHIP_DAQ:
             InitSetupOBSingleDAQ();
             break;
-        case TYPE_TELESCOPE:
+        case kDEVICE_TELESCOPE:
             InitSetupTelescopeDAQ();
             break;
-        case TYPE_OBHIC:
+        case kDEVICE_OBHIC:
             InitSetupOB();
             break;
-        case TYPE_IBHIC:
+        case kDEVICE_IBHIC:
             InitSetupIB();
             break;
-        case TYPE_MFT_LADDER5:
+        case kDEVICE_MFT_LADDER5:
             InitSetupMFTLadder();
             break;
-        case TYPE_MFT_LADDER4:
+        case kDEVICE_MFT_LADDER4:
             InitSetupMFTLadder();
             break;
-        case TYPE_MFT_LADDER3:
+        case kDEVICE_MFT_LADDER3:
             InitSetupMFTLadder();
             break;
-        case TYPE_MFT_LADDER2:
+        case kDEVICE_MFT_LADDER2:
             InitSetupMFTLadder();
             break;
-        case TYPE_OBCHIP_MOSAIC:
+        case kDEVICE_OBCHIP_MOSAIC:
             InitSetupOBSingleMosaic();
             break;
-        case TYPE_IBCHIP_MOSAIC:
+        case kDEVICE_IBCHIP_MOSAIC:
             InitSetupIBSingleMosaic();
             break;
-        case TYPE_HALFSTAVE:
+        case kDEVICE_HALFSTAVE:
             InitSetupHalfStave();
             break;
         default:
@@ -330,11 +330,11 @@ void TSetup::ReadConfigFile()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     
     // first look for the type of setup in order to initialise config structure
-    while ( (!fCreatedConfig) && (fgets(Line, 1023, fp) != NULL) ) {
+    while ( (!fCreatedConfig) && (fgets(Line, 1023, fConfigFile) != NULL) ) {
         
         if ((Line[0] == '\n') || (Line[0] == '#')) continue;
         ParseLine (Line, Param, Rest, &Chip);
@@ -349,24 +349,24 @@ void TSetup::ReadConfigFile()
                 ReadDeviceType( Rest );
             } catch ( std::runtime_error &err ) {
                 cerr << err.what() << endl;
-                exit();
+                exit(0);
             }
         }
         try {
-            // type and nchips has been found (nchips only needed for device TYPE_TELESCOPE)
+            // type and nchips has been found (nchips only needed for device kDEVICE_TELESCOPE)
             // calls the appropriate method, which in turn calls
             // the constructors for board and chip configs
             CreateDeviceConfig();
         } catch ( std::runtime_error &err ) {
             cerr << err.what() << endl;
-            exit();
+            exit(0);
         }
     }
     fNChips = fChipConfigs.size();
     fScanConfig = make_shared<TScanConfig>();
     
     // now read the rest
-    while (fgets(Line, 1023, fp) != NULL) {
+    while (fgets(Line, 1023, fConfigFile) != NULL) {
         DecodeLine(Line);
     }
 }
@@ -474,7 +474,7 @@ void TSetup::DecodeLine(const char* Line)
 void TSetup::EnableSlave( const int mychip )
 {
     bool toggle = false;
-    TChipConfig* mychipConfig = GetChipConfig( mychip );
+    shared_ptr<TChipConfig> mychipConfig = GetChipConfig( mychip );
     int mychipID = mychipConfig->GetChipId();
     if ( mychipConfig->IsOBMaster() ) {
         for ( int i = mychipID + 1; i <= mychipID + 6; i++ ) {
@@ -543,7 +543,7 @@ void TSetup::MakeDaisyChain()
             GetChipConfig(i)->SetPreviousId(previous);
         }
         else if (!(chipId & 0x8)) {
-            GetChipConfig(i)>SetInitialToken(false);
+            GetChipConfig(i)->SetInitialToken(false);
             for (int iprev = chipId - 1; (iprev >= firstLow [modId]) && (previous == -1); iprev--) {
                 if (GetChipConfigById(iprev)->IsEnabled()) {
                     previous = iprev;
@@ -579,38 +579,38 @@ void TSetup::ParseLine(const char* Line, char* Param, char* Rest, int* Chip)
 void TSetup::ReadDeviceType( const char* deviceName )
 {
     if ( !strcmp (deviceName, "CHIPDAQ")) {
-        fDeviceType = TYPE_CHIP_DAQ;
+        fDeviceType = kDEVICE_CHIP_DAQ;
     }
     else if (!strcmp(deviceName, "TELESCOPE")) {
-        fDeviceType = TYPE_TELESCOPE;
+        fDeviceType = kDEVICE_TELESCOPE;
     }
     else if (!strcmp(deviceName, "OBHIC")) {
-        fDeviceType = TYPE_OBHIC;
+        fDeviceType = kDEVICE_OBHIC;
     }
     else if (!strcmp(deviceName, "IBHIC")) {
         
-        fDeviceType = TYPE_IBHIC;
+        fDeviceType = kDEVICE_IBHIC;
     }
     else if (!strcmp(deviceName, "MFT5")) {
-        fDeviceType = TYPE_MFT_LADDER5;
+        fDeviceType = kDEVICE_MFT_LADDER5;
     }
     else if (!strcmp(deviceName, "MFT4")) {
-        fDeviceType = TYPE_MFT_LADDER4;
+        fDeviceType = kDEVICE_MFT_LADDER4;
     }
     else if (!strcmp(deviceName, "MFT3")) {
-        fDeviceType = TYPE_MFT_LADDER3;
+        fDeviceType = kDEVICE_MFT_LADDER3;
     }
     else if (!strcmp(deviceName, "MFT2")) {
-        fDeviceType = TYPE_MFT_LADDER2;
+        fDeviceType = kDEVICE_MFT_LADDER2;
     }
     else if (!strcmp(deviceName, "OBCHIPMOSAIC")) {
-        fDeviceType = TYPE_OBCHIP_MOSAIC;
+        fDeviceType = kDEVICE_OBCHIP_MOSAIC;
     }
     else if (!strcmp(deviceName, "IBCHIPMOSAIC")) {
-        fDeviceType = TYPE_IBCHIP_MOSAIC;
+        fDeviceType = kDEVICE_IBCHIP_MOSAIC;
     }
     else if (!strcmp(deviceName, "HALFSTAVE")) {
-        fDeviceType = TYPE_HALFSTAVE;
+        fDeviceType = kDEVICE_HALFSTAVE;
     }
     else {
         cerr << "TSetup::ReadDeviceType() - device name = " << deviceName << endl;
@@ -628,77 +628,77 @@ void TSetup::CreateDeviceConfig()
     }
     switch ( fDeviceType )
     {
-        case TYPE_CHIP_DAQ:
+        case kDEVICE_CHIP_DAQ:
             fStartChipId = 16; // master OB chip
             fNChips = 1; // overwrite the value read in config file
             try { CreateOBSingleDAQ(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_TELESCOPE:
+        case kDEVICE_TELESCOPE:
             fStartChipId = 16; // master OB chip
             // fNChips taken from the config file
             try { CreateTelescopeDAQ(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_OBHIC:
+        case kDEVICE_OBHIC:
             // fStartChipId defined in CreateOB()
             fNChips = 15; // overwrite the value read in config file
             try { CreateOB(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_IBHIC:
+        case kDEVICE_IBHIC:
             fStartChipId = 0;
             fNChips = 9; // overwrite the value read in config file
             try { CreateIB(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_MFT_LADDER5:
+        case kDEVICE_MFT_LADDER5:
             fStartChipId = 4;
             fNChips = 5; // overwrite the value read in config file
             try { CreateMFTLadder(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_MFT_LADDER4:
+        case kDEVICE_MFT_LADDER4:
             fStartChipId = 5;
             fNChips = 4; // overwrite the value read in config file
             try { CreateMFTLadder(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_MFT_LADDER3:
+        case kDEVICE_MFT_LADDER3:
             fStartChipId = 6;
             fNChips = 3; // overwrite the value read in config file
             try { CreateMFTLadder(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_MFT_LADDER2:
+        case kDEVICE_MFT_LADDER2:
             fStartChipId = 7;
             fNChips = 2; // overwrite the value read in config file
             try { CreateMFTLadder(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_OBCHIP_MOSAIC:
+        case kDEVICE_OBCHIP_MOSAIC:
             fStartChipId = 16; // master OB chip
             fNChips = 1; // overwrite the value read in config file
             try { CreateOBSingleMosaic(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_IBCHIP_MOSAIC:
+        case kDEVICE_IBCHIP_MOSAIC:
             fStartChipId = 0; // imposed by the carrier board (resistor removed)
             fNChips = 1; // overwrite the value read in config file
             try { CreateIBSingleMosaic(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
             break;
-        case TYPE_HALFSTAVE:
+        case kDEVICE_HALFSTAVE:
             try { CreateHalfStave(); } catch ( ... ) {
                 throw runtime_error( "TSetup::CreateDeviceConfig() - failed." );
             }
@@ -720,7 +720,7 @@ void TSetup::CreateHalfStave()
     }
     fBoardType = kBOARD_MOSAIC;
     const int nBoards = 2;
-    for (int iboard = 0; iboard < nBoards; i++) {
+    for (int iboard = 0; iboard < nBoards; iboard++) {
         auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
         fBoardConfigs.push_back( move(newBoardConfig) );
     }
@@ -729,7 +729,7 @@ void TSetup::CreateHalfStave()
         for (int i = 0; i < 15; i++) {
             if (i == 7) continue;
             int chipId = i + ((moduleId & 0x7) << 4);
-            auto newChipConfig = make_shared<TChipConfig>( chipID );
+            auto newChipConfig = make_shared<TChipConfig>( chipId );
             fChipConfigs.push_back( move(newChipConfig) );
         }
     }
@@ -770,7 +770,7 @@ void TSetup::CreateIBSingleMosaic()
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
-    auto newChipConfig = make_shared<TChipConfig>( GetStartChipID() );
+    auto newChipConfig = make_shared<TChipConfig>( GetStartChipId() );
     fChipConfigs.push_back( move(newChipConfig) );
     
     if ( fVerboseLevel ) {
@@ -790,7 +790,7 @@ void TSetup::CreateMFTLadder()
     fBoardConfigs.push_back( move(newBoardConfig) );
     
     for (int ichip = 0; ichip < GetNChips(); ichip ++) {
-        int chipID = GetStartChipID() + ichip;
+        int chipID = GetStartChipId() + ichip;
         auto newChipConfig = make_shared<TChipConfig>( chipID );
         fChipConfigs.push_back( move(newChipConfig) );
     }
@@ -814,9 +814,9 @@ void TSetup::CreateOB()
         if (ichip == 7) continue;
         int chipId = ichip + ((DEFAULT_MODULE_ID & 0x7) << 4);
         if ( ichip == 0 ) {
-            fStartChipId = chipID;
+            fStartChipId = chipId;
         }
-        auto newChipConfig = make_shared<TChipConfig>( chipID );
+        auto newChipConfig = make_shared<TChipConfig>( chipId );
         fChipConfigs.push_back( move(newChipConfig) );
     }
     if ( fVerboseLevel ) {
@@ -835,7 +835,7 @@ void TSetup::CreateOBSingleDAQ()
     auto newBoardConfig = make_shared<TBoardConfigDAQ>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
-    auto newChipConfig = make_shared<TChipConfig>( GetStartChipID() );
+    auto newChipConfig = make_shared<TChipConfig>( GetStartChipId() );
     newChipConfig->SetEnableSlave( false ); // with no slave
     fChipConfigs.push_back( move(newChipConfig) );
     
@@ -855,7 +855,7 @@ void TSetup::CreateOBSingleMosaic()
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fBoardConfigs.push_back( move(newBoardConfig) );
     
-    auto newChipConfig = make_shared<TChipConfig>( GetStartChipID() );
+    auto newChipConfig = make_shared<TChipConfig>( GetStartChipId() );
     newChipConfig->SetEnableSlave( false ); // with no slave
     fChipConfigs.push_back( move(newChipConfig) );
     
@@ -881,7 +881,7 @@ void TSetup::CreateTelescopeDAQ()
         fBoardConfigs.push_back( move(newBoardConfig) );
     }
     for (int i = 0; i < GetNChips(); i++) {
-        auto newChipConfig = make_shared<TChipConfig>( GetStartChipID() );
+        auto newChipConfig = make_shared<TChipConfig>( GetStartChipId() );
         newChipConfig->SetEnableSlave( false ); // with no slave
         fChipConfigs.push_back( move(newChipConfig) );
     }
@@ -902,12 +902,12 @@ void TSetup::InitSetupHalfStave()
         return;
     }
     try {
-        if ( fDeviceType != TYPE_HALFSTAVE ) {
+        if ( fDeviceType != kDEVICE_HALFSTAVE ) {
             throw runtime_error( "TSetup::InitSetupIB() - wrong device type." );
         }
     } catch (std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_MOSAIC ) {
@@ -915,13 +915,13 @@ void TSetup::InitSetupHalfStave()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupHalfStave() - start" << endl;
     }
     for (int i = 0; i < GetNBoards(); i++) {
-        shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC> GetBoardConfig(i);
+        shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(GetBoardConfig(i)));
         boardConfig->SetInvertedData(false);  //already inverted in the adapter plug ?
         boardConfig->SetSpeedMode(Mosaic::RCV_RATE_400);
     }
@@ -946,7 +946,7 @@ void TSetup::InitSetupHalfStave()
         CheckControlInterface();
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     sleep(5);
     MakeDaisyChain();
@@ -966,12 +966,12 @@ void TSetup::InitSetupIB()
         return;
     }
     try {
-        if ( fDeviceType != TYPE_IBHIC ) {
+        if ( fDeviceType != kDEVICE_IBHIC ) {
             throw runtime_error( "TSetup::InitSetupIB() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_MOSAIC ) {
@@ -979,13 +979,13 @@ void TSetup::InitSetupIB()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupIB() - start" << endl;
     }
     
-    shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>GetBoardConfig(0);
+    shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
     Mosaic::TReceiverSpeed speed;
     
@@ -1033,7 +1033,7 @@ void TSetup::InitSetupIB()
         CheckControlInterface();
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupIB() - end" << endl;
@@ -1050,12 +1050,12 @@ void TSetup::InitSetupIBSingleMosaic()
         return;
     }
     try {
-        if ( fDeviceType != TYPE_IBCHIP_MOSAIC ) {
+        if ( fDeviceType != kDEVICE_IBCHIP_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupIBSingleMosaic() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_MOSAIC ) {
@@ -1063,7 +1063,7 @@ void TSetup::InitSetupIBSingleMosaic()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupIBSingleMosaic() - start" << endl;
@@ -1083,7 +1083,7 @@ void TSetup::InitSetupIBSingleMosaic()
         chipConfig->SetParamValue("CONTROLINTERFACE", control);
     }
     
-    shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC> GetBoardConfig(0);
+    shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>) (GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
     Mosaic::TReceiverSpeed speed;
     switch ( chipConfig->GetParamValue("LINKSPEED") ) {
@@ -1132,7 +1132,7 @@ void TSetup::InitSetupMFTLadder()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_MOSAIC ) {
@@ -1140,13 +1140,13 @@ void TSetup::InitSetupMFTLadder()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupMFTLadder() - start" << endl;
     }
     
-    shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>GetBoardConfig(0);
+    shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
     Mosaic::TReceiverSpeed speed;
     
@@ -1207,7 +1207,7 @@ void TSetup::InitSetupMFTLadder()
         CheckControlInterface();
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     fInitialisedSetup = true;
 }
@@ -1226,12 +1226,12 @@ void TSetup::InitSetupOB()
         return;
     }
     try {
-        if ( fDeviceType != TYPE_OBHIC ) {
+        if ( fDeviceType != kDEVICE_OBHIC ) {
             throw runtime_error( "TSetup::InitSetupOB() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_MOSAIC ) {
@@ -1239,13 +1239,13 @@ void TSetup::InitSetupOB()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupOB() - start" << endl;
     }
     
-    shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC> GetBoardConfig(0);
+    shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(GetBoardConfig(0)));
     boardConfig->SetInvertedData(boardConfig->IsInverted()); // ???: circular definition? (AR)
     boardConfig->SetSpeedMode( Mosaic::RCV_RATE_400 );
     auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
@@ -1292,7 +1292,7 @@ void TSetup::InitSetupOB()
         CheckControlInterface();
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     sleep(5);
     MakeDaisyChain();
@@ -1309,12 +1309,12 @@ void TSetup::InitSetupOBSingleDAQ()
         return;
     }
     try {
-        if ( fDeviceType != TYPE_CHIP_DAQ ) {
+        if ( fDeviceType != kDEVICE_CHIP_DAQ ) {
             throw runtime_error( "TSetup::InitSetupOBSingleDAQ() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_DAQ ) {
@@ -1322,7 +1322,7 @@ void TSetup::InitSetupOBSingleDAQ()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupOBSingleDAQ() - start" << endl;
@@ -1352,8 +1352,8 @@ void TSetup::InitSetupOBSingleDAQ()
     fChips.push_back( move(alpide) );
     GetBoard(0)->AddChip(chipConfig->GetChipId(), control, receiver);
     
-    shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ> GetBoard(0);
-    powerOn(myDAQBoard);
+    shared_ptr<TReadoutBoardDAQ> myDAQBoard = ((dynamic_pointer_cast<TReadoutBoardDAQ>)(GetBoard(0)));
+    PowerOnDaqBoard(myDAQBoard);
     
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupOBSingleDAQ() - end" << endl;
@@ -1371,12 +1371,12 @@ void TSetup::InitSetupOBSingleMosaic()
         return;
     }
     try {
-        if ( fDeviceType != TYPE_OBCHIP_MOSAIC ) {
+        if ( fDeviceType != kDEVICE_OBCHIP_MOSAIC ) {
             throw runtime_error( "TSetup::InitSetupOBSingleMosaic() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_MOSAIC ) {
@@ -1384,7 +1384,7 @@ void TSetup::InitSetupOBSingleMosaic()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupOBSingleMosaic() - start" << endl;
@@ -1403,7 +1403,7 @@ void TSetup::InitSetupOBSingleMosaic()
         chipConfig->SetParamValue("CONTROLINTERFACE", control);
     }
     
-    shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC> GetBoardConfig(0);
+    shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>) (GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
     boardConfig->SetSpeedMode( Mosaic::RCV_RATE_400 );
     
@@ -1429,12 +1429,12 @@ void TSetup::InitSetupTelescopeDAQ()
         return;
     }
     try {
-        if ( fDeviceType != TYPE_TELESCOPE ) {
+        if ( fDeviceType != kDEVICE_TELESCOPE ) {
             throw runtime_error( "TSetup::InitSetupTelescopeDAQ() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     try {
         if ( fBoardType != kBOARD_DAQ ) {
@@ -1442,7 +1442,7 @@ void TSetup::InitSetupTelescopeDAQ()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit();
+        exit(0);
     }
     if ( fVerboseLevel ) {
         cout << "TSetup::InitSetupTelescopeDAQ() - start" << endl;
@@ -1468,7 +1468,7 @@ bool TSetup::AddDAQBoard( shared_ptr<libusb_device> device )
     auto readoutBoard = make_shared<TReadoutBoardDAQ>(device, boardConfig);
     
     if ( readoutBoard ) {
-        fBoards->push_back( move(readoutBoard) );
+        fBoards.push_back( move(readoutBoard) );
         return true;
     }
     return false;
@@ -1489,7 +1489,7 @@ void TSetup::FindDAQBoards()
     }
     
     for ( ssize_t i = 0; i < cnt; i++ ) {
-        libusb_device *device = list[i];
+        shared_ptr<libusb_device> device( list[i] );
         if ( IsDAQBoard(device) ) {
             if ( AddDAQBoard( device ) ) {
                 libusb_free_device_list(list, 1);
@@ -1517,7 +1517,7 @@ void TSetup::InitLibUsb()
 bool TSetup::IsDAQBoard( shared_ptr<libusb_device> device )
 {
     libusb_device_descriptor desc;
-    libusb_get_device_descriptor(device, &desc);
+    libusb_get_device_descriptor(device.get(), &desc);
     
     // std::cout << std::hex << "Vendor id " << (int)desc.idVendor << ", Product id " << (int)desc.idProduct << std::dec << std::endl;
     
