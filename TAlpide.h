@@ -178,17 +178,19 @@ namespace Alpide {
 class TChipConfig;
 class TReadoutBoard;
 
-class TAlpide {
+class TAlpide
+{
     
  private:
-    std::weak_ptr<TChipConfig> fConfig;
     int fChipId;
-    std::weak_ptr<TReadoutBoard> fReadoutBoard;
 
     // ADC calibration parameters
     int fADCBias;
     bool fADCHalfLSB;
     bool fADCSign;
+
+    std::weak_ptr<TChipConfig> fConfig;
+    std::weak_ptr<TReadoutBoard> fReadoutBoard;
 
  public:
     
@@ -235,7 +237,7 @@ class TAlpide {
        if this was the first measure after the chip configuration phase, a calibration
        will be automatically executed.
      */
-    float ReadTemperature() const;
+    float ReadTemperature();
     /// Reads the output voltage of one DAC by means of internal ADC
     /**
      \param ADac the Index that define the DAC register
@@ -245,7 +247,7 @@ class TAlpide {
      if this was the first measure after the chip configuration phase, a calibration
      will be automatically executed.
      */
-    float ReadDACVoltage( Alpide::TRegister ADac ) const;
+    float ReadDACVoltage( Alpide::TRegister ADac );
     /// Reads the output current of one DAC by means of internal ADC
     /**
      \param ADac the Index that define the DAC register
@@ -255,7 +257,7 @@ class TAlpide {
      if this was the first measure after the chip configuration phase, a calibration
      will be automatically executed.
      */
-    float ReadDACCurrent( Alpide::TRegister ADac ) const;
+    float ReadDACCurrent( Alpide::TRegister ADac );
     
     #pragma mark - chip configuration operations
     void Init();
@@ -286,12 +288,12 @@ private:
     #pragma mark - needed to operate with ADC or DAC
     /// Calibrate the internal ADC
     /**
-     Returns the value of the calculated Bias.
+     Compute the value of the Bias.
      - Note:
      
      the calibration parameter are stored into the devoted class members.
      */
-    int CalibrateADC();
+    void CalibrateADC();
     /// Set the ADC Control Register
     /**
      \param Mode Mode of ADC measurement [0:Manual 1:Calibrate 2:Auto 3:SupoerManual]

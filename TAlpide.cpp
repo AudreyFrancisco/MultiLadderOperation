@@ -11,21 +11,15 @@ using namespace std;
 
 //___________________________________________________________________
 TAlpide::TAlpide() :
-    fConfig( nullptr ),
     fChipId( -1 ),
-    fReadoutBoard( nullptr ),
     fADCBias( -1 ),
     fADCHalfLSB( false ),
     fADCSign( false )
-{
-    
-}
+{ }
 
 //___________________________________________________________________
 TAlpide::TAlpide( shared_ptr<TChipConfig> config ) :
-    fConfig( nullptr ),
     fChipId( -1 ),
-    fReadoutBoard( nullptr ),
     fADCBias( -1 ),
     fADCHalfLSB( false ),
     fADCSign( false )
@@ -34,15 +28,13 @@ TAlpide::TAlpide( shared_ptr<TChipConfig> config ) :
         throw runtime_error( "TAlpide::TAlpide() - chip config. is a nullptr !" );
     }
     fConfig = config;
-    fChipId = fConfig->GetChipId();
+    fChipId = config->GetChipId();
 }
 
 //___________________________________________________________________
 TAlpide::TAlpide( shared_ptr<TChipConfig> config,
                   shared_ptr<TReadoutBoard> readoutBoard ) :
-    fConfig( nullptr ),
     fChipId( -1 ),
-    fReadoutBoard( nullptr ),
     fADCBias( -1 ),
     fADCHalfLSB( false ),
     fADCSign( false )
@@ -51,7 +43,7 @@ TAlpide::TAlpide( shared_ptr<TChipConfig> config,
         throw runtime_error( "TAlpide::TAlpide() - chip config. is a nullptr !" );
     }
     fConfig = config;
-    fChipId = fConfig->GetChipId();
+    fChipId = config->GetChipId();
     if ( !readoutBoard ) {
         throw runtime_error( "TAlpide::TAlpide() - readout board is a nullptr !" );
     }
@@ -70,8 +62,18 @@ TAlpide::~TAlpide()
 //___________________________________________________________________
 void TAlpide::SetEnable( const bool Enable )
 {
-  fReadoutBoard->SetChipEnable( fChipId, Enable );
-  fConfig->SetEnable( Enable );
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( spBoard ) {
+        spBoard->SetChipEnable( fChipId, Enable );
+    } else {
+        throw runtime_error( "TAlpide::SetEnable() - can not enable the readout board." );
+    }
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( spConfig ) {
+        spConfig->SetEnable( Enable );
+    } else {
+        throw runtime_error( "TAlpide::SetEnable() - can not enable the chip config." );
+    }
 }
 
 #pragma mark - basic operations with registers
@@ -86,10 +88,17 @@ int TAlpide::ReadRegister( const Alpide::TRegister address, uint16_t &value )
 //___________________________________________________________________
 int TAlpide::ReadRegister( const uint16_t address, uint16_t &value )
 {
-  int err = fReadoutBoard->ReadChipRegister( address, value, fChipId );
-  if (err < 0) return err;  // readout board should have thrown an exception before
-  return err;
-
+    if ( fChipId < 0 ) {
+        throw domain_error( "TAlpide::ReadRegister() - undefined chip id.");
+    }
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( spBoard ) {
+        int err = spBoard->ReadChipRegister( address, value, fChipId );
+        //if (err < 0) return err;  // readout board should have thrown an exception before
+        return err;
+    } else {
+        throw runtime_error( "TAlpide::ReadRegister() - unuseable readout board." );
+    }
 }
 
 //___________________________________________________________________
@@ -103,14 +112,21 @@ int TAlpide::WriteRegister( const Alpide::TRegister address,
 int TAlpide::WriteRegister( const uint16_t address,
                             uint16_t value, const bool verify )
 {
-  int result = fReadoutBoard->WriteChipRegister( address, value, fChipId );
-  if ((!verify) || (result < 0)) return result;
-
-  uint16_t check;
-  result = ReadRegister( address, check );
-  if (result < 0) return result;
-  if (check != value) return -1;      // raise exception (warning) readback != write value;
-  return 0;  
+    if ( fChipId < 0 ) {
+        throw domain_error( "TAlpide::WriteRegister() - undefined chip id.");
+    }
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( spBoard ) {
+        int result = spBoard->WriteChipRegister( address, value, fChipId );
+        if ((!verify) || (result < 0)) return result;
+        uint16_t check;
+        result = ReadRegister( address, check );
+        if (result < 0) return result;
+        if (check != value) return -1;      // raise exception (warning) readback != write value;
+        return 0;  
+    } else {
+        throw runtime_error( "TAlpide::WriteRegister() - unuseable readout board." );
+    }
 }
 
 //___________________________________________________________________
@@ -266,8 +282,13 @@ void TAlpide::DumpConfig( const char *fName, const bool writeFile, char *config 
 #pragma mark - operations with ADC or DAC
 
 //___________________________________________________________________
-float TAlpide::ReadTemperature() const
+float TAlpide::ReadTemperature()
 {
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( !spBoard ) {
+        throw runtime_error( "TAlpide::ReadTemperature() - unuseable readout board." );
+    }
+
     uint16_t theResult = 0;
     if (fADCBias == -1) { // needs calibration
         CalibrateADC();
@@ -276,7 +297,7 @@ float TAlpide::ReadTemperature() const
     SetTheDacMonitor( Alpide::REG_ANALOGMON ); // uses the RE_ANALOGMON, in order to disable the monitoring !
     usleep(5000);
     SetTheADCCtrlRegister( Alpide::MODE_MANUAL, Alpide::INP_Temperature, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
+    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_AVSS, theResult );
     theResult -=  (uint16_t)fADCBias;
@@ -285,8 +306,13 @@ float TAlpide::ReadTemperature() const
 }
 
 //___________________________________________________________________
-float TAlpide::ReadDACVoltage( Alpide::TRegister ADac ) const
+float TAlpide::ReadDACVoltage( Alpide::TRegister ADac )
 {
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( !spBoard ) {
+        throw runtime_error( "TAlpide::ReadDACVoltage() - unuseable readout board." );
+    }
+
     uint16_t theResult = 0;
     if (fADCBias == -1) { // needs calibration
         CalibrateADC();
@@ -295,7 +321,7 @@ float TAlpide::ReadDACVoltage( Alpide::TRegister ADac ) const
     SetTheDacMonitor( ADac );
     usleep(5000);
     SetTheADCCtrlRegister( Alpide::MODE_MANUAL, Alpide::INP_DACMONV, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
+    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_AVSS, theResult );
     theResult -=  (uint16_t)fADCBias;
@@ -304,8 +330,13 @@ float TAlpide::ReadDACVoltage( Alpide::TRegister ADac ) const
 }
 
 //___________________________________________________________________
-float TAlpide::ReadDACCurrent( Alpide::TRegister ADac ) const
+float TAlpide::ReadDACCurrent( Alpide::TRegister ADac )
 {
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( !spBoard ) {
+        throw runtime_error( "TAlpide::ReadDACCurrent() - unuseable readout board." );
+    }
+
     uint16_t theResult = 0;
     if (fADCBias == -1) { // needs calibration
         CalibrateADC();
@@ -314,7 +345,7 @@ float TAlpide::ReadDACCurrent( Alpide::TRegister ADac ) const
     SetTheDacMonitor( ADac );
     usleep(5000);
     SetTheADCCtrlRegister( Alpide::MODE_MANUAL, Alpide::INP_DACMONI, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
+    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_AVSS, theResult );
     theResult -= (uint16_t)fADCBias;
@@ -436,7 +467,9 @@ void TAlpide::ConfigureFromu( const Alpide::TPulseType pulseType,
     bool internalStrobe   = false;    // strobe sequencer for continuous mode
     bool busyMonitoring   = true;
     
-    if ( !GetConfig() ) {
+    
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
         throw runtime_error( "TAlpide::ConfigureFromu() - chip config. not found!" );
     }
     
@@ -448,29 +481,30 @@ void TAlpide::ConfigureFromu( const Alpide::TPulseType pulseType,
     fromuconfig |= ((int) pulseType)                 << 5;
     fromuconfig |= (testStrobe       ? 1:0)          << 6;
     fromuconfig |= (rotatePulseLines ? 1:0)          << 7;
-    fromuconfig |= (GetConfig()->GetTriggerDelay() & 0x7) << 8;
+    fromuconfig |= (spConfig->GetTriggerDelay() & 0x7) << 8;
     
     WriteRegister( Alpide::REG_FROMU_CONFIG1,  fromuconfig );
-    WriteRegister( Alpide::REG_FROMU_CONFIG2,  GetConfig()->GetStrobeDuration() );
-    WriteRegister( Alpide::REG_FROMU_PULSING1, GetConfig()->GetStrobeDelay() );
-    WriteRegister( Alpide::REG_FROMU_PULSING2, GetConfig()->GetPulseDuration() );
+    WriteRegister( Alpide::REG_FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
+    WriteRegister( Alpide::REG_FROMU_PULSING1, spConfig->GetStrobeDelay() );
+    WriteRegister( Alpide::REG_FROMU_PULSING2, spConfig->GetPulseDuration() );
 }
 
 //___________________________________________________________________
 void TAlpide::ConfigureBuffers()
 {
-    if ( !GetConfig() ) {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
         throw runtime_error( "TAlpide::ConfigureBuffers() - chip config. not found!" );
     }
-    
+
     uint16_t clocks = 0, ctrl = 0;
     
-    clocks |= (GetConfig()->GetDclkReceiver () & 0xf);
-    clocks |= (GetConfig()->GetDclkDriver   () & 0xf) << 4;
-    clocks |= (GetConfig()->GetMclkReceiver () & 0xf) << 8;
+    clocks |= (spConfig->GetDclkReceiver () & 0xf);
+    clocks |= (spConfig->GetDclkDriver   () & 0xf) << 4;
+    clocks |= (spConfig->GetMclkReceiver () & 0xf) << 8;
     
-    ctrl   |= (GetConfig()->GetDctrlReceiver() & 0xf);
-    ctrl   |= (GetConfig()->GetDctrlDriver  () & 0xf) << 4;
+    ctrl   |= (spConfig->GetDctrlReceiver() & 0xf);
+    ctrl   |= (spConfig->GetDctrlDriver  () & 0xf) << 4;
     
     WriteRegister( Alpide::REG_CLKIO_DACS, clocks );
     WriteRegister( Alpide::REG_CMUIO_DACS, ctrl );
@@ -479,16 +513,17 @@ void TAlpide::ConfigureBuffers()
 //___________________________________________________________________
 void TAlpide::ConfigureCMU()
 {
-    if ( !GetConfig() ) {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
         throw runtime_error( "TAlpide::ConfigureCMU() - chip config. not found!" );
     }
     
     uint16_t cmuconfig = 0;
     
-    cmuconfig |= (GetConfig()->GetPreviousId() & 0xf);
-    cmuconfig |= (GetConfig()->GetInitialToken     () ? 1:0) << 4;
-    cmuconfig |= (GetConfig()->GetDisableManchester() ? 1:0) << 5;
-    cmuconfig |= (GetConfig()->GetEnableDdr        () ? 1:0) << 6;
+    cmuconfig |= (spConfig->GetPreviousId() & 0xf);
+    cmuconfig |= (spConfig->GetInitialToken     () ? 1:0) << 4;
+    cmuconfig |= (spConfig->GetDisableManchester() ? 1:0) << 5;
+    cmuconfig |= (spConfig->GetEnableDdr        () ? 1:0) << 6;
     
     WriteRegister( Alpide::REG_CMUDMU_CONFIG, cmuconfig );
 }
@@ -523,21 +558,22 @@ int TAlpide::ConfigureMaskStage( int nPix, int iStage )
 //___________________________________________________________________
 void TAlpide::WriteControlReg( const Alpide::TChipMode chipMode )
 {
-    if ( !GetConfig() ) {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
         throw runtime_error( "TAlpide::WriteControlReg() - chip config. not found!" );
     }
-    
+
     uint16_t controlreg = 0;
     
     controlreg |= (uint16_t) chipMode;
     
-    controlreg |= (GetConfig()->GetEnableClustering    () ? 1:0) << 2;
-    controlreg |= (GetConfig()->GetMatrixReadoutSpeed  () & 0x1) << 3;
-    controlreg |= (GetConfig()->GetSerialLinkSpeed     () & 0x3) << 4;
-    controlreg |= (GetConfig()->GetEnableSkewingGlobal () ? 1:0) << 6;
-    controlreg |= (GetConfig()->GetEnableSkewingStartRO() ? 1:0) << 7;
-    controlreg |= (GetConfig()->GetEnableClockGating   () ? 1:0) << 8;
-    controlreg |= (GetConfig()->GetEnableCMUReadout    () ? 1:0) << 9;
+    controlreg |= (spConfig->GetEnableClustering    () ? 1:0) << 2;
+    controlreg |= (spConfig->GetMatrixReadoutSpeed  () & 0x1) << 3;
+    controlreg |= (spConfig->GetSerialLinkSpeed     () & 0x3) << 4;
+    controlreg |= (spConfig->GetEnableSkewingGlobal () ? 1:0) << 6;
+    controlreg |= (spConfig->GetEnableSkewingStartRO() ? 1:0) << 7;
+    controlreg |= (spConfig->GetEnableClockGating   () ? 1:0) << 8;
+    controlreg |= (spConfig->GetEnableCMUReadout    () ? 1:0) << 9;
     
     WriteRegister( Alpide::REG_MODECONTROL, controlreg);
 }
@@ -545,11 +581,12 @@ void TAlpide::WriteControlReg( const Alpide::TChipMode chipMode )
 //___________________________________________________________________
 void TAlpide::BaseConfigPLL()
 {
-    if ( !GetConfig() ) {
-        throw runtime_error( "TAlpide::ConfigureBuffers() - chip config. not found!" );
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::BaseConfigPLL() - chip config. not found!" );
     }
 
-    if ( GetConfig()->GetParamValue("LINKSPEED") == -1 ) return; // high-speed link deactivated
+    if ( spConfig->GetParamValue("LINKSPEED") == -1 ) return; // high-speed link deactivated
     
     uint16_t Phase      = 8;  // 4bit Value, default 8
     uint16_t Stages     = 1; // 0 = 3 stages, 1 = 4,  3 = 5 (typical 4)
@@ -580,7 +617,7 @@ void TAlpide::BaseConfigPLL()
 void TAlpide::BaseConfigMask()
 {
     WritePixRegAll( Alpide::PIXREG_MASK,   true );
-    AWritePixRegAll( Alpide::PIXREG_SELECT, false );
+    WritePixRegAll( Alpide::PIXREG_SELECT, false );
 }
 
 //___________________________________________________________________
@@ -593,31 +630,33 @@ void TAlpide::BaseConfigFromu()
 //___________________________________________________________________
 void TAlpide::BaseConfigDACs()
 {
-    if ( !GetConfig() ) {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
         throw runtime_error( "TAlpide::BaseConfigDACs() - chip config. not found!" );
     }
  
-    WriteRegister( Alpide::REG_VPULSEH, GetConfig()->GetParamValue("VPULSEH"));
-    WriteRegister( Alpide::REG_VPULSEL, GetConfig()->GetParamValue("VPULSEL"));
-    WriteRegister( Alpide::REG_VRESETD, GetConfig()->GetParamValue("VRESETD"));
-    WriteRegister( Alpide::REG_VCASN,   GetConfig()->GetParamValue("VCASN"));
-    WriteRegister( Alpide::REG_VCASN2,  GetConfig()->GetParamValue("VCASN2"));
-    WriteRegister( Alpide::REG_VCLIP,   GetConfig()->GetParamValue("VCLIP"));
-    WriteRegister( Alpide::REG_ITHR,    GetConfig()->GetParamValue("ITHR"));
-    WriteRegister( Alpide::REG_IDB,     GetConfig()->GetParamValue("IDB"));
-    WriteRegister( Alpide::REG_IBIAS,   GetConfig()->GetParamValue("IBIAS"));
-    WriteRegister( Alpide::REG_VCASP,   GetConfig()->GetParamValue("VCASP"));
+    WriteRegister( Alpide::REG_VPULSEH, spConfig->GetParamValue("VPULSEH"));
+    WriteRegister( Alpide::REG_VPULSEL, spConfig->GetParamValue("VPULSEL"));
+    WriteRegister( Alpide::REG_VRESETD, spConfig->GetParamValue("VRESETD"));
+    WriteRegister( Alpide::REG_VCASN,   spConfig->GetParamValue("VCASN"));
+    WriteRegister( Alpide::REG_VCASN2,  spConfig->GetParamValue("VCASN2"));
+    WriteRegister( Alpide::REG_VCLIP,   spConfig->GetParamValue("VCLIP"));
+    WriteRegister( Alpide::REG_ITHR,    spConfig->GetParamValue("ITHR"));
+    WriteRegister( Alpide::REG_IDB,     spConfig->GetParamValue("IDB"));
+    WriteRegister( Alpide::REG_IBIAS,   spConfig->GetParamValue("IBIAS"));
+    WriteRegister( Alpide::REG_VCASP,   spConfig->GetParamValue("VCASP"));
     // not used DACs..
-    WriteRegister( Alpide::REG_VTEMP,   GetConfig()->GetParamValue("VTEMP"));
-    WriteRegister( Alpide::REG_VRESETP, GetConfig()->GetParamValue("VRESETP"));
-    WriteRegister( Alpide::REG_IRESET,  GetConfig()->GetParamValue("IRESET"));
-    WriteRegister( Alpide::REG_IAUX2,   GetConfig()->GetParamValue("IAUX2"));
+    WriteRegister( Alpide::REG_VTEMP,   spConfig->GetParamValue("VTEMP"));
+    WriteRegister( Alpide::REG_VRESETP, spConfig->GetParamValue("VRESETP"));
+    WriteRegister( Alpide::REG_IRESET,  spConfig->GetParamValue("IRESET"));
+    WriteRegister( Alpide::REG_IAUX2,   spConfig->GetParamValue("IAUX2"));
 }
 
 //___________________________________________________________________
 void TAlpide::BaseConfig()
 {
-    if ( !GetConfig() ) {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
         throw runtime_error( "TAlpide::BaseConfig() - chip config. not found!" );
     }
 
@@ -628,7 +667,7 @@ void TAlpide::BaseConfig()
     
     
     // CMU/DMU config: turn manchester encoding off or on etc, initial token=1, disable DDR
-    int cmudmu_config = 0x10 | ((GetConfig()->GetDisableManchester()) ? 0x20 : 0x00);
+    int cmudmu_config = 0x10 | ((spConfig->GetDisableManchester()) ? 0x20 : 0x00);
     
     BaseConfigFromu();
     BaseConfigDACs();
@@ -637,7 +676,7 @@ void TAlpide::BaseConfig()
     
     uint16_t value;
 
-    switch (GetConfig()->GetParamValue("LINKSPEED")) {
+    switch (spConfig->GetParamValue("LINKSPEED")) {
         case -1: // DTU not activated
             value = 0x21;
             break;
@@ -663,14 +702,15 @@ void TAlpide::BaseConfig()
 //___________________________________________________________________
 void TAlpide::PrintDebugStream()
 {
-    if ( !GetConfig() ) {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
         throw runtime_error( "TAlpide::PrintDebugStream() - chip config. not found!" );
     }
 
     uint16_t Value;
 
     cout << "TAlpide::PrintDebugStream() - start" << endl;
-    cout << "Debug Stream chip id " << GetConfig()->GetChipId() << ": " << endl;
+    cout << "Debug Stream chip id " << spConfig->GetChipId() << ": " << endl;
     
     for (int i = 0; i < 2; i++) {
         ReadRegister( Alpide::REG_BMU_DEBUG, Value );
@@ -690,22 +730,26 @@ void TAlpide::PrintDebugStream()
 #pragma mark - needed to operate with ADC or DAC
 
 //___________________________________________________________________
-int TAlpide::CalibrateADC()
+void TAlpide::CalibrateADC()
 {
     uint16_t theVal2,theVal1;
     //	bool isAVoltDAC, isACurrDAC, isATemperature, isAVoltageBuffered;
     //	int theSelInput;
     
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( !spBoard ) {
+        throw runtime_error( "TAlpide::CalibrateADC() - unuseable readout board." );
+    }
     // Calibration Phase 1
     fADCHalfLSB = false;
     fADCSign = false;
     SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode ( Alpide::OPCODE_ADCMEASURE, fChipId );
+    spBoard->SendOpCode ( Alpide::OPCODE_ADCMEASURE, fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_CALIB, theVal1 );
     fADCSign = true;
     SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
+    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_CALIB, theVal2 );
     fADCSign =  (theVal1 > theVal2) ? false : true;
@@ -713,24 +757,22 @@ int TAlpide::CalibrateADC()
     // Calibration Phase 2
     fADCHalfLSB = false;
     SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode ( Alpide::OPCODE_ADCMEASURE, fChipId );
+    spBoard->SendOpCode ( Alpide::OPCODE_ADCMEASURE, fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_CALIB, theVal1 );
     fADCHalfLSB = true;
     SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
+    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_CALIB, theVal2 );
     fADCHalfLSB =  (theVal1 > theVal2) ? false : true;
     
     // Detect the Bias
     SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    fReadoutBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
+    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( Alpide::REG_ADC_CALIB,theVal1 );
     fADCBias = theVal1;
-
-    return fADCBias;
 }
 
 //___________________________________________________________________
