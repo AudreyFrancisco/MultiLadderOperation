@@ -1,14 +1,3 @@
-/* -------------------------------------------------
- *   Derived TConfigBoard Class for MOSAIC board
- *
- *   ver.0.1		3/8/2016
- *
- *  Auth.: A.Franco	-  INFN BARI
- *
- *  		HISTORY
- *
- *
- */
 #ifndef BOARDCONFIGMOSAIC_H
 #define BOARDCONFIGMOSAIC_H
 
@@ -16,27 +5,34 @@
 #include "MosaicSrc/mruncontrol.h"
 #include <stdio.h>
 
-#define MAX_MOSAICCTRLINT 2
-#define MAX_MOSAICTRANRECV 10
-#define MOSAIC_HEADER_LENGTH 64
+/// \class TBoardConfigMOSAIC
+/// \brief Derived TBoardConfig class for MOSAIC board
+/// \author A.Franco - INFN BARI
+/// \details ver.0.1 3/8/2016
 
-#define DEF_TCPPORT 2000
-#define DEF_CTRLINTPHASE 2
-#define DEF_CTRLAFTHR 1250000
-#define DEF_CTRLLATMODE 0
-#define DEF_CTRLTIMEOUT 0
-#define DEF_POLLDATATIMEOUT 500
-#define DEF_POLARITYINVERSION 0
-#define DEF_SPEEDMODE 0
+namespace BoardConfigMOSAIC {
+    const int MAX_MOSAICCTRLINT = 2;
+    const int MAX_MOSAICTRANRECV = 10;
+    const int MOSAIC_HEADER_LENGTH = 64;
+    
+    const int DEF_TCPPORT = 2000;
+    const int DEF_CTRLINTPHASE = 2;
+    const int DEF_CTRLAFTHR = 1250000;
+    const int DEF_CTRLLATMODE = 0;
+    const int DEF_CTRLTIMEOUT = 0;
+    const int DEF_POLLDATATIMEOUT = 500;
+    const int DEF_POLARITYINVERSION = 0;
+    const int DEF_SPEEDMODE = 0;
+}
 
 class TBoardConfigMOSAIC : public TBoardConfig {
 
 private:
-	FILE *fhConfigFile; // the file handle of the Configuration File
+	FILE* fhConfigFile; ///< the file handle of the Configuration File
 
 protected:
 
-    void     InitParamMap ();
+    void InitParamMap();
 
     int NumberOfControlInterfaces;
     int TCPPort;
@@ -57,6 +53,7 @@ protected:
 
 public:
 	TBoardConfigMOSAIC(const char *fName = 0);
+    virtual ~TBoardConfigMOSAIC();
 
 	// Info methods
 
@@ -70,7 +67,7 @@ public:
 	uint32_t GetCtrlTimeout        () {return((uint32_t)RunCtrlTimeout);}
 	uint32_t GetPollingDataTimeout () {return((uint32_t)pollDataTimeout);}
 	bool     IsInverted            () {return((bool)Inverted);}
-    Mosaic::TReceiverSpeed    GetSpeedMode        ();
+    Mosaic::TReceiverSpeed    GetSpeedMode();
     int GetRCVMAP( const int i ) const;
 
 	// Setters
@@ -86,7 +83,5 @@ public:
 	void SetSpeedMode          (Mosaic::TReceiverSpeed ASpeedMode);
 
 };
-
-//************************************************************
 
 #endif   /* BOARDCONFIGMOSAIC_H */

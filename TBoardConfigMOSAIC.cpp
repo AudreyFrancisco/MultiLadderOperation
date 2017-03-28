@@ -1,14 +1,4 @@
-/* -------------------------------------------------
- *   Derived TConfigBoard Class for MOSAIC board
- *
- *   ver.0.1		3/8/2016
- *
- *  Auth.: A.Franco	-  INFN BARI
- *
- *  		HISTORY
- *
- *
- */
+#include <stdlib.h>
 #include <iostream>
 #include <exception>
 #include <stdexcept>
@@ -16,9 +6,11 @@
 #include "TBoardConfigMOSAIC.h"
 
 using namespace std;
+using namespace BoardConfigMOSAIC;
 
 const int TBoardConfigMOSAIC::RCVMAP[] = { 3, 5, 7, 8, 6, 4, 2, 1, 0 };
 
+//___________________________________________________________________
 TBoardConfigMOSAIC::TBoardConfigMOSAIC( const char *AConfigFileName ) : TBoardConfig()
 {
 	fBoardType = kBOARD_MOSAIC;
@@ -45,8 +37,16 @@ TBoardConfigMOSAIC::TBoardConfigMOSAIC( const char *AConfigFileName ) : TBoardCo
     InitParamMap();
 }
 
+//___________________________________________________________________
+TBoardConfigMOSAIC::~TBoardConfigMOSAIC()
+{
+    if ( fhConfigFile ) {
+        fclose( fhConfigFile );
+    }
+}
 
-void TBoardConfigMOSAIC::InitParamMap() 
+//___________________________________________________________________
+void TBoardConfigMOSAIC::InitParamMap()
 {
 	fSettings["NUMBEROFCONTROLINTERFACES"] = &NumberOfControlInterfaces;
 	fSettings["TCPPORTNUMBER"] = &TCPPort;
@@ -61,7 +61,7 @@ void TBoardConfigMOSAIC::InitParamMap()
 	TBoardConfig::InitParamMap();
 }
 
-
+//___________________________________________________________________
 Mosaic::TReceiverSpeed TBoardConfigMOSAIC::GetSpeedMode()
 {
 	switch(SpeedMode) {
@@ -80,6 +80,7 @@ Mosaic::TReceiverSpeed TBoardConfigMOSAIC::GetSpeedMode()
 	}
 }
 
+//___________________________________________________________________
 int TBoardConfigMOSAIC::GetRCVMAP( const int i ) const
 {
     try {
@@ -89,10 +90,11 @@ int TBoardConfigMOSAIC::GetRCVMAP( const int i ) const
         }
         return RCVMAP[i];
     } catch ( std::out_of_range &err ) {
-        exit();
+        exit(0);
     }
 }
 
+//___________________________________________________________________
 void TBoardConfigMOSAIC::SetSpeedMode(Mosaic::TReceiverSpeed ASpeedMode)
 {
 	switch(ASpeedMode) {
@@ -116,6 +118,7 @@ void TBoardConfigMOSAIC::SetSpeedMode(Mosaic::TReceiverSpeed ASpeedMode)
 // ----- private methods ----
 
 // sets the IP address
+//___________________________________________________________________
 void TBoardConfigMOSAIC::SetIPaddress(const char *AIPaddress)
 {
 	std::cout << "IP Address " << AIPaddress << std::endl ;
