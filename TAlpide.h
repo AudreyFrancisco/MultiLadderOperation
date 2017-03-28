@@ -178,16 +178,15 @@ namespace Alpide {
 class TChipConfig;
 class TReadoutBoard;
 
-class TAlpide
-{
+class TAlpide {
     
  private:
     int fChipId;
 
     // ADC calibration parameters
-    int fADCBias;
-    bool fADCHalfLSB;
-    bool fADCSign;
+    int fADCBias; ///< ADC calibration parameter.
+    bool fADCHalfLSB; ///< ADC calibration parameter.
+    bool fADCSign; ///< ADC calibration parameter.
 
     std::weak_ptr<TChipConfig> fConfig;
     std::weak_ptr<TReadoutBoard> fReadoutBoard;
@@ -229,7 +228,7 @@ class TAlpide
     void DumpConfig( const char *fName, const bool writeFile=true, char *Config = 0 );
 
     #pragma mark - operations with ADC or DAC
-    /// Reads the temperature sensor by means of internal ADC
+    /// Reads the temperature sensor by means of internal ADC.
     /**
      Returns the value in Celsius degree.
      - Note:
@@ -238,7 +237,8 @@ class TAlpide
        will be automatically executed.
      */
     float ReadTemperature();
-    /// Reads the output voltage of one DAC by means of internal ADC
+    
+    /// Reads the output voltage of one DAC by means of internal ADC.
     /**
      \param ADac the Index that define the DAC register
      Returns the value in Volts.
@@ -248,7 +248,8 @@ class TAlpide
      will be automatically executed.
      */
     float ReadDACVoltage( Alpide::TRegister ADac );
-    /// Reads the output current of one DAC by means of internal ADC
+    
+    /// Reads the output current of one DAC by means of internal ADC.
     /**
      \param ADac the Index that define the DAC register
      Returns the value in Micro Ampere.
@@ -262,9 +263,11 @@ class TAlpide
     #pragma mark - chip configuration operations
     void Init();
     void WritePixConfReg( Alpide::TPixReg reg, const bool data);
-     /// This method writes data to the selected pixel register in the whole matrix simultaneously.
+
+    /// This method writes data to the selected pixel register in the whole matrix simultaneously.
     void WritePixRegAll( Alpide::TPixReg reg, const bool data);
-     /// Writes data to complete row. This assumes that select bits have been cleared before.
+
+    /// Writes data to complete row. This assumes that select bits have been cleared before.
     void WritePixRegRow( Alpide::TPixReg reg, const bool data, const int row);
     void WritePixRegSingle( Alpide::TPixReg reg, const bool data,
                             const int row, const int col);
@@ -273,7 +276,8 @@ class TAlpide
                          const bool testStrobe );
     void ConfigureBuffers();
     void ConfigureCMU();
-    /// return value: active row (needed for threshold scan histogramming)
+
+    /// return value: active row (needed for threshold scan histogramming).
     int  ConfigureMaskStage( int nPix, int iStage );
     void WriteControlReg( const Alpide::TChipMode chipMode );
     void BaseConfigPLL();
@@ -286,7 +290,7 @@ class TAlpide
 private:
     
     #pragma mark - needed to operate with ADC or DAC
-    /// Calibrate the internal ADC
+    /// Calibrate the internal ADC.
     /**
      Compute the value of the Bias.
      - Note:
@@ -294,7 +298,8 @@ private:
      the calibration parameter are stored into the devoted class members.
      */
     void CalibrateADC();
-    /// Set the ADC Control Register
+
+    /// Set the ADC Control Register.
     /**
      \param Mode Mode of ADC measurement [0:Manual 1:Calibrate 2:Auto 3:SupoerManual]
      \param SelectInput the source specification [0:AVSS 1:DVSS 2:AVDD 3:DVDD 4:VBGthVolScal 5:DACMONV 6:DACMONI 7:Bandgap 8:Temperature]
@@ -305,7 +310,8 @@ private:
                                     Alpide::TADCInput SelectInput,
                                     Alpide::TADCComparator ComparatorCurrent,
                                     Alpide::TADCRampSpeed RampSpeed );
-    /// Sets the DAC Monitor multiplexer
+
+    /// Sets the DAC Monitor multiplexer.
     /**
      \param ADac the Index of the DAC register
      \param IRef the IRef value [Iref =  0:0.25ua 1:0.75uA 2:1.00uA 3:1.25uA]
