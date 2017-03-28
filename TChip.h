@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "MosaicSrc/mexception.h"
-
 namespace TChipData {
     const int kInitValue = -1;
 }
@@ -15,7 +13,7 @@ public:
     
     TChip();
     TChip( const int chipId, const int ci, const int rc );
-    ~TChip() {}
+    virtual ~TChip() {}
     
     void SetChipId( const int chipId );
     void SetControlInterface( const int ci );
@@ -35,12 +33,5 @@ protected:
     int  fReceiver;
     
 };
-
-class TChipError : public MException
-{
-public:
-    explicit TChipError( const std::string& __arg );
-};
-
 
 #endif /* CHIP_H */

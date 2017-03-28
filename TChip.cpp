@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <exception>
+#include <stdexcept>
 
 #include "TChip.h"
 
@@ -26,7 +28,7 @@ TChip::TChip( const int chipId, const int ci, const int rc ) :
 void TChip::SetChipId( const int chipId )
 {
     if ( chipId <= TChipData::kInitValue ) {
-        throw TChipError( "TChip::SetChipId() - wrong initialization" );
+        throw invalid_argument( "TChip::SetChipId() - wrong initialization" );
     }
     fChipId = chipId;
 }
@@ -34,7 +36,7 @@ void TChip::SetChipId( const int chipId )
 void TChip::SetControlInterface( const int ci )
 {
     if ( ci <= TChipData::kInitValue ) {
-        throw TChipError( "TChip::SetControlInterface() - wrong initialization" );
+        throw invalid_argument( "TChip::SetControlInterface() - wrong initialization" );
     }
     fControlInterface = ci;
 }
@@ -42,7 +44,7 @@ void TChip::SetControlInterface( const int ci )
 void TChip::SetReceiver( const int rc )
 {
     if ( rc <= TChipData::kInitValue ) {
-        throw TChipError( "TChip::SetReceiver() - wrong initialization" );
+        throw invalid_argument( "TChip::SetReceiver() - wrong initialization" );
     }
     fReceiver = rc;
 }
@@ -50,7 +52,7 @@ void TChip::SetReceiver( const int rc )
 int TChip::GetChipId() const
 {
     if ( fChipId <= TChipData::kInitValue ) {
-        cout << " WARNING > TChip::GetChipId() - return a non-initialized value" << endl;
+        cout << " WARNING > TChip::GetChipId() - return an uninitialized value" << endl;
     }
     return fChipId;
 }
@@ -58,7 +60,7 @@ int TChip::GetChipId() const
 int TChip::GetControlInterface() const
 {
     if ( fControlInterface <= TChipData::kInitValue ) {
-        cout << " WARNING > TChip::GetControlInterface() - return a non-initialized value" << endl;
+        cout << " WARNING > TChip::GetControlInterface() - return an uninitialized value" << endl;
     }
     return fControlInterface;
 }
@@ -66,13 +68,7 @@ int TChip::GetControlInterface() const
 int TChip::GetReceiver() const
 {
     if ( fReceiver <= TChipData::kInitValue ) {
-        cout << " WARNING > TChip::GetReceiver() - return a non-initialized value" << endl;
+        cout << " WARNING > TChip::GetReceiver() - return an uninitialized value" << endl;
     }
     return fReceiver;
-}
-
-
-TChipError::TChipError( const string& arg )
-{
-    msg = "ERROR > " + arg;
 }
