@@ -191,11 +191,11 @@ int TReadoutBoardDAQ::SetTriggerConfig  (bool enablePulse, bool enableTrigger, i
 
 void TReadoutBoardDAQ::SetTriggerSource (TTriggerSource triggerSource)
 {
-  if (triggerSource == kTRIG_INT) {
+    if (triggerSource == TTriggerSource::kTRIG_INT) {
     fBoardConfigDAQ->SetTriggerMode(1);
     WriteTriggerModuleConfigRegisters();
   }
-  else if (triggerSource == kTRIG_EXT) {
+    else if (triggerSource == TTriggerSource::kTRIG_EXT) {
     fBoardConfigDAQ->SetTriggerMode(2);
     WriteTriggerModuleConfigRegisters();
   }

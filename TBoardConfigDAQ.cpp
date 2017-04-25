@@ -35,7 +35,7 @@ TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
 {
     //---- ADC module
 
-  fBoardType = kBOARD_DAQ;
+    fBoardType = TBoardType::kBOARD_DAQ;
   // ADC config reg 0 !! values as found in old TDaqBoard::PowerOn()
   fCurrentLimitDigital = LIMIT_DIGITAL; 
   fCurrentLimitIo      = LIMIT_IO;      

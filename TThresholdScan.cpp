@@ -28,19 +28,19 @@ TThresholdScan::TThresholdScan (TScanConfig *config, std::vector <TAlpide *> chi
 
 void TThresholdScan::ConfigureBoard(TReadoutBoard *board) 
 {
-  if (board->GetConfig()->GetBoardType() == kBOARD_MOSAIC) {
+    if (board->GetConfig()->GetBoardType() == TBoardType::kBOARD_MOSAIC) {
     board->SetTriggerConfig (true, true, 
                              board->GetConfig()->GetParamValue("STROBEDELAYBOARD"),
                              board->GetConfig()->GetParamValue("PULSEDELAY"));
-    board->SetTriggerSource (kTRIG_INT);
+      board->SetTriggerSource (TTriggerSource::kTRIG_INT);
   }
-  else if (board->GetConfig()->GetBoardType() == kBOARD_DAQ) {
+    else if (board->GetConfig()->GetBoardType() == TBoardType::kBOARD_DAQ) {
     // for the DAQ board the delay between pulse and strobe is 12.5ns * pulse delay + 25 ns * strobe delay
     // pulse delay cannot be 0, therefore set strobe delay to 0 and use only pulse delay
     board->SetTriggerConfig (true, false, 
                              0,
                              2 * board->GetConfig()->GetParamValue("STROBEDELAYBOARD"));
-    board->SetTriggerSource (kTRIG_EXT);
+      board->SetTriggerSource (TTriggerSource::kTRIG_EXT);
   }
 
 

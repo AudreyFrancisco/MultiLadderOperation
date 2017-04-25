@@ -5,8 +5,8 @@
 #include <string>
 #include <map>
 
-typedef enum { kTRIG_INT, kTRIG_EXT } TTriggerSource;
-typedef enum { kBOARD_DAQ, kBOARD_MOSAIC, kBOARD_UNKNOWN } TBoardType;
+enum class TTriggerSource { kTRIG_INT, kTRIG_EXT };
+enum class TBoardType { kBOARD_DAQ, kBOARD_MOSAIC, kBOARD_UNKNOWN };
 
 class TBoardConfig {
  
