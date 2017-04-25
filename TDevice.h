@@ -21,6 +21,7 @@ class TAlpide;
 class TReadoutBoard;
 class TReadoutBoardDAQ;
 class TChipConfig;
+class TBoardConfig;
 
 // definition of standard setup types:
 //   - single chip in OB mode with MOSAIC

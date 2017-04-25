@@ -5,6 +5,12 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderMFTLadder.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigMOSAIC.h"
+#include "TReadoutBoardMOSAIC.h"
+#include "TAlpide.h"
+#include "MosaicSrc/mruncontrol.h"
+#include "TChipConfig.h"
 
 using namespace std;
 
@@ -29,19 +35,19 @@ void TDeviceBuilderMFTLadder::SetDeviceType( const TDeviceType dt )
     fCurrentDevice->SetDeviceType( dt );
     switch ( fCurrentDevice->GetDeviceType() )
     {
-        case kDEVICE_MFT_LADDER5:
+        case TDeviceType::kMFT_LADDER5:
             fCurrentDevice->SetStartChipId( 4 ); // imposed by FPC
             fCurrentDevice->SetNChips( 5 ); // overwrite the value read in config file
             break;
-        case kDEVICE_MFT_LADDER4:
+        case TDeviceType::kMFT_LADDER4:
             fCurrentDevice->SetStartChipId( 5 ); // imposed by FPC
             fCurrentDevice->SetNChips( 4 ); // overwrite the value read in config file
             break;
-        case kDEVICE_MFT_LADDER3:
+        case TDeviceType::kMFT_LADDER3:
             fCurrentDevice->SetStartChipId( 6 ); // imposed by FPC
             fCurrentDevice->SetNChips( 3 ); // overwrite the value read in config file
             break;
-        case kDEVICE_MFT_LADDER2:
+        case TDeviceType::kMFT_LADDER2:
             fCurrentDevice->SetStartChipId( 7 ); // imposed by FPC
             fCurrentDevice->SetNChips( 2 ); // overwrite the value read in config file
             break;
@@ -95,7 +101,7 @@ void TDeviceBuilderMFTLadder::InitSetup()
         exit(0);
     }
     try {
-        if ( fCurrentDevice->GetBoardType() != kBOARD_MOSAIC ) {
+        if ( fCurrentDevice->GetBoardType() != TBoardType::kBOARD_MOSAIC ) {
             throw runtime_error( "TDeviceBuilderMFTLadder::InitSetup() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -110,7 +116,7 @@ void TDeviceBuilderMFTLadder::InitSetup()
     boardConfig->SetInvertedData( false );
     Mosaic::TReceiverSpeed speed;
     
-    switch (GetChipConfig(0)->GetParamValue("LINKSPEED")) {
+    switch ( (fCurrentDevice->GetChipConfig(0))->GetParamValue("LINKSPEED")) {
         case 400:
             speed = Mosaic::RCV_RATE_400;
             break;
@@ -137,7 +143,7 @@ void TDeviceBuilderMFTLadder::InitSetup()
         int control  = chipConfig->GetParamValue("CONTROLINTERFACE");
         int receiver = chipConfig->GetParamValue("RECEIVER");
         auto alpide = make_shared<TAlpide>( chipConfig );
-        alpide->SetReadoutBoard( GetBoard(0) );
+        alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
         fCurrentDevice->AddChip( alpide );
         
         if (control  < 0) {

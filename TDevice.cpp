@@ -88,7 +88,7 @@ void TDevice::SetBoardType( const TBoardType bt )
 }
 
 //___________________________________________________________________
-void SetDeviceType( const TDeviceType dt )
+void TDevice::SetDeviceType( const TDeviceType dt )
 {
     if ( fCreatedConfig ) {
         cerr << "TDevice::SetDeviceType() - not allowed: config already created !" << endl;

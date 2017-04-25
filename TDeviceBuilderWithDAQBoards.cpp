@@ -7,6 +7,8 @@
 #include "TDeviceBuilderWithDAQBoards.h"
 #include "TReadoutBoardDAQ.h"
 
+using namespace std;
+
 #pragma mark - Constructors/destructor
 
 //___________________________________________________________________
@@ -29,7 +31,7 @@ void TDeviceBuilderWithDAQBoards::AddDAQBoard( shared_ptr<libusb_device> device 
     auto readoutBoard = make_shared<TReadoutBoardDAQ>(device, boardConfig);
     try {
         fCurrentDevice->AddBoard(readoutBoard);
-    } catch ( std::runtime_err &err ) {
+    } catch ( std::runtime_error &err ) {
         throw err;
     }
 }

@@ -10,6 +10,8 @@
 
 #include "TDeviceBuilderWithDAQBoards.h"
 
+enum class TDeviceType;
+
 class TDeviceBuilderTelescope : public TDeviceBuilderWithDAQBoards {
     
 public:

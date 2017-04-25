@@ -5,6 +5,11 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderOBSingleMosaic.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigMOSAIC.h"
+#include "TChipConfig.h"
+#include "TReadoutBoardMOSAIC.h"
+#include "TAlpide.h"
 
 using namespace std;
 
@@ -41,7 +46,7 @@ void TDeviceBuilderOBSingleMosaic::CreateDeviceConfig()
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fCurrentDevice->AddBoardConfig( newBoardConfig );
     
-    auto newChipConfig = make_shared<TChipConfig>( GetStartChipId() );
+    auto newChipConfig = make_shared<TChipConfig>( fCurrentDevice->GetStartChipId() );
     newChipConfig->SetEnableSlave( false ); // with no slave
     fCurrentDevice->AddChipConfig( newChipConfig );
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
@@ -62,7 +67,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
         return;
     }
     try {
-        if ( fCurrentDevice->GetDeviceType() != TDeviceType::kDEVICE_OBCHIP_MOSAIC ) {
+        if ( fCurrentDevice->GetDeviceType() != TDeviceType::kOBCHIP_MOSAIC ) {
             throw runtime_error( "TDeviceBuilderOBSingleMosaic::InitSetup() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -94,7 +99,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
         chipConfig->SetParamValue("CONTROLINTERFACE", control);
     }
     
-    shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>) (GetBoardConfig(0)));
+    shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>) (fCurrentDevice->GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
     boardConfig->SetSpeedMode( Mosaic::RCV_RATE_400 );
     
@@ -102,7 +107,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
     fCurrentDevice->AddBoard( myBoard );
     
     auto alpide = make_shared<TAlpide>( chipConfig );
-    alpide->SetReadoutBoard( GetBoard(0) );
+    alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
     fCurrentDevice->AddChip(alpide);
     (fCurrentDevice->GetBoard(0))->AddChip(chipConfig->GetChipId(), control, receiver);
     

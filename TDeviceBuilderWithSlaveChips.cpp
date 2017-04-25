@@ -1,6 +1,8 @@
+#include <iostream>
 #include <stdlib.h>
 #include "TDevice.h"
 #include "TDeviceBuilderWithSlaveChips.h"
+#include "TChipConfig.h"
 
 using namespace std;
 

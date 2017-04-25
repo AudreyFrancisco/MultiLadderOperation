@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "TVerbosity.h"
 
 using namespace std;
 
@@ -6,7 +7,7 @@ using namespace std;
 
 //___________________________________________________________________
 TVerbosity::TVerbosity() :
-    fVerboseLevel( 0 ),
+    fVerboseLevel( 0 )
 { }
 
 //___________________________________________________________________

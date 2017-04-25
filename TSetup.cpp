@@ -5,6 +5,16 @@
 #include <stdlib.h>
 #include "TSetup.h"
 #include "TDevice.h"
+#include "TDeviceBuilder.h"
+#include "TDeviceBuilderHalfStave.h"
+#include "TDeviceBuilderIB.h"
+#include "TDeviceBuilderIBSingleMosaic.h"
+#include "TDeviceBuilderMFTLadder.h"
+#include "TDeviceBuilderOB.h"
+#include "TDeviceBuilderOBSingleDAQ.h"
+#include "TDeviceBuilderOBSingleMosaic.h"
+#include "TDeviceBuilderTelescopeDAQ.h"
+#include "TScanConfig.h"
 
 using namespace std;
 
@@ -150,14 +160,14 @@ void TSetup::ReadConfigFile()
         if (!strcmp(Param,"NCHIPS")){
             sscanf(Rest, "%d", &nChips);
             if ( dt == TDeviceType::kTELESCOPE ) {
-                fDeviceBuilder->SetNChips( nChips );
+                (dynamic_pointer_cast<TDeviceBuilderTelescope>(fDeviceBuilder))->SetNChips( nChips );
             }
         }
         int nModules = 0;
         if (!strcmp(Param,"NMODULES")){
             sscanf(Rest, "%d", &nModules);
             if ( dt == TDeviceType::kHALFSTAVE ) {
-                fDeviceBuilder->SetNModules( nModules );
+                (dynamic_pointer_cast<TDeviceBuilderHalfStave>(fDeviceBuilder))->SetNModules( nModules );
             }
         }
         try {
@@ -264,7 +274,7 @@ TDeviceType TSetup::ReadDeviceType( const char* deviceName )
 }
 
 //___________________________________________________________________
-void TSetup::InitDeviceBuilder( TDevideType dt )
+void TSetup::InitDeviceBuilder( TDeviceType dt )
 {
     if ( fDeviceBuilder ) {
         throw runtime_error( "TSetup::InitDeviceBuilder() - can not overwrite existing instance of TDeviceBuilder." );

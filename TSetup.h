@@ -15,11 +15,11 @@
 #include <memory>
 #include "TVerbosity.h"
 
+enum class TDeviceType;
+
 class TScanConfig;
 class TDevice;
 class TDeviceBuilder;
-
-enum class TDeviceType;
 
 class TSetup : public TVerbosity {
 

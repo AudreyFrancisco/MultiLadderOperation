@@ -5,6 +5,11 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilder.h"
+#include "TChipConfig.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigMOSAIC.h"
+#include "TAlpide.h"
+
 
 using namespace std;
 
@@ -76,25 +81,25 @@ void TDeviceBuilder::SetDeviceParamValue( const char *Name, const char *Value, i
     // currently only one is written
     // Note: having a config file with parameters for the mosaic board, but a setup with a DAQ board
     // (or vice versa) will issue unknown-parameter warnings...
-    if ( (fCurrentDevice->GetChipConfig(0))->IsParameter(Param) ) {
+    if ( (fCurrentDevice->GetChipConfig(0))->IsParameter(Name) ) {
         for (int i = Start; i < ChipStop; i++) {
-            (fCurrentDevice->GetChipConfig(i))->SetParamValue( Param, Rest );
+            (fCurrentDevice->GetChipConfig(i))->SetParamValue( Name, Value );
         }
     }
-    else if ( (fCurrentDevice->GetBoardConfig(0))->IsParameter(Param) ) {
+    else if ( (fCurrentDevice->GetBoardConfig(0))->IsParameter(Name) ) {
         for (int i = Start; i < BoardStop; i++) {
-            (fCurrentDevice->GetBoardConfig(i))->SetParamValue( Param, Rest );
+            (fCurrentDevice->GetBoardConfig(i))->SetParamValue( Name, Value );
         }
     }
-    else if ( (!strcmp(Param, "ADDRESS"))
+    else if ( (!strcmp(Name, "ADDRESS"))
              && ((fCurrentDevice->GetBoardConfig(0))->GetBoardType() == TBoardType::kBOARD_MOSAIC) ) {
         for (int i = Start; i < BoardStop; i++) {
             shared_ptr<TBoardConfigMOSAIC> boardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fCurrentDevice->GetBoardConfig(i));
-            boardConfig->SetIPaddress(Rest);
+            boardConfig->SetIPaddress( Value );
         }
     } else {
         cout << "TDeviceBuilder::SetDeviceParamValue() - Warning: Unknown parameter "
-             << Param << endl;
+             << Name << endl;
     }
 }
 

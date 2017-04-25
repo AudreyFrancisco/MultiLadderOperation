@@ -5,6 +5,11 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderIBSingleMosaic.h"
+#include "TBoardConfigMOSAIC.h"
+#include "TChipConfig.h"
+#include "TAlpide.h"
+#include "TReadoutBoardMOSAIC.h"
+#include "MosaicSrc/mruncontrol.h"
 
 using namespace std;
 
@@ -37,7 +42,7 @@ void TDeviceBuilderIBSingleMosaic::CreateDeviceConfig()
     if ( fCurrentDevice->IsConfigFrozen() ) {
         return;
     }
-    fCurrentDevice->fBoardType = TBoardType::kBOARD_MOSAIC;
+    fCurrentDevice->SetBoardType( TBoardType::kBOARD_MOSAIC );
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fCurrentDevice->AddBoardConfig( newBoardConfig );
     
@@ -60,7 +65,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         return;
     }
     try {
-        if ( fCurrentDevice->fDeviceType != TDeviceType::kDEVICE_IBCHIP_MOSAIC ) {
+        if ( fCurrentDevice->GetDeviceType() != TDeviceType::kIBCHIP_MOSAIC ) {
             throw runtime_error( "TDeviceBuilderIBSingleMosaic::InitSetup() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -68,7 +73,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         exit(0);
     }
     try {
-        if ( fCurrentDevice->fBoardType != TBoardType::kBOARD_MOSAIC ) {
+        if ( fCurrentDevice->GetBoardType() != TBoardType::kBOARD_MOSAIC ) {
             throw runtime_error( "TDeviceBuilderIBSingleMosaic::InitSetup() - wrong board type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -117,7 +122,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
     fCurrentDevice->AddBoard( myBoard );
     
     auto alpide = make_shared<TAlpide>( chipConfig );
-    alpide->SetReadoutBoard( GetBoard(0) );
+    alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
     fCurrentDevice->AddChip( alpide );
     (fCurrentDevice->GetBoard(0))->AddChip( chipConfig->GetChipId(), control, receiver );
     

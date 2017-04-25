@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderTelescopeDAQ.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigDAQ.h"
+#include "TChipConfig.h"
 
 using namespace std;
 
@@ -36,7 +39,7 @@ void TDeviceBuilderTelescope::SetNChips( const int number )
 {
     try {
         fCurrentDevice->SetNChips( number );
-    } catch ( std::runtime_err &err ) {
+    } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
         exit(0);
     }

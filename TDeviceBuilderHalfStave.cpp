@@ -5,6 +5,11 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderHalfStave.h"
+#include "TAlpide.h"
+#include "TChipConfig.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigMOSAIC.h"
+#include "TReadoutBoard.h"
 
 using namespace std;
 
@@ -30,7 +35,7 @@ void TDeviceBuilderHalfStave::SetNModules( const int number )
 }
 
 //___________________________________________________________________
-bool TDeviceBuilderHalfStave::CreateDeviceConfig()
+void TDeviceBuilderHalfStave::CreateDeviceConfig()
 {
     if ( fCurrentDevice->IsConfigFrozen() ) {
         return;
@@ -100,12 +105,12 @@ void TDeviceBuilderHalfStave::InitSetup()
         int          mosaic     = (chipId & 0x1000) ? 1:0;
         auto alpide = make_shared<TAlpide>( chipConfig );
         fCurrentDevice->AddChip( alpide );
-        ((fCurrentDevice->fChips).at(i))->SetReadoutBoard((fCurrentDevice->fBoards).at(mosaic));
+        (fCurrentDevice->GetChip(i))->SetReadoutBoard(fCurrentDevice->GetBoard(mosaic));
         
         // to be checked when final layout of adapter fixed
         int ci  = 0;
         int rcv = (chipId & 0x7) ? -1 : 9*ci; //FIXME
-        ((fCurrentDevice->fBoards).at(mosaic))->AddChip(chipId, ci, rcv);
+        (fCurrentDevice->GetBoard(mosaic))->AddChip(chipId, ci, rcv);
     }
     for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         EnableSlave( i );

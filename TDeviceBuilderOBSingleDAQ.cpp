@@ -5,6 +5,11 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderOBSingleDAQ.h"
+#include "TBoardConfig.h"
+#include "TChipConfig.h"
+#include "TAlpide.h"
+#include "TReadoutBoardDAQ.h"
+
 
 using namespace std;
 
@@ -41,7 +46,7 @@ void TDeviceBuilderOBSingleDAQ::CreateDeviceConfig()
     auto newBoardConfig = make_shared<TBoardConfigDAQ>();
     fCurrentDevice->AddBoardConfig( newBoardConfig );
     
-    auto newChipConfig = make_shared<TChipConfig>( GetStartChipId() );
+    auto newChipConfig = make_shared<TChipConfig>( fCurrentDevice->GetStartChipId() );
     newChipConfig->SetEnableSlave( false ); // with no slave
     fCurrentDevice->AddChipConfig( newChipConfig );
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
@@ -59,7 +64,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
         return;
     }
     try {
-        if ( fCurrentDevice->GetDeviceType() != TDeviceType::kDEVICE_CHIP_DAQ ) {
+        if ( fCurrentDevice->GetDeviceType() != TDeviceType::kCHIP_DAQ ) {
             throw runtime_error( "TDeviceBuilderOBSingleDAQ::InitSetup() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -103,7 +108,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
     
     // create chip object and connections with readout board
     auto alpide = make_shared<TAlpide>( chipConfig );
-    alpide->SetReadoutBoard( GetBoard(0) );
+    alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
     fCurrentDevice->AddChip( alpide );
     (fCurrentDevice->GetBoard(0))->AddChip(chipConfig->GetChipId(), control, receiver);
     

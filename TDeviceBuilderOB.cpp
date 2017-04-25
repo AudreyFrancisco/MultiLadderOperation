@@ -5,6 +5,11 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderOB.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigMOSAIC.h"
+#include "TReadoutBoardMOSAIC.h"
+#include "TChipConfig.h"
+#include "TAlpide.h"
 
 using namespace std;
 
@@ -33,7 +38,7 @@ void TDeviceBuilderOB::SetDeviceType( const TDeviceType dt )
 //___________________________________________________________________
 void TDeviceBuilderOB::CreateDeviceConfig()
 {
-    if ( fCurrentDevice->fCreatedConfig ) {
+    if ( fCurrentDevice->IsConfigFrozen() ) {
         return;
     }
     fCurrentDevice->SetBoardType( TBoardType::kBOARD_MOSAIC );
@@ -71,7 +76,7 @@ void TDeviceBuilderOB::InitSetup()
         return;
     }
     try {
-        if ( fCurrentDevice->GetDeviceType() != TDeviceType::kDEVICE_OBHIC ) {
+        if ( fCurrentDevice->GetDeviceType() != TDeviceType::kOBHIC ) {
             throw runtime_error( "TDeviceBuilderOB::InitSetup() - wrong device type." );
         }
     } catch ( std::runtime_error &err ) {
@@ -106,7 +111,7 @@ void TDeviceBuilderOB::InitSetup()
         if (chipId%8!=0) chipConfig->SetParamValue("LINKSPEED", "-1"); // deactivate the DTU/PLL for none master chips
         
         auto alpide = make_shared<TAlpide>( chipConfig );
-        alpide->SetReadoutBoard( GetBoard(0) );
+        alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
         fCurrentDevice->AddChip( alpide );
         
         if (i < 7) {              // first master-slave row

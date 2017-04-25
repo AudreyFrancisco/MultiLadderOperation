@@ -5,6 +5,13 @@
 #include <unistd.h>
 #include "TDevice.h"
 #include "TDeviceBuilderIB.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigMOSAIC.h"
+#include "MosaicSrc/mruncontrol.h"
+#include "TReadoutBoardMOSAIC.h"
+#include "TChipConfig.h"
+#include "TAlpide.h"
+
 
 using namespace std;
 
@@ -114,7 +121,7 @@ void TDeviceBuilderIB::InitSetup()
         int control  = chipConfig->GetParamValue("CONTROLINTERFACE");
         int receiver = chipConfig->GetParamValue("RECEIVER");
         auto alpide = make_shared<TAlpide>( chipConfig );
-        alpide->SetReadoutBoard( GetBoard(0) );
+        alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
         fCurrentDevice->AddChip( alpide );
         
         if (control  < 0) {
