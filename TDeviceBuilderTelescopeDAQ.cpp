@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "TDevice.h"
-#include "TDeviceBuilderTelescope.h"
+#include "TDeviceBuilderTelescopeDAQ.h"
 
 using namespace std;
 
