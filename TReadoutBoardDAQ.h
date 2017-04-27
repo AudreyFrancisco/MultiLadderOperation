@@ -11,16 +11,13 @@
 #include <thread>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include "USB.h"
 #include "TReadoutBoard.h"
 #include "TAlpide.h"
-#include "TConfig.h"
 #include "TBoardConfigDAQ.h"
 #include "BoardDecoder.h"
-
-
-//enum TTriggerSource {TRIG_INT, TRIG_EXT};
 
 const int MAX_DIFF_TRIG_EVT_CNT   =  10;    // maximum allowed difference between number triggers and events read; MAX_DIFF_TRIG_EVT_CNT is default
 const uint32_t MAX_EVT_BUFFSIZE   = 1e3;    // max number of events in fEventBuffer  TODO: maximum queue size ~1 Gb?
@@ -122,7 +119,7 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
 
   uint32_t fFirmwareVersion;    
 
-  TBoardConfigDAQ *fBoardConfigDAQ;
+    std::weak_ptr<TBoardConfigDAQ> fBoardConfigDAQ;
 
   int SendWord          (uint32_t value);
   int ReadAcknowledge   ();
@@ -162,8 +159,10 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
     
 
  public: 
-  TReadoutBoardDAQ(libusb_device *ADevice, TBoardConfigDAQ *config);
-  
+    TReadoutBoardDAQ();
+    TReadoutBoardDAQ(libusb_device *ADevice, std::shared_ptr<TBoardConfigDAQ> config);
+    std::weak_ptr<TBoardConfig> GetConfig() {return fBoardConfigDAQ;}
+
   virtual ~TReadoutBoardDAQ ();
 
   void DumpConfig(const char *fName, bool writeFile=true, char *config=0);
@@ -188,7 +187,7 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
 
   //// methods only for Cagliari DAQ board
   //---------------------------------------------------------
-  TBoardConfigDAQ *GetBoardConfig() {return fBoardConfigDAQ;};
+    std::weak_ptr<TBoardConfigDAQ> GetBoardConfig() {return fBoardConfigDAQ;}
 
   bool PowerOn           (int &overflow);
   void PowerOff          ();

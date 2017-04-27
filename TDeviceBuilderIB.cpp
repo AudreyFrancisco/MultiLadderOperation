@@ -120,10 +120,6 @@ void TDeviceBuilderIB::InitSetup()
         shared_ptr<TChipConfig> chipConfig = fCurrentDevice->GetChipConfig(i);
         int control  = chipConfig->GetParamValue("CONTROLINTERFACE");
         int receiver = chipConfig->GetParamValue("RECEIVER");
-        auto alpide = make_shared<TAlpide>( chipConfig );
-        alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
-        fCurrentDevice->AddChip( alpide );
-        
         if (control  < 0) {
             control = 0;
             chipConfig->SetParamValue("CONTROLINTERFACE", control);
@@ -132,7 +128,10 @@ void TDeviceBuilderIB::InitSetup()
             receiver = boardConfig->GetRCVMAP(i);
             chipConfig->SetParamValue("RECEIVER", receiver);
         }
-        (fCurrentDevice->GetBoard(0))->AddChip( chipConfig->GetChipId(), control, receiver );
+        auto alpide = make_shared<TAlpide>( chipConfig );
+        alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
+        fCurrentDevice->AddChip( alpide );
+        (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     }
     try {
         CheckControlInterface();

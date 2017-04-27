@@ -109,7 +109,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
     auto alpide = make_shared<TAlpide>( chipConfig );
     alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
     fCurrentDevice->AddChip(alpide);
-    (fCurrentDevice->GetBoard(0))->AddChip(chipConfig->GetChipId(), control, receiver);
+    (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
     if ( fVerboseLevel ) {
         cout << "TDeviceBuilderOBSingleMosaic::InitSetup() - end" << endl;

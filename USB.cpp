@@ -11,11 +11,32 @@
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
-TUSBBoard::TUSBBoard(libusb_device *ADevice) {
+TUSBBoard::TUSBBoard() :
+    fDevice( nullptr ),
+    fHandle( nullptr ),
+    fBusNum( 0 ),
+    fDevNum( 0 ),
+    fVendorId( 0 ),
+    fProductId( 0 ),
+    fUsbChipType( "" ),
+    fNumInterface( 0 ),
+    fNumEndpoints( 0 )
+{ }
+
+TUSBBoard::TUSBBoard(libusb_device *ADevice) :
+    fDevice( nullptr ),
+    fHandle( nullptr ),
+    fBusNum( 0 ),
+    fDevNum( 0 ),
+    fVendorId( 0 ),
+    fProductId( 0 ),
+    fUsbChipType( "" ),
+    fNumInterface( 0 ),
+    fNumEndpoints( 0 )
+{
     // open device and get handle;
     fDevice = ADevice;
     if (fDevice) {
-        Init             ();
         ConnectUSBDevice ();
         SetDeviceInfo    ();
         CreateEndpoints  ();
@@ -26,20 +47,6 @@ TUSBBoard::TUSBBoard(libusb_device *ADevice) {
 TUSBBoard::~TUSBBoard() {
     if (fDevice) DisconnectUSBDevice();
 }
-
-/*
- * Initialize the values of the object variables.
- */
-void TUSBBoard::Init() {
-    fBusNum       = 0;
-    fDevNum       = 0;
-    fVendorId     = 0;
-    fProductId    = 0;
-    fUsbChipType  = "";
-    fNumInterface = 0;
-    fNumEndpoints = 0;
-}
-
 
 /*
  * Establish the connection with device and interface.

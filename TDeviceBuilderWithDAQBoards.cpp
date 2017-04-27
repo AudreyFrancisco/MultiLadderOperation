@@ -24,7 +24,7 @@ TDeviceBuilderWithDAQBoards::~TDeviceBuilderWithDAQBoards()
 #pragma mark - Specific to DAQ board settings
 
 //___________________________________________________________________
-void TDeviceBuilderWithDAQBoards::AddDAQBoard( shared_ptr<libusb_device> device )
+void TDeviceBuilderWithDAQBoards::AddDAQBoard( libusb_device* device )
 {
     // note: this should change to use the correct board config according to index or geographical id
     shared_ptr<TBoardConfigDAQ> boardConfig = dynamic_pointer_cast<TBoardConfigDAQ>(fCurrentDevice->GetBoardConfig(0));
@@ -55,7 +55,7 @@ void TDeviceBuilderWithDAQBoards::FindDAQBoards()
     }
     
     for ( ssize_t i = 0; i < cnt; i++ ) {
-        shared_ptr<libusb_device> device( list[i] );
+        libusb_device *device = list[i] ;
         if ( IsDAQBoard(device) ) {
             try {
                 AddDAQBoard( device );
@@ -84,10 +84,10 @@ void TDeviceBuilderWithDAQBoards::InitLibUsb()
 }
 
 //___________________________________________________________________
-bool TDeviceBuilderWithDAQBoards::IsDAQBoard( shared_ptr<libusb_device> device )
+bool TDeviceBuilderWithDAQBoards::IsDAQBoard( libusb_device* device )
 {
     libusb_device_descriptor desc;
-    libusb_get_device_descriptor(device.get(), &desc);
+    libusb_get_device_descriptor(device, &desc);
     
     // std::cout << std::hex << "Vendor id " << (int)desc.idVendor << ", Product id " << (int)desc.idProduct << std::dec << std::endl;
     

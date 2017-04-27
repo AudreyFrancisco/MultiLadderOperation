@@ -102,15 +102,18 @@ void TDeviceBuilderHalfStave::InitSetup()
     for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         shared_ptr<TChipConfig> chipConfig = fCurrentDevice->GetChipConfig(i);
         int          chipId     = chipConfig->GetChipId();
+
+        // to be checked when final layout of adapter fixed
+        int ci  = 0;
+        int rcv = (chipId & 0x7) ? -1 : 9*ci; //FIXME
+        chipConfig->SetReceiver( rcv );
+        chipConfig->SetControlInterface( ci );
+        
         int          mosaic     = (chipId & 0x1000) ? 1:0;
         auto alpide = make_shared<TAlpide>( chipConfig );
         fCurrentDevice->AddChip( alpide );
         (fCurrentDevice->GetChip(i))->SetReadoutBoard(fCurrentDevice->GetBoard(mosaic));
-        
-        // to be checked when final layout of adapter fixed
-        int ci  = 0;
-        int rcv = (chipId & 0x7) ? -1 : 9*ci; //FIXME
-        (fCurrentDevice->GetBoard(mosaic))->AddChip(chipId, ci, rcv);
+        (fCurrentDevice->GetBoard(mosaic))->AddChipConfig(chipConfig);
     }
     for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         EnableSlave( i );

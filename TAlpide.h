@@ -269,6 +269,7 @@ class TAlpide {
 
     /// Writes data to complete row. This assumes that select bits have been cleared before.
     void WritePixRegRow( Alpide::TPixReg reg, const bool data, const int row);
+    
     void WritePixRegSingle( Alpide::TPixReg reg, const bool data,
                             const int row, const int col);
     void ApplyStandardDACSettings( const float backBias );
@@ -279,6 +280,7 @@ class TAlpide {
 
     /// return value: active row (needed for threshold scan histogramming).
     int  ConfigureMaskStage( int nPix, int iStage );
+    
     void WriteControlReg( const Alpide::TChipMode chipMode );
     void BaseConfigPLL();
     void BaseConfigMask();

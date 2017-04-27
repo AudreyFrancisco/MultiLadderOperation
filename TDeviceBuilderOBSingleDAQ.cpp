@@ -98,10 +98,10 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
     shared_ptr<TChipConfig> chipConfig = fCurrentDevice->GetChipConfig(0);
     chipConfig->SetParamValue("LINKSPEED", "-1");
     // values for control interface and receiver currently ignored for DAQ board
-    //  int               control     = chipConfig->GetParamValue("CONTROLINTERFACE");
-    //  int               receiver    = chipConfig->GetParamValue("RECEIVER");
     int control = 0;
+    chipConfig->SetParamValue("CONTROLINTERFACE", control);
     int receiver = 0;
+    chipConfig->SetParamValue("RECEIVER", receiver);
     // for Cagliari DAQ board disable DDR and Manchester encoding
     chipConfig->SetEnableDdr( false );
     chipConfig->SetDisableManchester( true );
@@ -110,7 +110,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
     auto alpide = make_shared<TAlpide>( chipConfig );
     alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
     fCurrentDevice->AddChip( alpide );
-    (fCurrentDevice->GetBoard(0))->AddChip(chipConfig->GetChipId(), control, receiver);
+    (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
     shared_ptr<TReadoutBoardDAQ> myDAQBoard = ((dynamic_pointer_cast<TReadoutBoardDAQ>)(fCurrentDevice->GetBoard(0)));
     PowerOnDaqBoard(myDAQBoard);

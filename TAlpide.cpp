@@ -2,7 +2,6 @@
 #include "TChipConfig.h"
 #include "TReadoutBoard.h"
 #include <iostream>
-#include <exception>
 #include <stdexcept>
 
 using namespace std;
@@ -62,12 +61,6 @@ TAlpide::~TAlpide()
 //___________________________________________________________________
 void TAlpide::SetEnable( const bool Enable )
 {
-    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
-    if ( spBoard ) {
-        spBoard->SetChipEnable( fChipId, Enable );
-    } else {
-        throw runtime_error( "TAlpide::SetEnable() - can not enable the readout board." );
-    }
     shared_ptr<TChipConfig> spConfig = fConfig.lock();
     if ( spConfig ) {
         spConfig->SetEnable( Enable );

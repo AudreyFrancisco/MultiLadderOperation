@@ -110,10 +110,6 @@ void TDeviceBuilderOB::InitSetup()
         
         if (chipId%8!=0) chipConfig->SetParamValue("LINKSPEED", "-1"); // deactivate the DTU/PLL for none master chips
         
-        auto alpide = make_shared<TAlpide>( chipConfig );
-        alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
-        fCurrentDevice->AddChip( alpide );
-        
         if (i < 7) {              // first master-slave row
             if (control < 0) {
                 control = 1;
@@ -133,7 +129,10 @@ void TDeviceBuilderOB::InitSetup()
                 chipConfig->SetParamValue("RECEIVER", receiver);
             }
         }
-        (fCurrentDevice->GetBoard(0))->AddChip(chipId, control, receiver);
+        auto alpide = make_shared<TAlpide>( chipConfig );
+        alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
+        fCurrentDevice->AddChip( alpide );
+        (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     }
     for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         EnableSlave( i );

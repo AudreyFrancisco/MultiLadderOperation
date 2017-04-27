@@ -13,7 +13,7 @@ const int TBoardConfigMOSAIC::RCVMAP[] = { 3, 5, 7, 8, 6, 4, 2, 1, 0 };
 //___________________________________________________________________
 TBoardConfigMOSAIC::TBoardConfigMOSAIC( const char *AConfigFileName ) : TBoardConfig()
 {
-	fBoardType = kBOARD_MOSAIC;
+    fBoardType = TBoardType::kBOARD_MOSAIC;
 
 	// Default values set
 	NumberOfControlInterfaces = MAX_MOSAICCTRLINT;

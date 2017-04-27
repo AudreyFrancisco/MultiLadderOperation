@@ -21,10 +21,10 @@ class TDeviceBuilderWithDAQBoards : public TDeviceBuilder {
     
 protected:
     #pragma mark - Specific to DAQ board settings
-    void AddDAQBoard( std::shared_ptr<libusb_device> device );
+    void AddDAQBoard( libusb_device* device );
     void FindDAQBoards();
     void InitLibUsb();
-    bool IsDAQBoard( std::shared_ptr<libusb_device> device );
+    bool IsDAQBoard( libusb_device* device );
     void PowerOnDaqBoard( std::shared_ptr<TReadoutBoardDAQ> aDAQBoard );
     
 public:
