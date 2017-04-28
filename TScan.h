@@ -2,59 +2,67 @@
 #define TSCAN_H
 
 #include <deque>
-#include "TAlpide.h"
-#include "TReadoutBoard.h"
 #include "TScanConfig.h"
 #include "THisto.h"
+#include <memory>
 
-const  int  MAXLOOPLEVEL = 3;
-const  int  MAXBOARDS    = 2;
+class TDevice;
 
 extern bool fScanAbort;
 
 class TScan {
- private:
- protected: 
-  TScanConfig                  *m_config;
-  std::vector <TAlpide *>       m_chips;
-  std::vector <TReadoutBoard *> m_boards;
-  TScanHisto                   *m_histo;
-  std::deque <TScanHisto>      *m_histoQue;
-  int m_start   [MAXLOOPLEVEL];
-  int m_stop    [MAXLOOPLEVEL];
-  int m_step    [MAXLOOPLEVEL];
-  int m_value   [MAXLOOPLEVEL];
-  int m_enabled [MAXBOARDS];  // number of enabled chips per readout board
-
-  void           CountEnabledChips  ();
-  virtual THisto CreateHisto        () = 0;
-
- public:
-  TScan (TScanConfig *config, std::vector <TAlpide *> chips, std::vector <TReadoutBoard *> boards, std::deque<TScanHisto> *histoQue);
-  ~TScan() {};
-
-  virtual void Init            ()              = 0;
-  virtual void Terminate       ()              = 0;
-  virtual void LoopStart       (int loopIndex) = 0;
-  virtual void LoopEnd         (int loopIndex) = 0;
-  virtual void PrepareStep     (int loopIndex) = 0;
-  virtual void Execute         ()              = 0;
-  bool         Loop            (int loopIndex);
-  void         Next            (int loopIndex); 
-  void         CreateScanHisto ();
+    
+private:
+    static const int MAXLOOPLEVEL = 3;
+    static const int MAXBOARDS    = 2;
+    
+protected:
+    std::weak_ptr<TScanConfig> fConfig;
+    std::weak_ptr<TDevice> fDevice;
+    std::unique_ptr<TScanHisto> fHisto;
+    std::deque<TScanHisto> *fHistoQue;
+    int fStart[MAXLOOPLEVEL];
+    int fStop[MAXLOOPLEVEL];
+    int fStep[MAXLOOPLEVEL];
+    int fValue[MAXLOOPLEVEL];
+    int fEnabled[MAXBOARDS];  // number of enabled chips per readout board
+    
+    void    CountEnabledChips();
+    virtual std::shared_ptr<THisto> CreateHisto() = 0;
+    
+public:
+    TScan();
+    TScan( std::shared_ptr<TScanConfig> config,
+          std::shared_ptr<TDevice> aDevice,
+          std::deque<TScanHisto> *histoQue );
+    virtual ~TScan() {};
+    
+    virtual void Init            ()              = 0;
+    virtual void Terminate       ()              = 0;
+    virtual void LoopStart       ( const int loopIndex ) = 0;
+    virtual void LoopEnd         ( const int loopIndex ) = 0;
+    virtual void PrepareStep     ( const int loopIndex ) = 0;
+    virtual void Execute         ()              = 0;
+    bool         Loop            ( const int loopIndex );
+    void         Next            ( const int loopIndex );
+    void         CreateScanHisto ();
 };
 
 
 
 class TMaskScan : public TScan {
- private: 
- protected: 
-  int  m_pixPerStage;
-  int  m_row;
-  void ConfigureMaskStage(TAlpide *chip, int istage);
- public: 
-  TMaskScan  (TScanConfig *config, std::vector <TAlpide *> chips, std::vector <TReadoutBoard *> boards, std::deque<TScanHisto> *histoQue);
-  ~TMaskScan () {};
+    
+protected:
+    int  fPixPerStage;
+    int  fRow;
+    void ConfigureMaskStage( const int ichip, const int istage );
+
+public:
+    TMaskScan();
+    TMaskScan( std::shared_ptr<TScanConfig> config,
+              std::shared_ptr<TDevice> aDevice,
+              std::deque<TScanHisto> *histoQue );
+    virtual ~TMaskScan() {};
 };
 
 #endif

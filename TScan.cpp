@@ -1,89 +1,113 @@
 #include "TScan.h"
-#include "AlpideConfig.h"
+#include "THisto.h"
+#include "TAlpide.h"
+#include "TDevice.h"
+#include "TChipConfig.h"
 #include <iostream>
 
+using namespace std;
 bool fScanAbort;
 
-TScan::TScan (TScanConfig *config, std::vector <TAlpide *> chips, std::vector <TReadoutBoard *> boards, std::deque<TScanHisto> *histoQue) 
+//___________________________________________________________________
+TScan::TScan()
 {
-  m_config = config;
-  m_chips  = chips; 
-  m_boards = boards;
-
-  m_histoQue = histoQue;
-
-  fScanAbort = false;
+    fScanAbort = false;
 }
 
-
-bool TScan::Loop (int loopIndex) 
+//___________________________________________________________________
+TScan::TScan( shared_ptr<TScanConfig> config,
+              shared_ptr<TDevice> aDevice,
+             std::deque<TScanHisto> *histoQue ) :
+    fConfig( config ),
+    fDevice( aDevice ),
+    fHistoQue( histoQue )
 {
-  if (fScanAbort) return false;     // check for abort flag first
-
-  if ((m_step[loopIndex] > 0) && (m_value[loopIndex] < m_stop[loopIndex])) return true;  // limit check for positive steps 
-  if ((m_step[loopIndex] < 0) && (m_value[loopIndex] > m_stop[loopIndex])) return true;  // same for negative steps
-
-  return false;
-
+    fScanAbort = false;
 }
 
-
-void TScan::Next (int loopIndex) 
+//___________________________________________________________________
+bool TScan::Loop( const int loopIndex )
 {
-  m_value[loopIndex] += m_step[loopIndex];
+    if ( fScanAbort )
+        return false;  // check for abort flag first
+    if ( (fStep[loopIndex] > 0) && (fValue[loopIndex] < fStop[loopIndex]) )
+        return true;  // limit check for positive steps
+    if ( (fStep[loopIndex] < 0) && (fValue[loopIndex] > fStop[loopIndex]) )
+        return true;  // same for negative steps
+    
+    return false;
 }
 
-
-void TScan::CountEnabledChips() 
+//___________________________________________________________________
+void TScan::Next( const int loopIndex )
 {
+    fValue[loopIndex] += fStep[loopIndex];
+}
 
-  //std::cout << "in count enabled chips, boards_size = " << m_boards.size() << ", chips_size = " << m_chips.size() << std::endl;
-  for (int i = 0; i < MAXBOARDS; i++) {
-    m_enabled[i] = 0;
-  }
-  for (unsigned int iboard = 0; iboard < m_boards.size(); iboard ++) {
-    for (unsigned int ichip = 0; ichip < m_chips.size(); ichip ++) {
-      if ((m_chips.at(ichip)->GetConfig()->IsEnabled()) && (m_chips.at(ichip)->GetReadoutBoard() == m_boards.at(iboard))) {
-        m_enabled[iboard] ++;
-      }
+//___________________________________________________________________
+void TScan::CountEnabledChips()
+{
+    shared_ptr<TDevice> currentDevice = fDevice.lock();
+
+    //std::cout << "in count enabled chips, boards_size = " << fBoards.size() << ", chips_size = " << fChips.size() << std::endl;
+    for (int i = 0; i < MAXBOARDS; i++) {
+        fEnabled[i] = 0;
     }
-  }
-
-}
-
-
-void TScan::CreateScanHisto () 
-{
-  TChipIndex id; 
-  m_histo = new TScanHisto();
-
-  THisto histo = CreateHisto ();
-
-  for (int iboard = 0; iboard < (int)m_boards.size(); iboard ++) {
-    for (int ichip = 0; ichip < (int)m_chips.size(); ichip ++) {
-      if ((m_chips.at(ichip)->GetConfig()->IsEnabled()) && (m_chips.at(ichip)->GetReadoutBoard() == m_boards.at(iboard))) {
-        id.boardIndex       = iboard;
-        id.dataReceiver     = m_chips.at(ichip)->GetConfig()->GetParamValue("RECEIVER"); 
-        id.chipId           = m_chips.at(ichip)->GetConfig()->GetChipId();
-
-        m_histo->AddHisto (id, histo);        
-      }
+    for ( int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard ++ ) {
+        for ( int ichip = 0; ichip < currentDevice->GetNChips(); ichip ++ ) {
+            shared_ptr<TReadoutBoard> board = currentDevice->GetBoardByChip( ichip );
+            if ( ((currentDevice->GetChipConfig( ichip ))->IsEnabled())
+                && (  board == currentDevice->GetBoard(iboard)) ) {
+                fEnabled[iboard] ++;
+            }
+        }
     }
-  }  
-  std::cout << "CreateHisto: generated map with " << m_histo->GetSize() << " elements" << std::endl;
 }
 
-
-
-TMaskScan::TMaskScan (TScanConfig *config, std::vector <TAlpide *> chips, std::vector <TReadoutBoard *> boards, std::deque<TScanHisto> *histoQue) 
-  : TScan(config, chips, boards, histoQue)
+//___________________________________________________________________
+void TScan::CreateScanHisto()
 {
-  m_pixPerStage = m_config->GetParamValue("PIXPERREGION");
+    TChipIndex id;
+    fHisto = make_unique<TScanHisto>();
+    
+    shared_ptr<THisto> histo = CreateHisto();
+    
+    shared_ptr<TDevice> currentDevice = fDevice.lock();
+    
+    for ( int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard ++ ) {
+        for ( int ichip = 0; ichip < currentDevice->GetNChips(); ichip ++ ) {
+            shared_ptr<TReadoutBoard> board = currentDevice->GetBoardByChip( ichip );
+            if ( ((currentDevice->GetChipConfig( ichip ))->IsEnabled())
+                && (  board == currentDevice->GetBoard(iboard)) ) {
+                id.boardIndex       = iboard;
+                id.dataReceiver     = (currentDevice->GetChipConfig( ichip ))->GetParamValue("RECEIVER");
+                id.chipId           = (currentDevice->GetChipConfig( ichip ))->GetChipId();
+                fHisto->AddHisto( id, histo );
+            }
+        }
+    }
+    cout << "CreateHisto: generated map with " << fHisto->GetSize() << " elements" << endl;
 }
 
+//___________________________________________________________________
+TMaskScan::TMaskScan() : TScan()
+{ }
 
-void TMaskScan::ConfigureMaskStage(TAlpide *chip, int istage) {
-  m_row = AlpideConfig::ConfigureMaskStage (chip, m_pixPerStage, istage);
+//___________________________________________________________________
+TMaskScan::TMaskScan( shared_ptr<TScanConfig> config,
+                     shared_ptr<TDevice> aDevice,
+                     deque<TScanHisto> *histoQue )
+: TScan(config, aDevice, histoQue)
+{
+    shared_ptr<TScanConfig> currentConfig = fConfig.lock();
+    fPixPerStage = currentConfig->GetParamValue("PIXPERREGION");
+}
+
+//___________________________________________________________________
+void TMaskScan::ConfigureMaskStage( const int ichip, const int istage)
+{
+    shared_ptr<TDevice> currentDevice = fDevice.lock();
+    fRow = (currentDevice->GetChip( ichip ))->ConfigureMaskStage( fPixPerStage, istage );
 }
 
 
