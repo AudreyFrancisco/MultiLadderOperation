@@ -3,7 +3,7 @@
 
 #include "TReadoutBoard.h"
 
-
+enum class TBoardType;
 const uint32_t DAQ_TRAILER_WORD = 0xbfbfbfbf; // 
 
 // put all header and trailer information here 
