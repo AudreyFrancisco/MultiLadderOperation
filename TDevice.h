@@ -86,7 +86,11 @@ public:
     #pragma mark - getters
     std::shared_ptr<TReadoutBoard>  GetBoard(const int iBoard);
     std::shared_ptr<TBoardConfig>   GetBoardConfig(const int iBoard);
+    std::shared_ptr<TReadoutBoard>  GetBoardByChip(const int iChip);
+    std::shared_ptr<TBoardConfig>   GetBoardConfigByChip(const int iChip);
     std::shared_ptr<TAlpide>        GetChip(const int iChip);
+    std::shared_ptr<TAlpide>        GetChipById(const int chipId);
+    int                             GetChipIndexById(const int chipId) const;
     std::shared_ptr<TChipConfig>    GetChipConfig(const int iChip);
     std::shared_ptr<TChipConfig>    GetChipConfigById(const int chipId);
     inline TBoardType               GetBoardType() const { return fBoardType; }

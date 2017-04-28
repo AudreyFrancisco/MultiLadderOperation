@@ -163,7 +163,7 @@ void TDevice::IncrementWorkingChipCounter()
 #pragma mark - getters
 
 //___________________________________________________________________
-shared_ptr<TReadoutBoard> TDevice::GetBoard( const int iBoard)
+shared_ptr<TReadoutBoard> TDevice::GetBoard( const int iBoard )
 {
     if ( (!fInitialisedSetup) || fBoards.empty() ) {
         throw runtime_error( "TDevice::GetBoard() - no board defined!" );
@@ -172,18 +172,16 @@ shared_ptr<TReadoutBoard> TDevice::GetBoard( const int iBoard)
         cerr << "TDevice::GetBoard() - iBoard = " << iBoard << endl;
         throw out_of_range( "TDevice::GetBoard() - wrong board index!" );
     }
-    shared_ptr<TReadoutBoard> myBoard = nullptr;
-    try {
-        myBoard = fBoards.at( iBoard );
-    } catch ( ... ) {
-        cerr << "TDevice::GetBoard() - error, exit!" << endl;
-        exit(0);
+    shared_ptr<TReadoutBoard> myBoard = fBoards.at( iBoard );
+    if ( !myBoard ) {
+        cerr << "TDevice::GetBoard() - iBoard = " << iBoard << endl;
+        throw runtime_error( "TDevice::GetBoard() - board does not exist!" );
     }
     return myBoard;
 }
 
 //___________________________________________________________________
-shared_ptr<TBoardConfig> TDevice::GetBoardConfig( const int iBoard)
+shared_ptr<TBoardConfig> TDevice::GetBoardConfig( const int iBoard )
 {
     if ( (!fCreatedConfig) || fBoardConfigs.empty() ) {
         throw runtime_error( "TDevice::GetBoardConfig() - no config defined!" );
@@ -192,18 +190,71 @@ shared_ptr<TBoardConfig> TDevice::GetBoardConfig( const int iBoard)
         cerr << "TDevice::GetBoardConfig() - iBoard = " << iBoard << endl;
         throw out_of_range( "TDevice::GetBoardConfig() - wrong board config index!" );
     }
-    shared_ptr<TBoardConfig> myBoardConfig = nullptr;
-    try {
-        myBoardConfig = fBoardConfigs.at( iBoard );
-    } catch ( ... ) {
-        cerr << "TDevice::GetBoardConfig() - error, exit!" << endl;
-        exit(0);
+    shared_ptr<TBoardConfig> myBoardConfig = fBoardConfigs.at( iBoard );
+    if ( !myBoardConfig ) {
+        cerr << "TDevice::GetBoardConfig() - iBoard = " << iBoard << endl;
+        throw runtime_error( "TDevice::GetBoardConfig() - board config does not exist!" );
     }
     return myBoardConfig;
 }
 
 //___________________________________________________________________
-shared_ptr<TAlpide> TDevice::GetChip( const int iChip)
+shared_ptr<TReadoutBoard> TDevice::GetBoardByChip( const int iChip )
+{
+    if ( (!fInitialisedSetup) || fBoards.empty() || fChips.empty() ) {
+        throw runtime_error( "TDevice::GetBoardByChip() - no chip or board defined!" );
+    }
+    if ( (iChip < 0) || (iChip >= (int)fChips.size()) ) {
+        cerr << "TDevice::GetBoardByChip() - iChip = " << iChip << endl;
+        throw out_of_range( "TDevice::GetBoardByChip() - wrong chip index!" );
+    }
+    shared_ptr<TReadoutBoard> aBoard = (fChips.at(iChip)->GetReadoutBoard()).lock();
+    shared_ptr<TReadoutBoard> myBoard = nullptr;
+    for ( int i = 0; i < (int)fBoards.size(); i++ ) {
+        myBoard = fBoards.at(i);
+        if ( myBoard == aBoard ) {
+            break;
+        }
+    }
+    if ( !myBoard ) {
+        cerr << "TDevice::GetBoardByChip() - requested chip = " << iChip << endl;
+        throw runtime_error( "TDevice::GetBoardByChip() - board for requested chip not found." );
+    }
+    return myBoard;
+}
+
+//___________________________________________________________________
+shared_ptr<TBoardConfig> TDevice::GetBoardConfigByChip( const int iChip )
+{
+    if ( (!fInitialisedSetup) || fBoardConfigs.empty() || fChips.empty() ) {
+        throw runtime_error( "TDevice::GetBoardConfigByChip() - no chip or board config defined!" );
+    }
+    if ( (iChip < 0) || (iChip >= (int)fChips.size()) ) {
+        cerr << "TDevice::GetBoardConfigByChip() - iChip = " << iChip << endl;
+        throw out_of_range( "TDevice::GetBoardConfigByChip() - wrong chip index!" );
+    }
+    shared_ptr<TBoardConfig> aBoardConfig = nullptr;
+    try {
+        aBoardConfig = (GetBoardByChip( iChip )->GetConfig()).lock();
+    } catch ( ... ) {
+        throw runtime_error( "TDevice::GetBoardConfigByChip() - failed!" );
+    }
+    shared_ptr<TBoardConfig> myBoardConfig = nullptr;
+    for ( int i = 0; i < (int)fBoardConfigs.size(); i++ ) {
+        myBoardConfig = fBoardConfigs.at(i);
+        if ( myBoardConfig == aBoardConfig ) {
+            break;
+        }
+    }
+    if ( !myBoardConfig ) {
+        cerr << "TDevice::GetBoardConfigByChip() - requested chip = " << iChip << endl;
+        throw runtime_error( "TDevice::GetBoardConfigByChip() - board for requested chip not found." );
+    }
+    return myBoardConfig;
+}
+
+//___________________________________________________________________
+shared_ptr<TAlpide> TDevice::GetChip( const int iChip )
 {
     if ( (!fInitialisedSetup) || fChips.empty() ) {
         throw runtime_error( "TDevice::GetChip() - no chip defined!" );
@@ -212,14 +263,58 @@ shared_ptr<TAlpide> TDevice::GetChip( const int iChip)
         cerr << "TDevice::GetChip() - iChip = " << iChip << endl;
         throw out_of_range( "TDevice::GetChip() - wrong chip index!" );
     }
-    shared_ptr<TAlpide> myChip = nullptr;
-    try {
-        myChip = fChips.at( iChip );
-    } catch ( ... ) {
-        cerr << "TDevice::GetChip() - error, exit!" << endl;
-        exit(0);
+    shared_ptr<TAlpide> myChip = fChips.at( iChip );
+    if ( !myChip ) {
+        cerr << "TDevice::GetChip() - iChip = " << iChip << endl;
+        throw runtime_error( "TDevice::GetChip() - chip does not exist!" );
     }
     return myChip;
+}
+
+//___________________________________________________________________
+shared_ptr<TAlpide> TDevice::GetChipById( const int chipId )
+{
+    if ( (!fInitialisedSetup) || fChipConfigs.empty() ||  fChips.empty() ) {
+        throw runtime_error( "TDevice::GetChipById() - no chip or chip config defined!" );
+    }
+    shared_ptr<TAlpide> myChip = nullptr;
+    for (int i = 0; i < (int)fChips.size(); i++) {
+        shared_ptr<TChipConfig> config = (fChips.at(i)->GetConfig()).lock();
+        if (config->GetChipId() == chipId) {
+            myChip = fChips.at(i);
+            break;
+        }
+    }
+    if ( !myChip ) {
+        cerr << "TDevice::GetChipById() - requested chip id = " << chipId << endl;
+        throw runtime_error( "TDevice::GetChipById() - requested chip id not found." );
+    }
+    return myChip;
+}
+
+//___________________________________________________________________
+int TDevice::GetChipIndexById( const int chipId ) const
+{
+    if ( (!fInitialisedSetup) || fChipConfigs.empty() ||  fChips.empty() ) {
+        throw runtime_error( "TDevice::GetChipById() - no chip or chip config defined!" );
+    }
+    shared_ptr<TAlpide> myChip = nullptr;
+    int index = -1;
+    for (int i = 0; i < (int)fChips.size(); i++) {
+        shared_ptr<TChipConfig> config = (fChips.at(i)->GetConfig()).lock();
+        if (config->GetChipId() == chipId) {
+            myChip = fChips.at(i);
+            index = i;
+            break;
+        }
+    }
+    if ( !myChip ) {
+        cerr << "TDevice::GetChipIndexById() - null TAlpide ptr at requested chip id = " << chipId << endl;
+    }
+    if ( index < 0 ) {
+        cerr << "TDevice::GetChipIndexById() - chip index not found for requested chip id = " << chipId << endl;
+    }
+    return index;
 }
 
 //___________________________________________________________________
@@ -232,12 +327,10 @@ shared_ptr<TChipConfig> TDevice::GetChipConfig( const int iChip )
         cerr << "TDevice::GetChipConfig() - iChip = " << iChip << endl;
         throw out_of_range( "TDevice::GetChipConfig() - wrong chip config index!" );
     }
-    shared_ptr<TChipConfig> myChipConfig = nullptr;
-    try {
-        myChipConfig = fChipConfigs.at( iChip );
-    } catch ( ... ) {
-        cerr << "TDevice::GetChipConfig() - error, exit!" << endl;
-        exit(0);
+    shared_ptr<TChipConfig> myChipConfig = fChipConfigs.at( iChip );
+    if ( !myChipConfig ) {
+        cerr << "TDevice::GetChipConfig() - iChip = " << iChip << endl;
+        throw runtime_error( "TDevice::GetChipConfig() - chip config does not exist!" );
     }
     return myChipConfig;
 }
