@@ -10,6 +10,7 @@
 #include "TBoardConfig.h"
 #include "TBoardConfigMOSAIC.h"
 #include "TReadoutBoard.h"
+#include "TReadoutBoardMOSAIC.h"
 
 using namespace std;
 
@@ -93,10 +94,12 @@ void TDeviceBuilderHalfStave::InitSetup()
     if ( fVerboseLevel ) {
         cout << "TDeviceBuilderHalfStave::InitSetup() - start" << endl;
     }
-    for (int i = 0; i < fCurrentDevice->GetNBoards(); i++) {
+    for (int i = 0; i < fCurrentDevice->GetNBoards(true); i++) {
         shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(fCurrentDevice->GetBoardConfig(i)));
         boardConfig->SetInvertedData(false);  //already inverted in the adapter plug ?
         boardConfig->SetSpeedMode(Mosaic::RCV_RATE_400);
+        auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
+        fCurrentDevice->AddBoard( newBoard );
     }
     
     for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
