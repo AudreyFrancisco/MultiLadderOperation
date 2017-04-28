@@ -482,6 +482,24 @@ void TAlpide::ConfigureFromu( const Alpide::TPulseType pulseType,
     WriteRegister( Alpide::REG_FROMU_PULSING2, spConfig->GetPulseDuration() );
 }
 
+// Simpler configuration for threshold scan
+//___________________________________________________________________
+void TAlpide::ConfigureFromu()
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ConfigureFromu() - chip config. not found!" );
+    }
+    // fromu config 1: digital pulsing (put to 0x20 for analogue)
+    WriteRegister( Alpide::REG_FROMU_CONFIG1,  0x20 );
+    // fromu config 2: strobe length
+    WriteRegister( Alpide::REG_FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
+    // fromu pulsing 1: delay pulse - strobe (not used here, since using external strobe)
+    WriteRegister( Alpide::REG_FROMU_PULSING1, spConfig->GetStrobeDelay() );
+    // fromu pulsing 2: pulse length
+    WriteRegister( Alpide::REG_FROMU_PULSING2, spConfig->GetPulseDuration() );
+}
+
 //___________________________________________________________________
 void TAlpide::ConfigureBuffers()
 {

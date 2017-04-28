@@ -275,6 +275,7 @@ class TAlpide {
     void ApplyStandardDACSettings( const float backBias );
     void ConfigureFromu( const Alpide::TPulseType pulseType,
                          const bool testStrobe );
+    void ConfigureFromu();
     void ConfigureBuffers();
     void ConfigureCMU();
 
