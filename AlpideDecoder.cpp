@@ -8,24 +8,24 @@
 bool newEvent;
 
 TDataType AlpideDecoder::GetDataType(unsigned char dataWord) {
-  if      (dataWord == 0xff)          return DT_IDLE;
-  else if (dataWord == 0xf1)          return DT_BUSYON;
-  else if (dataWord == 0xf0)          return DT_BUSYOFF;
-  else if ((dataWord & 0xf0) == 0xa0) return DT_CHIPHEADER;
-  else if ((dataWord & 0xf0) == 0xb0) return DT_CHIPTRAILER;
-  else if ((dataWord & 0xf0) == 0xe0) return DT_EMPTYFRAME;
-  else if ((dataWord & 0xe0) == 0xc0) return DT_REGIONHEADER;
-  else if ((dataWord & 0xc0) == 0x40) return DT_DATASHORT;
-  else if ((dataWord & 0xc0) == 0x0)  return DT_DATALONG;
-  else return DT_UNKNOWN;
+    if      (dataWord == 0xff)          return TDataType::kIDLE;
+    else if (dataWord == 0xf1)          return TDataType::kBUSYON;
+    else if (dataWord == 0xf0)          return TDataType::kBUSYOFF;
+    else if ((dataWord & 0xf0) == 0xa0) return TDataType::kCHIPHEADER;
+    else if ((dataWord & 0xf0) == 0xb0) return TDataType::kCHIPTRAILER;
+    else if ((dataWord & 0xf0) == 0xe0) return TDataType::kEMPTYFRAME;
+    else if ((dataWord & 0xe0) == 0xc0) return TDataType::kREGIONHEADER;
+    else if ((dataWord & 0xc0) == 0x40) return TDataType::kDATASHORT;
+    else if ((dataWord & 0xc0) == 0x0)  return TDataType::kDATALONG;
+    else return TDataType::kUNKNOWN;
 }
 
 
 int AlpideDecoder::GetWordLength(TDataType dataType) {
-  if (dataType == DT_DATALONG) {
+    if (dataType == TDataType::kDATALONG) {
     return 3;
   }
-  else if ((dataType == DT_DATASHORT) || (dataType == DT_CHIPHEADER) || (dataType == DT_EMPTYFRAME)) {
+    else if ((dataType == TDataType::kDATASHORT) || (dataType == TDataType::kCHIPHEADER) || (dataType == TDataType::kEMPTYFRAME)) {
     return 2;
   }
   else return 1;
@@ -114,28 +114,28 @@ bool AlpideDecoder::DecodeEvent (unsigned char *data, int nBytes, std::vector <T
     last = data[byte];
     type = GetDataType (data[byte]);
     switch (type) {
-    case DT_IDLE:
+        case TDataType::kIDLE:
       byte +=1;
       break;
-    case DT_BUSYON:
+        case TDataType::kBUSYON:
       byte += 1;
       break;
-    case DT_BUSYOFF:
+        case TDataType::kBUSYOFF:
       byte += 1;
       break;
-    case DT_EMPTYFRAME:
+        case TDataType::kEMPTYFRAME:
       started = true;
       DecodeEmptyFrame (data + byte, chip, BunchCounterTmp);
       byte += 2;
       finished = true;
       break;
-    case DT_CHIPHEADER:
+        case TDataType::kCHIPHEADER:
       started = true;
       finished = false;
       DecodeChipHeader (data + byte, chip, BunchCounterTmp);
       byte += 2;
       break;
-    case DT_CHIPTRAILER:
+        case TDataType::kCHIPTRAILER:
       if (!started) {
         std::cout << "Error, chip trailer found before chip header" << std::endl;
         return false; 
@@ -149,7 +149,7 @@ bool AlpideDecoder::DecodeEvent (unsigned char *data, int nBytes, std::vector <T
       chip = -1;
       byte += 1;
       break;
-    case DT_REGIONHEADER:
+        case TDataType::kREGIONHEADER:
       if (!started) {
         std::cout << "Error, region header found before chip header or after chip trailer" << std::endl;
         return false;
@@ -157,7 +157,7 @@ bool AlpideDecoder::DecodeEvent (unsigned char *data, int nBytes, std::vector <T
       DecodeRegionHeader (data + byte, region);
       byte +=1;
       break;
-    case DT_DATASHORT:
+        case TDataType::kDATASHORT:
       if (!started) {
         std::cout << "Error, hit data found before chip header or after chip trailer" << std::endl;
         return false;
@@ -176,7 +176,7 @@ bool AlpideDecoder::DecodeEvent (unsigned char *data, int nBytes, std::vector <T
       }
       byte += 2;
       break;
-    case DT_DATALONG:
+        case TDataType::kDATALONG:
       if (!started) {
         std::cout << "Error, hit data found before chip header or after chip trailer" << std::endl;
         return false;
@@ -195,7 +195,7 @@ bool AlpideDecoder::DecodeEvent (unsigned char *data, int nBytes, std::vector <T
       }
       byte += 3;
       break;
-    case DT_UNKNOWN:
+        case TDataType::kUNKNOWN:
       std::cout << "Error, data of unknown type 0x" << std::hex << data[byte] << std::dec << std::endl;
       return false;
     }
