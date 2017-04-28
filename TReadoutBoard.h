@@ -21,7 +21,6 @@ protected:
     virtual int ReadChipRegister(uint16_t Address, uint16_t &Value, uint8_t chipID = 0) = 0;
     int GetControlInterface( const uint8_t chipId) const;
     int GetChipById( const uint8_t chipId) const;
-    int GetReceiver(const uint8_t chipId) const;
 
     friend class TAlpide;     // could be reduced to the relevant methods ReadRegister, WriteRegister
 
@@ -35,7 +34,8 @@ public:
     
     virtual std::weak_ptr<TBoardConfig> GetConfig() {return std::weak_ptr<TBoardConfig>();}
     std::weak_ptr<TChipConfig> GetChipConfig(const int iChip) {return fChipPositions.at(iChip);}
-    
+    int GetReceiver(const uint8_t chipId) const;
+
     virtual int  ReadRegister      (uint16_t Address, uint32_t &Value) = 0;
     virtual int  WriteRegister     (uint16_t Address, uint32_t Value)  = 0;
     
