@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "USB.h"
+#include "AlpideDictionary.h"
 #include "TAlpide.h"
 #include "TReadoutBoardDAQ.h"
 
@@ -107,8 +108,8 @@ int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8
 {
   int err;
   uint32_t address32 = (uint32_t) address;
-  uint32_t chipId32  = (uint32_t) chipId; 
-  uint32_t newAddress = (address32 << 16) | (chipId32 << 8) | Alpide::OPCODE_WROP;
+  uint32_t chipId32  = (uint32_t) chipId;
+  uint32_t newAddress = (address32 << 16) | (chipId32 << 8) | ((uint32_t)AlpideOpCode::WROP);
 
   //std::cout << "[CHIP] ADDRESS: " << std::hex <<  newAddress << " VALUE " << value << std::dec << std::endl; 
 
@@ -148,7 +149,7 @@ int TReadoutBoardDAQ::ReadChipRegister (uint16_t address, uint16_t &value, uint8
   uint32_t      value32; 
   uint32_t      address32  = (uint32_t) address;
   uint32_t      chipId32   = (uint32_t) chipId;
-  uint32_t      newAddress = (address32 << 16) | (chipId32 << 8) | Alpide::OPCODE_RDOP;
+  uint32_t      newAddress = (address32 << 16) | (chipId32 << 8) | ((uint32_t)AlpideOpCode::RDOP);
 
 
   err = WriteRegister(CMU_INSTR + (MODULE_CMU << DAQBOARD_REG_ADDR_SIZE), newAddress);

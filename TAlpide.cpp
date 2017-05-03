@@ -1,3 +1,4 @@
+#include "AlpideDictionary.h"
 #include "TAlpide.h"
 #include "TChipConfig.h"
 #include "TReadoutBoard.h"
@@ -5,6 +6,7 @@
 #include <stdexcept>
 
 using namespace std;
+
 
 #pragma mark - Constructors/destructor
 
@@ -72,7 +74,7 @@ void TAlpide::SetEnable( const bool Enable )
 #pragma mark - basic operations with registers
 
 //___________________________________________________________________
-int TAlpide::ReadRegister( const Alpide::TRegister address, uint16_t &value )
+int TAlpide::ReadRegister( const AlpideRegister address, uint16_t &value )
 {
   return ReadRegister( (uint16_t) address, value );
 }
@@ -95,7 +97,7 @@ int TAlpide::ReadRegister( const uint16_t address, uint16_t &value )
 }
 
 //___________________________________________________________________
-int TAlpide::WriteRegister( const Alpide::TRegister address,
+int TAlpide::WriteRegister( const AlpideRegister address,
                             uint16_t value, const bool verify)
 {
   return WriteRegister( (uint16_t) address, value, verify );
@@ -123,7 +125,7 @@ int TAlpide::WriteRegister( const uint16_t address,
 }
 
 //___________________________________________________________________
-int TAlpide::ModifyRegisterBits( const Alpide::TRegister address,
+int TAlpide::ModifyRegisterBits( const AlpideRegister address,
                                  const uint8_t lowBit,
                                  const uint8_t nBits,
                                  uint16_t value,
@@ -287,19 +289,19 @@ float TAlpide::ReadTemperature()
         CalibrateADC();
     }
     
-    SetTheDacMonitor( Alpide::REG_ANALOGMON ); // uses the RE_ANALOGMON, in order to disable the monitoring !
+    SetTheDacMonitor( AlpideRegister::ANALOGMON ); // uses the RE_ANALOGMON, in order to disable the monitoring !
     usleep(5000);
-    SetTheADCCtrlRegister( Alpide::MODE_MANUAL, Alpide::INP_Temperature, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
+    SetTheADCCtrlRegister( ADCMode::MANUAL, ADCInput::Temperature, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE,  (uint8_t)fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_AVSS, theResult );
+    ReadRegister( AlpideRegister::ADC_AVSS, theResult );
     theResult -=  (uint16_t)fADCBias;
     float theValue =  ( ((float)theResult) * 0.1281) + 6.8; // first approximation
     return theValue;
 }
 
 //___________________________________________________________________
-float TAlpide::ReadDACVoltage( Alpide::TRegister ADac )
+float TAlpide::ReadDACVoltage( AlpideRegister ADac )
 {
     shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
     if ( !spBoard ) {
@@ -313,17 +315,17 @@ float TAlpide::ReadDACVoltage( Alpide::TRegister ADac )
     
     SetTheDacMonitor( ADac );
     usleep(5000);
-    SetTheADCCtrlRegister( Alpide::MODE_MANUAL, Alpide::INP_DACMONV, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
+    SetTheADCCtrlRegister( ADCMode::MANUAL, ADCInput::DACMONV, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_AVSS, theResult );
+    ReadRegister( AlpideRegister::ADC_AVSS, theResult );
     theResult -=  (uint16_t)fADCBias;
     float theValue =  ( ((float)theResult) * 0.001644); // V scale first approximation
     return theValue;
 }
 
 //___________________________________________________________________
-float TAlpide::ReadDACCurrent( Alpide::TRegister ADac )
+float TAlpide::ReadDACCurrent( AlpideRegister ADac )
 {
     shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
     if ( !spBoard ) {
@@ -337,10 +339,10 @@ float TAlpide::ReadDACCurrent( Alpide::TRegister ADac )
     
     SetTheDacMonitor( ADac );
     usleep(5000);
-    SetTheADCCtrlRegister( Alpide::MODE_MANUAL, Alpide::INP_DACMONI, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE,  fChipId );
+    SetTheADCCtrlRegister( ADCMode::MANUAL, ADCInput::DACMONI, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE,  (uint8_t)fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_AVSS, theResult );
+    ReadRegister( AlpideRegister::ADC_AVSS, theResult );
     theResult -= (uint16_t)fADCBias;
     float theValue =  ( ((float)theResult) * 0.164); // uA scale   first approximation
     return theValue;
@@ -355,15 +357,15 @@ void TAlpide::Init()
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixConfReg( Alpide::TPixReg reg, const bool data )
+void TAlpide::WritePixConfReg( AlpidePixReg reg, const bool data )
 {
     uint16_t pixconfig = (int) reg & 0x1;
     pixconfig         |= (data?1:0) << 1;
-    WriteRegister( Alpide::REG_PIXELCONFIG, pixconfig );
+    WriteRegister( AlpideRegister::PIXELCONFIG, pixconfig );
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixRegAll( Alpide::TPixReg reg, const bool data )
+void TAlpide::WritePixRegAll( AlpidePixReg reg, const bool data )
 {
     // TODO: To be checked whether this methods works or whether a loop over rows has to be implemented
 
@@ -376,7 +378,7 @@ void TAlpide::WritePixRegAll( Alpide::TPixReg reg, const bool data )
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixRegRow( Alpide::TPixReg reg, const bool data, const int row)
+void TAlpide::WritePixRegRow( AlpidePixReg reg, const bool data, const int row)
 {
     WritePixConfReg( reg, data);
     // set all colsel to 1 and leave all rowsel at 0
@@ -395,7 +397,7 @@ void TAlpide::WritePixRegRow( Alpide::TPixReg reg, const bool data, const int ro
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixRegSingle( Alpide::TPixReg reg,
+void TAlpide::WritePixRegSingle( AlpidePixReg reg,
                                      const bool data,
                                      const int row,
                                      const int col )
@@ -429,29 +431,29 @@ void TAlpide::ApplyStandardDACSettings( const float backBias )
 {
     // TODO: pAlpide 3 settings, to be confirmed
     if ( backBias == 0 ) {
-        WriteRegister( Alpide::REG_VCASN,    60 );
-        WriteRegister( Alpide::REG_VCASN2,   62 );
-        WriteRegister( Alpide::REG_VRESETD, 147 );
-        WriteRegister( Alpide::REG_IDB,      29 );
+        WriteRegister( AlpideRegister::VCASN,    60 );
+        WriteRegister( AlpideRegister::VCASN2,   62 );
+        WriteRegister( AlpideRegister::VRESETD, 147 );
+        WriteRegister( AlpideRegister::IDB,      29 );
     } else if ( backBias == 3 ) {
-        WriteRegister( Alpide::REG_VCASN,   105 );
-        WriteRegister( Alpide::REG_VCASN2,  117 );
-        WriteRegister( Alpide::REG_VCLIP,    60 );
-        WriteRegister( Alpide::REG_VRESETD, 147 );
-        WriteRegister( Alpide::REG_IDB,      29 );
+        WriteRegister( AlpideRegister::VCASN,   105 );
+        WriteRegister( AlpideRegister::VCASN2,  117 );
+        WriteRegister( AlpideRegister::VCLIP,    60 );
+        WriteRegister( AlpideRegister::VRESETD, 147 );
+        WriteRegister( AlpideRegister::IDB,      29 );
     } else if ( backBias == 6 ) {
-        WriteRegister( Alpide::REG_VCASN,   135 );
-        WriteRegister( Alpide::REG_VCASN2,  147 );
-        WriteRegister( Alpide::REG_VCLIP,   100 );
-        WriteRegister( Alpide::REG_VRESETD, 170 );
-        WriteRegister( Alpide::REG_IDB,      29 );
+        WriteRegister( AlpideRegister::VCASN,   135 );
+        WriteRegister( AlpideRegister::VCASN2,  147 );
+        WriteRegister( AlpideRegister::VCLIP,   100 );
+        WriteRegister( AlpideRegister::VRESETD, 170 );
+        WriteRegister( AlpideRegister::IDB,      29 );
     } else {
         cout << "TAlpide::ApplyStandardDACSettings() - Settings not defined for back bias " << backBias << " V. Please set manually." << endl;
     }
 }
 
 //___________________________________________________________________
-void TAlpide::ConfigureFromu( const Alpide::TPulseType pulseType,
+void TAlpide::ConfigureFromu( const AlpidePulseType pulseType,
                               const bool testStrobe )
 {
     // MARK: for the time being use these hard coded values; if needed move to configuration
@@ -476,10 +478,10 @@ void TAlpide::ConfigureFromu( const Alpide::TPulseType pulseType,
     fromuconfig |= (rotatePulseLines ? 1:0)          << 7;
     fromuconfig |= (spConfig->GetTriggerDelay() & 0x7) << 8;
     
-    WriteRegister( Alpide::REG_FROMU_CONFIG1,  fromuconfig );
-    WriteRegister( Alpide::REG_FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
-    WriteRegister( Alpide::REG_FROMU_PULSING1, spConfig->GetStrobeDelay() );
-    WriteRegister( Alpide::REG_FROMU_PULSING2, spConfig->GetPulseDuration() );
+    WriteRegister( AlpideRegister::FROMU_CONFIG1,  fromuconfig );
+    WriteRegister( AlpideRegister::FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
+    WriteRegister( AlpideRegister::FROMU_PULSING1, spConfig->GetStrobeDelay() );
+    WriteRegister( AlpideRegister::FROMU_PULSING2, spConfig->GetPulseDuration() );
 }
 
 // Simpler configuration for threshold scan
@@ -491,13 +493,13 @@ void TAlpide::ConfigureFromu()
         throw runtime_error( "TAlpide::ConfigureFromu() - chip config. not found!" );
     }
     // fromu config 1: digital pulsing (put to 0x20 for analogue)
-    WriteRegister( Alpide::REG_FROMU_CONFIG1,  0x20 );
+    WriteRegister( AlpideRegister::FROMU_CONFIG1,  0x20 );
     // fromu config 2: strobe length
-    WriteRegister( Alpide::REG_FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
+    WriteRegister( AlpideRegister::FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
     // fromu pulsing 1: delay pulse - strobe (not used here, since using external strobe)
-    WriteRegister( Alpide::REG_FROMU_PULSING1, spConfig->GetStrobeDelay() );
+    WriteRegister( AlpideRegister::FROMU_PULSING1, spConfig->GetStrobeDelay() );
     // fromu pulsing 2: pulse length
-    WriteRegister( Alpide::REG_FROMU_PULSING2, spConfig->GetPulseDuration() );
+    WriteRegister( AlpideRegister::FROMU_PULSING2, spConfig->GetPulseDuration() );
 }
 
 //___________________________________________________________________
@@ -517,8 +519,8 @@ void TAlpide::ConfigureBuffers()
     ctrl   |= (spConfig->GetDctrlReceiver() & 0xf);
     ctrl   |= (spConfig->GetDctrlDriver  () & 0xf) << 4;
     
-    WriteRegister( Alpide::REG_CLKIO_DACS, clocks );
-    WriteRegister( Alpide::REG_CMUIO_DACS, ctrl );
+    WriteRegister( AlpideRegister::CLKIO_DACS, clocks );
+    WriteRegister( AlpideRegister::CMUIO_DACS, ctrl );
 }
 
 //___________________________________________________________________
@@ -536,7 +538,7 @@ void TAlpide::ConfigureCMU()
     cmuconfig |= (spConfig->GetDisableManchester() ? 1:0) << 5;
     cmuconfig |= (spConfig->GetEnableDdr        () ? 1:0) << 6;
     
-    WriteRegister( Alpide::REG_CMUDMU_CONFIG, cmuconfig );
+    WriteRegister( AlpideRegister::CMUDMU_CONFIG, cmuconfig );
 }
 
 //___________________________________________________________________
@@ -547,19 +549,19 @@ int TAlpide::ConfigureMaskStage( int nPix, int iStage )
         cout << "TAlpide::ConfigureMaskStage() - Warning: bad number of pixels for mask stage (" << nPix << ", using 1 instead" << endl;
         nPix = 1;
     }
-    WritePixRegAll( Alpide::PIXREG_MASK,   true );
-    WritePixRegAll( Alpide::PIXREG_SELECT, false );
+    WritePixRegAll( AlpidePixReg::MASK,   true );
+    WritePixRegAll( AlpidePixReg::SELECT, false );
     
     // complete row
     if ( nPix == 32 ) {
-        WritePixRegRow( Alpide::PIXREG_MASK,   false, iStage );
-        WritePixRegRow( Alpide::PIXREG_SELECT, true, iStage );
+        WritePixRegRow( AlpidePixReg::MASK,   false, iStage );
+        WritePixRegRow( AlpidePixReg::SELECT, true, iStage );
         return iStage;
     } else {
         int colStep = 32 / nPix;
         for ( int icol = 0; icol < 1024; icol += colStep ) {
-            WritePixRegSingle( Alpide::PIXREG_MASK,   false, iStage % 512, icol + iStage / 512);
-            WritePixRegSingle( Alpide::PIXREG_SELECT, true,  iStage % 512, icol + iStage / 512);
+            WritePixRegSingle( AlpidePixReg::MASK,   false, iStage % 512, icol + iStage / 512);
+            WritePixRegSingle( AlpidePixReg::SELECT, true,  iStage % 512, icol + iStage / 512);
         }
         return (iStage % 512);
     }
@@ -567,7 +569,7 @@ int TAlpide::ConfigureMaskStage( int nPix, int iStage )
 
 
 //___________________________________________________________________
-void TAlpide::WriteControlReg( const Alpide::TChipMode chipMode )
+void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
 {
     shared_ptr<TChipConfig> spConfig = fConfig.lock();
     if ( !spConfig ) {
@@ -586,7 +588,7 @@ void TAlpide::WriteControlReg( const Alpide::TChipMode chipMode )
     controlreg |= (spConfig->GetEnableClockGating   () ? 1:0) << 8;
     controlreg |= (spConfig->GetEnableCMUReadout    () ? 1:0) << 9;
     
-    WriteRegister( Alpide::REG_MODECONTROL, controlreg);
+    WriteRegister( AlpideRegister::MODECONTROL, controlreg);
 }
 
 //___________________________________________________________________
@@ -608,27 +610,27 @@ void TAlpide::BaseConfigPLL()
     
     Value = (Stages & 0x3) | 0x4 | 0x8 | ((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x8: PLL off
     
-    WriteRegister( Alpide::REG_DTU_CONFIG, Value );
+    WriteRegister( AlpideRegister::DTU_CONFIG, Value );
     
     Value = (ChargePump & 0xf) | ((Driver & 0xf) << 4) | ((Preemp & 0xf) << 8);
     
-    WriteRegister( Alpide::REG_DTU_DACS, Value );
+    WriteRegister( AlpideRegister::DTU_DACS, Value );
     
     // Clear PLL off signal
     Value = (Stages & 0x3) | 0x4 | ((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x8: PLL off
-    WriteRegister( Alpide::REG_DTU_CONFIG, Value );
+    WriteRegister( AlpideRegister::DTU_CONFIG, Value );
     // Force PLL reset
     Value = (Stages & 0x3) | 0x4 | 0x100 |((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x100: Reset
-    WriteRegister( Alpide::REG_DTU_CONFIG, Value );
+    WriteRegister( AlpideRegister::DTU_CONFIG, Value );
     Value = (Stages & 0x3) | 0x4 |((Phase & 0xf) << 4);           // Reset off
-    WriteRegister( Alpide::REG_DTU_CONFIG, Value );
+    WriteRegister( AlpideRegister::DTU_CONFIG, Value );
 }
 
 //___________________________________________________________________
 void TAlpide::BaseConfigMask()
 {
-    WritePixRegAll( Alpide::PIXREG_MASK,   true );
-    WritePixRegAll( Alpide::PIXREG_SELECT, false );
+    WritePixRegAll( AlpidePixReg::MASK,   true );
+    WritePixRegAll( AlpidePixReg::SELECT, false );
 }
 
 //___________________________________________________________________
@@ -646,21 +648,21 @@ void TAlpide::BaseConfigDACs()
         throw runtime_error( "TAlpide::BaseConfigDACs() - chip config. not found!" );
     }
  
-    WriteRegister( Alpide::REG_VPULSEH, spConfig->GetParamValue("VPULSEH"));
-    WriteRegister( Alpide::REG_VPULSEL, spConfig->GetParamValue("VPULSEL"));
-    WriteRegister( Alpide::REG_VRESETD, spConfig->GetParamValue("VRESETD"));
-    WriteRegister( Alpide::REG_VCASN,   spConfig->GetParamValue("VCASN"));
-    WriteRegister( Alpide::REG_VCASN2,  spConfig->GetParamValue("VCASN2"));
-    WriteRegister( Alpide::REG_VCLIP,   spConfig->GetParamValue("VCLIP"));
-    WriteRegister( Alpide::REG_ITHR,    spConfig->GetParamValue("ITHR"));
-    WriteRegister( Alpide::REG_IDB,     spConfig->GetParamValue("IDB"));
-    WriteRegister( Alpide::REG_IBIAS,   spConfig->GetParamValue("IBIAS"));
-    WriteRegister( Alpide::REG_VCASP,   spConfig->GetParamValue("VCASP"));
+    WriteRegister( AlpideRegister::VPULSEH, spConfig->GetParamValue("VPULSEH"));
+    WriteRegister( AlpideRegister::VPULSEL, spConfig->GetParamValue("VPULSEL"));
+    WriteRegister( AlpideRegister::VRESETD, spConfig->GetParamValue("VRESETD"));
+    WriteRegister( AlpideRegister::VCASN,   spConfig->GetParamValue("VCASN"));
+    WriteRegister( AlpideRegister::VCASN2,  spConfig->GetParamValue("VCASN2"));
+    WriteRegister( AlpideRegister::VCLIP,   spConfig->GetParamValue("VCLIP"));
+    WriteRegister( AlpideRegister::ITHR,    spConfig->GetParamValue("ITHR"));
+    WriteRegister( AlpideRegister::IDB,     spConfig->GetParamValue("IDB"));
+    WriteRegister( AlpideRegister::IBIAS,   spConfig->GetParamValue("IBIAS"));
+    WriteRegister( AlpideRegister::VCASP,   spConfig->GetParamValue("VCASP"));
     // not used DACs..
-    WriteRegister( Alpide::REG_VTEMP,   spConfig->GetParamValue("VTEMP"));
-    WriteRegister( Alpide::REG_VRESETP, spConfig->GetParamValue("VRESETP"));
-    WriteRegister( Alpide::REG_IRESET,  spConfig->GetParamValue("IRESET"));
-    WriteRegister( Alpide::REG_IAUX2,   spConfig->GetParamValue("IAUX2"));
+    WriteRegister( AlpideRegister::VTEMP,   spConfig->GetParamValue("VTEMP"));
+    WriteRegister( AlpideRegister::VRESETP, spConfig->GetParamValue("VRESETP"));
+    WriteRegister( AlpideRegister::IRESET,  spConfig->GetParamValue("IRESET"));
+    WriteRegister( AlpideRegister::IAUX2,   spConfig->GetParamValue("IAUX2"));
 }
 
 //___________________________________________________________________
@@ -673,7 +675,7 @@ void TAlpide::BaseConfig()
 
     // put all chip configurations before the start of the test here
     
-    WriteRegister( Alpide::REG_MODECONTROL, 0x20 ); // set chip to config mode
+    WriteRegister( AlpideRegister::MODECONTROL, 0x20 ); // set chip to config mode
     //TODO: use chip config here, the config should be written accordingly at this point!
     
     
@@ -706,7 +708,7 @@ void TAlpide::BaseConfig()
             break;
     }
     
-    WriteRegister( Alpide::REG_MODECONTROL, value ); // strobed readout mode
+    WriteRegister( AlpideRegister::MODECONTROL, value ); // strobed readout mode
 }
 
 
@@ -724,15 +726,15 @@ void TAlpide::PrintDebugStream()
     cout << "Debug Stream chip id " << spConfig->GetChipId() << ": " << endl;
     
     for (int i = 0; i < 2; i++) {
-        ReadRegister( Alpide::REG_BMU_DEBUG, Value );
+        ReadRegister( AlpideRegister::BMU_DEBUG, Value );
         cout << "  BMU Debug reg word " << i << ": " << std::hex << Value << std::dec << endl;
     }
     for (int i = 0; i < 4; i++) {
-        ReadRegister( Alpide::REG_DMU_DEBUG, Value );
+        ReadRegister( AlpideRegister::DMU_DEBUG, Value );
         cout << "  DMU Debug reg word " << i << ": " << std::hex << Value << std::dec << endl;
     }
     for (int i = 0; i < 9; i++) {
-        ReadRegister( Alpide::REG_FROMU_DEBUG, Value );
+        ReadRegister( AlpideRegister::FROMU_DEBUG, Value );
         cout << "  FROMU Debug reg word " << i << ": " << std::hex << Value << std::dec << endl;
     }
     cout << "TAlpide::PrintDebugStream() - end" << endl;
@@ -754,109 +756,109 @@ void TAlpide::CalibrateADC()
     // Calibration Phase 1
     fADCHalfLSB = false;
     fADCSign = false;
-    SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode ( Alpide::OPCODE_ADCMEASURE, fChipId );
+    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode ( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_CALIB, theVal1 );
+    ReadRegister( AlpideRegister::ADC_CALIB, theVal1 );
     fADCSign = true;
-    SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
+    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_CALIB, theVal2 );
+    ReadRegister( AlpideRegister::ADC_CALIB, theVal2 );
     fADCSign =  (theVal1 > theVal2) ? false : true;
     
     // Calibration Phase 2
     fADCHalfLSB = false;
-    SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode ( Alpide::OPCODE_ADCMEASURE, fChipId );
+    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode ( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_CALIB, theVal1 );
+    ReadRegister( AlpideRegister::ADC_CALIB, theVal1 );
     fADCHalfLSB = true;
-    SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
+    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_CALIB, theVal2 );
+    ReadRegister( AlpideRegister::ADC_CALIB, theVal2 );
     fADCHalfLSB =  (theVal1 > theVal2) ? false : true;
     
     // Detect the Bias
-    SetTheADCCtrlRegister( Alpide::MODE_CALIBRATE , Alpide::INP_AVSS, Alpide::COMP_296uA, Alpide::RAMP_1us );
-    spBoard->SendOpCode( Alpide::OPCODE_ADCMEASURE, fChipId );
+    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
-    ReadRegister( Alpide::REG_ADC_CALIB,theVal1 );
+    ReadRegister( AlpideRegister::ADC_CALIB,theVal1 );
     fADCBias = theVal1;
 }
 
 //___________________________________________________________________
-uint16_t TAlpide::SetTheADCCtrlRegister( Alpide::TADCMode Mode,
-										Alpide::TADCInput SelectInput,
-										Alpide::TADCComparator ComparatorCurrent,
-										Alpide::TADCRampSpeed RampSpeed )
+uint16_t TAlpide::SetTheADCCtrlRegister( ADCMode Mode,
+										ADCInput SelectInput,
+										ADCComparator ComparatorCurrent,
+										ADCRampSpeed RampSpeed )
 {
 	uint16_t Data;
 	Data = Mode | (SelectInput<<2) | (ComparatorCurrent<<6) | (fADCSign<<8) | (RampSpeed<<9) | (fADCHalfLSB<<11);
-	WriteRegister( Alpide::REG_ADC_CONTROL, Data );
+	WriteRegister( AlpideRegister::ADC_CONTROL, Data );
 	return Data;
 }
 
 //___________________________________________________________________
-void TAlpide::SetTheDacMonitor( Alpide::TRegister ADac, Alpide::TDACMonIref IRef )
+void TAlpide::SetTheDacMonitor( AlpideRegister ADac, DACMonIref IRef )
 {
 	int VDAC, IDAC;
 	uint16_t Value;
 	switch (ADac) {
-        case Alpide::REG_VRESETP:
+        case AlpideRegister::VRESETP:
             VDAC = 4;
             IDAC = 0;
             break;
-        case Alpide::REG_VRESETD:
+        case AlpideRegister::VRESETD:
             VDAC = 5;
             IDAC = 0;
             break;
-        case Alpide::REG_VCASP:
+        case AlpideRegister::VCASP:
             VDAC = 1;
             IDAC = 0;
             break;
-        case Alpide::REG_VCASN:
+        case AlpideRegister::VCASN:
             VDAC = 0;
             IDAC = 0;
             break;
-        case Alpide::REG_VPULSEH:
+        case AlpideRegister::VPULSEH:
             VDAC = 2;
             IDAC = 0;
             break;
-        case Alpide::REG_VPULSEL:
+        case AlpideRegister::VPULSEL:
             VDAC = 3;
             IDAC = 0;
             break;
-        case Alpide::REG_VCASN2:
+        case AlpideRegister::VCASN2:
             VDAC = 6;
             IDAC = 0;
             break;
-        case Alpide::REG_VCLIP:
+        case AlpideRegister::VCLIP:
             VDAC = 7;
             IDAC = 0;
             break;
-        case Alpide::REG_VTEMP:
+        case AlpideRegister::VTEMP:
             VDAC = 8;
             IDAC = 0;
             break;
-        case Alpide::REG_IAUX2:
+        case AlpideRegister::IAUX2:
             IDAC = 1;
             VDAC = 0;
             break;
-        case Alpide::REG_IRESET:
+        case AlpideRegister::IRESET:
             IDAC = 0;
             VDAC = 0;
             break;
-        case Alpide::REG_IDB:
+        case AlpideRegister::IDB:
             IDAC = 3;
             VDAC = 0;
             break;
-        case Alpide::REG_IBIAS:
+        case AlpideRegister::IBIAS:
             IDAC = 2;
             VDAC = 0;
             break;
-        case Alpide::REG_ITHR:
+        case AlpideRegister::ITHR:
             IDAC = 5;
             VDAC = 0;
             break;
@@ -870,7 +872,7 @@ void TAlpide::SetTheDacMonitor( Alpide::TRegister ADac, Alpide::TDACMonIref IRef
 	Value |= (IDAC & 0x7) << 4;
 	Value |= (IRef & 0x3) << 9;
 
-	WriteRegister( Alpide::REG_ANALOGMON, Value );
+	WriteRegister( AlpideRegister::ANALOGMON, Value );
 	return;
 }
 

@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include "TThresholdScan.h"
 #include "THisto.h"
+#include "AlpideDictionary.h"
 #include "TAlpide.h"
 #include "TDevice.h"
 #include "TChipConfig.h"
@@ -90,8 +91,8 @@ void TThresholdScan::Init()
     for ( int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
         cout << "Board " << i << ", found " << fEnabled[i] << " enabled chips" << endl;
         ConfigureBoard(i);
-        (currentDevice->GetBoard( i ))->SendOpCode( Alpide::OPCODE_GRST );
-        (currentDevice->GetBoard( i ))->SendOpCode( Alpide::OPCODE_PRST );
+        (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::GRST );
+        (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::PRST );
     }
     
     for ( int i = 0; i < currentDevice->GetNChips(); i++ ) {
@@ -100,7 +101,7 @@ void TThresholdScan::Init()
     }
     
     for ( int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
-        (currentDevice->GetBoard( i ))->SendOpCode( Alpide::OPCODE_RORST );
+        (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::RORST );
         shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(currentDevice->GetBoard( i ));
         if ( myMOSAIC ) {
             myMOSAIC->StartRun();
@@ -116,7 +117,7 @@ void TThresholdScan::PrepareStep( const int loopIndex )
         case 0:    // innermost loop: change VPULSEL
             for ( int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
                 if (! ((currentDevice->GetChipConfig( ichip ))->IsEnabled()) ) continue;
-                (currentDevice->GetChip( ichip ))->WriteRegister( Alpide::REG_VPULSEL, fVPULSEH - fValue[0] );
+                (currentDevice->GetChip( ichip ))->WriteRegister( AlpideRegister::VPULSEL, fVPULSEH - fValue[0] );
             }
             break;
         case 1:    // 2nd loop: mask staging

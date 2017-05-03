@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include "USB.h"
+#include "AlpideDictionary.h"
 #include "TDevice.h"
 #include "TDeviceBuilderWithDAQBoards.h"
 #include "TReadoutBoardDAQ.h"
@@ -108,7 +109,7 @@ void TDeviceBuilderWithDAQBoards::PowerOnDaqBoard( shared_ptr<TReadoutBoardDAQ> 
     else cout << "LDOs are off" << endl;
     cout << "Version = " << std::hex << aDAQBoard->ReadFirmwareVersion()
     << std::dec << endl;
-    aDAQBoard->SendOpCode(Alpide::OPCODE_GRST);
+    aDAQBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST);
     //sleep(1); // sleep necessary after GRST? or PowerOn?
     
     cout << "Analog Current  = " << aDAQBoard->ReadAnalogI()     << endl;

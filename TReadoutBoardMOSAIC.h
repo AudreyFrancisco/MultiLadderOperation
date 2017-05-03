@@ -16,6 +16,7 @@
 #include <string>
 #include <deque>
 #include <iostream>
+#include <cstdint>
 
 #include "TReadoutBoard.h"
 #include "TBoardConfig.h"
@@ -63,9 +64,9 @@ public:
     std::weak_ptr<TBoardConfig> GetConfig() {return fBoardConfig;}
     std::weak_ptr<TBoardConfigMOSAIC> GetConfigBoard() {return fBoardConfig;}
     
-	int SendOpCode        (uint16_t  OpCode, uint8_t chipId);
-	int SendOpCode        (uint16_t  OpCode);
-        // Markus: changed trigger delay type from uint32_t to int, since changed upstream
+	int SendOpCode        (std::uint16_t  OpCode, std::uint8_t chipId);
+	int SendOpCode        (std::uint16_t  OpCode);
+        // Markus: changed trigger delay type from std::uint32_t to int, since changed upstream
 	int SetTriggerConfig  (bool enablePulse, bool enableTrigger, int triggerDelay, int pulseDelay);
 	void SetTriggerSource  (TTriggerSource triggerSource);
 	int Trigger           (int nTriggers);
@@ -75,10 +76,10 @@ public:
 	void StartRun();
 	void StopRun();
 
-    int ReadRegister      (uint16_t Address, uint32_t &Value) {
+    int ReadRegister      (std::uint16_t Address, std::uint32_t &Value) {
         std::cout << "TReadoutBoardMOSAIC::ReadRegister( " << Address << " , " << &Value << ") - doing nothing" << std::endl;
         return(0);};
-	int WriteRegister     (uint16_t Address, uint32_t Value)  {
+	int WriteRegister     (std::uint16_t Address, std::uint32_t Value)  {
         std::cout << "TReadoutBoardMOSAIC::WriteRegister( " << Address << " , " << Value << ") - doing nothing" << std::endl;
 
         return(0);};
@@ -96,11 +97,11 @@ private:
 	void setSpeedMode(Mosaic::TReceiverSpeed ASpeed);
 	void setInverted (bool AInverted, int Aindex = -1);
 
-	uint32_t decodeError();
+	std::uint32_t decodeError();
 
 protected:
-    int WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId =0);
-    int ReadChipRegister  (uint16_t address, uint16_t &value, uint8_t chipId =0);
+    int WriteChipRegister (std::uint16_t address, std::uint16_t value, std::uint8_t chipId =0);
+    int ReadChipRegister  (std::uint16_t address, std::uint16_t &value, std::uint8_t chipId =0);
     
 // Properties
 private:

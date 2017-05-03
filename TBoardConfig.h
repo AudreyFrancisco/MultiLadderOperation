@@ -1,7 +1,7 @@
 #ifndef BOARDCONFIG_H
 #define BOARDCONFIG_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 #include <map>
 

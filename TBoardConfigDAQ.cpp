@@ -1,5 +1,7 @@
 #include "TBoardConfigDAQ.h"
 
+using namespace std;
+
 // default values for config parameters; less important ones are set in the TBoardConfig constructor
 
 //---- ADC module

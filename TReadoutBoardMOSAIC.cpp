@@ -117,7 +117,7 @@ int TReadoutBoardMOSAIC::ReadChipRegister (uint16_t address, uint16_t &value, ui
 int TReadoutBoardMOSAIC::SendOpCode (uint16_t  OpCode, uint8_t chipId)
 {
     uint_fast16_t Cii = GetControlInterface(chipId);
-    fControlInterface[Cii]->addWriteReg(chipId, Alpide::REG_COMMAND, OpCode);
+    fControlInterface[Cii]->addWriteReg(chipId, (uint16_t)AlpideRegister::COMMAND, OpCode);
     fControlInterface[Cii]->execute();
     return(0);
 }

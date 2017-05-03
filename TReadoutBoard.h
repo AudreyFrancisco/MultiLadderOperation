@@ -1,7 +1,7 @@
 #ifndef READOUTBOARD_H
 #define READOUTBOARD_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 #include <memory>
 
@@ -17,10 +17,10 @@ class TReadoutBoard {
     
 protected:
 
-    virtual int WriteChipRegister(uint16_t Address, uint16_t Value, uint8_t chipId = 0)  = 0;
-    virtual int ReadChipRegister(uint16_t Address, uint16_t &Value, uint8_t chipID = 0) = 0;
-    int GetControlInterface( const uint8_t chipId) const;
-    int GetChipById( const uint8_t chipId) const;
+    virtual int WriteChipRegister(std::uint16_t Address, std::uint16_t Value, std::uint8_t chipId = 0)  = 0;
+    virtual int ReadChipRegister(std::uint16_t Address, std::uint16_t &Value, std::uint8_t chipID = 0) = 0;
+    int GetControlInterface( const std::uint8_t chipId) const;
+    int GetChipById( const std::uint8_t chipId) const;
 
     friend class TAlpide;     // could be reduced to the relevant methods ReadRegister, WriteRegister
 
@@ -32,17 +32,17 @@ public:
     
     void AddChipConfig( std::shared_ptr<TChipConfig> newChipConfig );
     
-    virtual std::weak_ptr<TBoardConfig> GetConfig() {return std::weak_ptr<TBoardConfig>();}
+    virtual std::weak_ptr<TBoardConfig> GetConfig() = 0;
     std::weak_ptr<TChipConfig> GetChipConfig(const int iChip) {return fChipPositions.at(iChip);}
-    int GetReceiver(const uint8_t chipId) const;
+    int GetReceiver(const std::uint8_t chipId) const;
 
-    virtual int  ReadRegister      (uint16_t Address, uint32_t &Value) = 0;
-    virtual int  WriteRegister     (uint16_t Address, uint32_t Value)  = 0;
+    virtual int  ReadRegister      (std::uint16_t Address, std::uint32_t &Value) = 0;
+    virtual int  WriteRegister     (std::uint16_t Address, std::uint32_t Value)  = 0;
     
     // sends op code to all control interfaces
-    virtual int  SendOpCode        (uint16_t  OpCode) = 0;
+    virtual int  SendOpCode        (std::uint16_t  OpCode) = 0;
     // sends op code to control interface belonging to chip chipId
-    virtual int  SendOpCode        (uint16_t  OpCode, uint8_t chipId) = 0;
+    virtual int  SendOpCode        (std::uint16_t  OpCode, std::uint8_t chipId) = 0;
     
     virtual int  SetTriggerConfig  (bool enablePulse, bool enableTrigger, int triggerDelay, int pulseDelay) = 0;
     virtual void SetTriggerSource  (TTriggerSource triggerSource) = 0;

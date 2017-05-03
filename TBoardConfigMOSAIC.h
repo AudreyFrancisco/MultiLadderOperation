@@ -4,6 +4,8 @@
 #include "TBoardConfig.h"
 #include "MosaicSrc/mruncontrol.h"
 #include <stdio.h>
+#include <cstdint>
+
 
 /// \class TBoardConfigMOSAIC
 /// \brief Derived TBoardConfig class for MOSAIC board
@@ -59,27 +61,27 @@ public:
 
 	// Getters
 	char *   GetIPaddress          () {return(IPAddress);}
-	uint16_t GetCtrlInterfaceNum   () {return((uint16_t)NumberOfControlInterfaces);}
-	uint16_t GetTCPport            () {return((uint16_t)TCPPort);}
-	uint16_t GetCtrlInterfacePhase () {return((uint16_t)ControlInterfacePhase);}
-	uint32_t GetCtrlAFThreshold    () {return((uint32_t)RunCtrlAFThreshold);}
-	uint16_t GetCtrlLatMode        () {return((uint16_t)RunCtrlLatMode);}
-	uint32_t GetCtrlTimeout        () {return((uint32_t)RunCtrlTimeout);}
-	uint32_t GetPollingDataTimeout () {return((uint32_t)pollDataTimeout);}
+	std::uint16_t GetCtrlInterfaceNum   () {return((std::uint16_t)NumberOfControlInterfaces);}
+	std::uint16_t GetTCPport            () {return((std::uint16_t)TCPPort);}
+	std::uint16_t GetCtrlInterfacePhase () {return((std::uint16_t)ControlInterfacePhase);}
+	std::uint32_t GetCtrlAFThreshold    () {return((std::uint32_t)RunCtrlAFThreshold);}
+	std::uint16_t GetCtrlLatMode        () {return((std::uint16_t)RunCtrlLatMode);}
+	std::uint32_t GetCtrlTimeout        () {return((std::uint32_t)RunCtrlTimeout);}
+	std::uint32_t GetPollingDataTimeout () {return((std::uint32_t)pollDataTimeout);}
 	bool     IsInverted            () {return((bool)Inverted);}
     Mosaic::TReceiverSpeed    GetSpeedMode();
     int GetRCVMAP( const int i ) const;
 
 	// Setters
 	void SetIPaddress          (const char *AIPaddress);
-	void SetTCPport            (uint16_t APort)                { TCPPort = (int)APort;}
-	void SetCtrlInterfaceNum   (uint16_t ACtrlInterfaceNumber) { NumberOfControlInterfaces = (int)ACtrlInterfaceNumber;}
-	void SetCtrlInterfacePhase (uint16_t ACtrlInterfacePhase)  { ControlInterfacePhase = (int)ACtrlInterfacePhase;}
-	void SetCtrlAFThreshold    (uint32_t ACtrlAFThreshold)     { RunCtrlAFThreshold = (int)ACtrlAFThreshold;}
-	void SetCtrlLatMode        (uint16_t ARunCtrlLatencyMode)  { RunCtrlLatMode = (int)ARunCtrlLatencyMode;}
-	void SetCtrlTimeout        (uint32_t ARunCtrlTimeout)      { RunCtrlTimeout = (int)ARunCtrlTimeout;}
+	void SetTCPport            (std::uint16_t APort)                { TCPPort = (int)APort;}
+	void SetCtrlInterfaceNum   (std::uint16_t ACtrlInterfaceNumber) { NumberOfControlInterfaces = (int)ACtrlInterfaceNumber;}
+	void SetCtrlInterfacePhase (std::uint16_t ACtrlInterfacePhase)  { ControlInterfacePhase = (int)ACtrlInterfacePhase;}
+	void SetCtrlAFThreshold    (std::uint32_t ACtrlAFThreshold)     { RunCtrlAFThreshold = (int)ACtrlAFThreshold;}
+	void SetCtrlLatMode        (std::uint16_t ARunCtrlLatencyMode)  { RunCtrlLatMode = (int)ARunCtrlLatencyMode;}
+	void SetCtrlTimeout        (std::uint32_t ARunCtrlTimeout)      { RunCtrlTimeout = (int)ARunCtrlTimeout;}
     void SetInvertedData       (bool IsInverted)               { Inverted = (int)IsInverted;};
-	void SetPollingDataTimeout (uint32_t APollDataTimeout)     { pollDataTimeout = (int)APollDataTimeout;}
+	void SetPollingDataTimeout (std::uint32_t APollDataTimeout)     { pollDataTimeout = (int)APollDataTimeout;}
 	void SetSpeedMode          (Mosaic::TReceiverSpeed ASpeedMode);
 
 };
