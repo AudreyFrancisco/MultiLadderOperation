@@ -15,16 +15,55 @@ CFLAGS= -O2 -pipe -fPIC -Wno-unknown-pragmas -pthread -g -Wall -W -Woverloaded-v
 LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
 OBJECT= runTest
 LIBRARY=libalpide.so
-CLASS= TReadoutBoard.cpp TAlpide.cpp AlpideDecoder.cpp USB.cpp TReadoutBoardDAQ.cpp \
- TReadoutBoardMOSAIC.cpp TChipConfig.cpp TBoardConfig.cpp TBoardConfigDAQ.cpp TBoardConfigMOSAIC.cpp \
- BoardDecoder.cpp TDevice.cpp TDeviceBuilderWithSlaveChips.cpp TDeviceBuilderWithDAQBoards.cpp TDeviceBuilderHalfStave.cpp \
- TDeviceBuilderIB.cpp TDeviceBuilderIBSingleMosaic.cpp TDeviceBuilderMFTLadder.cpp TDeviceBuilderOB.cpp TDeviceBuilderOBSingleDAQ.cpp \
- TDeviceBuilderOBSingleMosaic.cpp TDeviceBuilderTelescopeDAQ.cpp TSetup.cpp THisto.cpp TScanAnalysis.cpp\
- MosaicSrc/alpidercv.cpp MosaicSrc/controlinterface.cpp MosaicSrc/i2cbus.cpp MosaicSrc/i2cslave.cpp MosaicSrc/i2csyspll.cpp \
- MosaicSrc/ipbus.cpp MosaicSrc/ipbusudp.cpp MosaicSrc/mdatagenerator.cpp MosaicSrc/mdatareceiver.cpp MosaicSrc/mdatasave.cpp \
- MosaicSrc/mexception.cpp MosaicSrc/mruncontrol.cpp MosaicSrc/mtriggercontrol.cpp MosaicSrc/mwbbslave.cpp \
- MosaicSrc/pexception.cpp MosaicSrc/pulser.cpp MosaicSrc/mboard.cpp MosaicSrc/TAlpideDataParser.cpp \
- TScan.cpp TThresholdScan.cpp TScanConfig.cpp
+CLASS= AlpideDecoder.cpp \
+ BoardDecoder.cpp \
+ USB.cpp \
+ TAlpide.cpp \
+ TBoardConfig.cpp \
+ TBoardConfigDAQ.cpp \
+ TBoardConfigMOSAIC.cpp \
+ TChipConfig.cpp \
+ TDevice.cpp \
+ TDeviceBuilder.cpp \
+ TDeviceBuilderWithSlaveChips.cpp \
+ TDeviceBuilderWithDAQBoards.cpp \
+ TDeviceBuilderHalfStave.cpp \
+ TDeviceBuilderIB.cpp \
+ TDeviceBuilderIBSingleMosaic.cpp \
+ TDeviceBuilderMFTLadder.cpp \
+ TDeviceBuilderOB.cpp \
+ TDeviceBuilderOBSingleDAQ.cpp \
+ TDeviceBuilderOBSingleMosaic.cpp \
+ TDeviceBuilderTelescopeDAQ.cpp \
+ TDeviceChipOperator.cpp \
+ THisto.cpp \
+ TReadoutBoard.cpp \
+ TReadoutBoardDAQ.cpp \
+ TReadoutBoardMOSAIC.cpp  \
+ TScan.cpp \
+ TScanAnalysis.cpp \
+ TScanConfig.cpp \
+ TSetup.cpp \
+ TThresholdScan.cpp \
+ TVerbosity.cpp \
+ MosaicSrc/alpidercv.cpp \
+ MosaicSrc/controlinterface.cpp \
+ MosaicSrc/i2cbus.cpp \
+ MosaicSrc/i2cslave.cpp \
+ MosaicSrc/i2csyspll.cpp \
+ MosaicSrc/ipbus.cpp \
+ MosaicSrc/ipbusudp.cpp \
+ MosaicSrc/mdatagenerator.cpp \
+ MosaicSrc/mdatareceiver.cpp \
+ MosaicSrc/mdatasave.cpp \
+ MosaicSrc/mexception.cpp \
+ MosaicSrc/mruncontrol.cpp \
+ MosaicSrc/mtriggercontrol.cpp \
+ MosaicSrc/mwbbslave.cpp \
+ MosaicSrc/pexception.cpp \
+ MosaicSrc/pulser.cpp \
+ MosaicSrc/mboard.cpp \
+ MosaicSrc/TAlpideDataParser.cpp
 OBJS = $(CLASS:.cpp=.o)
 $(info OBJS="$(OBJS)")
 
