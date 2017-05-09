@@ -147,7 +147,7 @@ class TAlpide {
     void ConfigureCMU();
 
     /// return value: active row (needed for threshold scan histogramming).
-    int  ConfigureMaskStage( int nPix, int iStage );
+    int  ConfigureMaskStage( int nPix, const int iStage );
     
     void WriteControlReg( const AlpideChipMode chipMode );
     void BaseConfigPLL();

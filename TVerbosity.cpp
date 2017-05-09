@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include "TVerbosity.h"
 
-using namespace std;
-
 #pragma mark - Constructors/destructor
 
 //___________________________________________________________________
@@ -13,3 +11,9 @@ TVerbosity::TVerbosity() :
 //___________________________________________________________________
 TVerbosity::~TVerbosity()
 { }
+
+//___________________________________________________________________
+void TVerbosity::SetVerboseLevel( const int level )
+{
+    fVerboseLevel = level;
+}

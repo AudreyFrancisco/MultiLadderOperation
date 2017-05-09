@@ -13,7 +13,7 @@ TDeviceBuilderWithSlaveChips::TDeviceBuilderWithSlaveChips() : TDeviceBuilder()
 { }
 
 //___________________________________________________________________
-TDeviceBuilder::~TDeviceBuilder()
+TDeviceBuilderWithSlaveChips::~TDeviceBuilderWithSlaveChips()
 { }
 
 #pragma mark - other protected methods

@@ -12,7 +12,7 @@ public:
     virtual ~TVerbosity();
 
     #pragma mark - setters
-    virtual void SetVerboseLevel( const int level ) { fVerboseLevel = level; }
+    virtual void SetVerboseLevel( const int level );
     
     #pragma mark - getters
     int GetVerboseLevel() const { return fVerboseLevel; }

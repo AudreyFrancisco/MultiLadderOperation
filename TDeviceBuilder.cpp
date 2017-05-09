@@ -131,7 +131,7 @@ void TDeviceBuilder::CheckControlInterface()
         throw runtime_error( "TDeviceBuilder::CheckControlInterface() - no chip defined!" );
     }
 
-    for ( unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++ ) {
+    for ( int i = 0; i < fCurrentDevice->GetNChips(); i++ ) {
         
         if ( !(fCurrentDevice->GetChipConfig(i)->IsEnabled()) ) continue;
         

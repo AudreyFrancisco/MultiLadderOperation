@@ -542,7 +542,7 @@ void TAlpide::ConfigureCMU()
 }
 
 //___________________________________________________________________
-int TAlpide::ConfigureMaskStage( int nPix, int iStage )
+int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
 {
     // check that nPix is one of (1, 2, 4, 8, 16, 32)
     if ((nPix <= 0) || (nPix & (nPix - 1)) || (nPix > 32)) {
