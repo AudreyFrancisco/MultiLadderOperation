@@ -24,7 +24,7 @@ const string TSetup::NEWALPIDEVERSION = "1.0_mft";
 
 //___________________________________________________________________
 TSetup::TSetup() : TVerbosity(),
-    fConfigFileName( "Config.cfg" ),
+    fConfigFileName( "ConfigSingleChipMOSAIC.cfg" ),
     fConfigFile( nullptr ),
     fDeviceBuilder( nullptr ),
     fDevice( nullptr ),
