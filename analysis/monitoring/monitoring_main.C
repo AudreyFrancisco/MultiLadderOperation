@@ -1,3 +1,6 @@
+#include <TROOT.h>
+#include <TSystem.h>
+
 void monitoring_main(char *filename="") {
 
     gSystem->Load("AliPALPIDEFSRawStreamMS_cpp.so");

@@ -1,6 +1,8 @@
 #include <iostream>
 #include "TROOT.h"
 
+using namespace std;
+
 void compile_classes() {
     gROOT->LoadMacro("AliPALPIDEFSRawStreamMS.cpp+");
     gROOT->LoadMacro("BinaryPixel.cpp+");

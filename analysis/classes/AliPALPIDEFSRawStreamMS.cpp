@@ -1,4 +1,7 @@
 #include "AliPALPIDEFSRawStreamMS.h"
+#include <iostream>
+
+using namespace std;
 
 //__________________________________________________________
 AliPALPIDEFSRawStreamMS::AliPALPIDEFSRawStreamMS() :

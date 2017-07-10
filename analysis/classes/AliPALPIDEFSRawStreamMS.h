@@ -31,7 +31,7 @@ public:
 private:
     Bool_t dblcol_adr_to_col_row(Short_t doublecol, Short_t address, Short_t *col, Short_t *row, Short_t chiptype=4);
     
-    ifstream fFileInput;       // input text file
+    std::ifstream fFileInput;       // input text file
     Bool_t   fFirstEvent;
     Bool_t   fLastEvent;
     Int_t    fHitIter;
