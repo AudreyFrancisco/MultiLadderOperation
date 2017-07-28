@@ -95,13 +95,13 @@ void TDeviceBuilderIB::InitSetup()
     Mosaic::TReceiverSpeed speed;
     
     switch ((fCurrentDevice->GetChipConfig(0))->GetParamValue("LINKSPEED")) {
-        case 400:
+        case (int)AlpideIBSerialLinkSpeed::IB400:
             speed = Mosaic::RCV_RATE_400;
             break;
-        case 600:
+        case (int)AlpideIBSerialLinkSpeed::IB600:
             speed = Mosaic::RCV_RATE_600;
             break;
-        case 1200:
+        case (int)AlpideIBSerialLinkSpeed::IB1200:
             speed = Mosaic::RCV_RATE_1200;
             break;
         default:

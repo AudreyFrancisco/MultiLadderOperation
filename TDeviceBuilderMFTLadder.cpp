@@ -36,19 +36,19 @@ void TDeviceBuilderMFTLadder::SetDeviceType( const TDeviceType dt )
     switch ( fCurrentDevice->GetDeviceType() )
     {
         case TDeviceType::kMFT_LADDER5:
-            fCurrentDevice->SetStartChipId( 4 ); // imposed by FPC
+            fCurrentDevice->SetStartChipId( 4 ); // imposed by FPC (chip near connector)
             fCurrentDevice->SetNChips( 5 ); // overwrite the value read in config file
             break;
         case TDeviceType::kMFT_LADDER4:
-            fCurrentDevice->SetStartChipId( 5 ); // imposed by FPC
+            fCurrentDevice->SetStartChipId( 5 ); // imposed by FPC (chip near connector)
             fCurrentDevice->SetNChips( 4 ); // overwrite the value read in config file
             break;
         case TDeviceType::kMFT_LADDER3:
-            fCurrentDevice->SetStartChipId( 6 ); // imposed by FPC
+            fCurrentDevice->SetStartChipId( 6 ); // imposed by FPC (chip near connector)
             fCurrentDevice->SetNChips( 3 ); // overwrite the value read in config file
             break;
         case TDeviceType::kMFT_LADDER2:
-            fCurrentDevice->SetStartChipId( 7 ); // imposed by FPC
+            fCurrentDevice->SetStartChipId( 7 ); // imposed by FPC (chip near connector)
             fCurrentDevice->SetNChips( 2 ); // overwrite the value read in config file
             break;
         default:
@@ -117,13 +117,13 @@ void TDeviceBuilderMFTLadder::InitSetup()
     Mosaic::TReceiverSpeed speed;
     
     switch ( (fCurrentDevice->GetChipConfig(0))->GetParamValue("LINKSPEED")) {
-        case 400:
+        case (int)AlpideIBSerialLinkSpeed::IB400:
             speed = Mosaic::RCV_RATE_400;
             break;
-        case 600:
+        case (int)AlpideIBSerialLinkSpeed::IB600:
             speed = Mosaic::RCV_RATE_600;
             break;
-        case 1200:
+        case (int)AlpideIBSerialLinkSpeed::IB1200:
             speed = Mosaic::RCV_RATE_1200;
             break;
         default:

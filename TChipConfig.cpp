@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
+#include "AlpideDictionary.h"
 
 using namespace std;
 
@@ -13,16 +14,17 @@ const int  TChipConfig::ITHR    = 51;
 const int  TChipConfig::IBIAS   = 64;
 const int  TChipConfig::VCASP   = 86;
 
-const bool TChipConfig::READOUT_MODE           = false;// triggered
+const bool TChipConfig::READOUT_MODE           = false;
 const bool TChipConfig::ENABLE_CLUSTERING      = true;
 const int  TChipConfig::MATRIX_READOUT_SPEED   = 1;
-const int  TChipConfig::SERIAL_LINK_SPEED      = 1200;
+const int  TChipConfig::SERIAL_LINK_SPEED      = (int)AlpideIBSerialLinkSpeed::IB1200;
 const bool TChipConfig::ENABLE_SKEWING_GLOBAL  = false;
 const bool TChipConfig::ENABLE_SKEWING_STARTRO = false;
 const bool TChipConfig::ENABLE_CLOCK_GATING    = false;
 const bool TChipConfig::ENABLE_CMU_READOUT     = false;
 
 // timing values, to be refined
+// in units of clock cycles (assuming a clock period of 25 ns)
 const int  TChipConfig::STROBE_DURATION = 80;       // 2 us
 const int  TChipConfig::STROBE_GAP      = 4000;     // .1 ms
 const int  TChipConfig::STROBE_DELAY    = 20;       // 500 ns
@@ -185,29 +187,39 @@ TChipConfig::TChipConfig( const int chipId, const int ci, const int rc )
 //___________________________________________________________________
 void TChipConfig::InitParamMap()
 {
-    fSettings["CHIPID"]           = &fChipId;
-    fSettings["RECEIVER"]         = &fReceiver;
-    fSettings["CONTROLINTERFACE"] = &fControlInterface;
-    fSettings["ENABLED"]          = &fEnabled;
-    fSettings["ITHR"]             = &fITHR;
-    fSettings["IDB"]              = &fIDB;
-    fSettings["VCASN"]            = &fVCASN;
-    fSettings["VCASN2"]           = &fVCASN2;
-    fSettings["VCLIP"]            = &fVCLIP;
-    fSettings["VRESETD"]          = &fVRESETD;
-    fSettings["IBIAS"]            = &fIBIAS;
-    fSettings["VCASP"]            =  &fVCASP;
-    fSettings["VPULSEL"]          = &fVPULSEL;
-    fSettings["VPULSEH"]          = &fVPULSEH;
-    fSettings["VRESETP"]          = &fVRESETP;
-    fSettings["VTEMP"]            = &fVTEMP;
-    fSettings["IAUX2"]            = &fIAUX2;
-    fSettings["IRESET"]           = &fIRESET;
-    fSettings["STROBEDURATION"]   = &fStrobeDuration;
-    fSettings["PULSEDURATION"]    = &fPulseDuration;
-    fSettings["STROBEDELAYCHIP"]  = &fStrobeDelay;
-    fSettings["READOUTMODE"]      = (int*)&fReadoutMode;
-    fSettings["LINKSPEED"]        = &fSerialLinkSpeed;
+    fSettings["CHIPID"]                 = &fChipId;
+    fSettings["ENABLED"]                = &fEnabled;
+    fSettings["RECEIVER"]               = &fReceiver;
+    fSettings["CONTROLINTERFACE"]       = &fControlInterface;
+    fSettings["ITHR"]                   = &fITHR;
+    fSettings["IDB"]                    = &fIDB;
+    fSettings["VCASN"]                  = &fVCASN;
+    fSettings["VCASN2"]                 = &fVCASN2;
+    fSettings["VCLIP"]                  = &fVCLIP;
+    fSettings["VRESETD"]                = &fVRESETD;
+    fSettings["VCASP"]                  =  &fVCASP;
+    fSettings["VPULSEL"]                = &fVPULSEL;
+    fSettings["VPULSEH"]                = &fVPULSEH;
+    fSettings["IBIAS"]                  = &fIBIAS;
+    fSettings["VRESETP"]                = &fVRESETP;
+    fSettings["VTEMP"]                  = &fVTEMP;
+    fSettings["IAUX2"]                  = &fIAUX2;
+    fSettings["IRESET"]                 = &fIRESET;
+    fSettings["READOUTMODE"]            = (int*)&fReadoutMode;
+    fSettings["ENABLECLUSTERING"]       = (int*)&fEnableClustering;
+    fSettings["MATRIXREADOUTSPEED"]     = &fMatrixReadoutSpeed;
+    fSettings["LINKSPEED"]              = &fSerialLinkSpeed;
+    fSettings["ENABLESKEWINGGLOBAL"]    = (int*)&fEnableSkewingGlobal;
+    fSettings["ENABLESKEWINGSTARTRO"]   = (int*)&fEnableSkewingStartRO;
+    fSettings["ENABLECLOCKGATING"]      = (int*)&fEnableClockGating;
+    fSettings["ENABLECMUREADOUT"]       = (int*)&fEnableCMUReadout;
+    fSettings["STROBEDURATION"]         = &fStrobeDuration;
+    fSettings["STROBEGAP"]              = &fStrobeGap;
+    fSettings["STROBEDELAYCHIP"]        = &fStrobeDelay;
+    fSettings["TRIGGERDELAY"]           = &fTriggerDelay;
+    fSettings["PULSEDURATION"]          = &fPulseDuration;
+    fSettings["DISABLEMANCHESTER"]      = (int*)&fDisableManchester;
+    fSettings["ENABLEDDR"]              = (int*)&fEnableDdr;
 }
 
 #pragma mark - setters

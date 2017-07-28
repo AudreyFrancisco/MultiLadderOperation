@@ -32,7 +32,7 @@ private:
     int fVTEMP;
     int fIAUX2;
     int fIRESET;
-    #pragma mark - Control register settings
+    #pragma mark - Mode Control Register settings
     bool fReadoutMode; // false = triggered, true = continuous (influences busy handling)
     bool fEnableClustering;
     int fMatrixReadoutSpeed;
