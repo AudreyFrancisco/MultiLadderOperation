@@ -35,7 +35,7 @@ public:
     virtual void InitSetup() = 0;
     
     #pragma mark - Propagate verbosity down to the TDevice
-    void SetVerboseLevel( const int level );
+    virtual void SetVerboseLevel( const int level );
 
     #pragma mark - Getters
     std::shared_ptr<TDevice> GetCurrentDevice() { return fCurrentDevice; }
