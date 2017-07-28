@@ -35,7 +35,7 @@ CLASS= AlpideDecoder.cpp \
  TDeviceBuilderOBSingleDAQ.cpp \
  TDeviceBuilderOBSingleMosaic.cpp \
  TDeviceBuilderTelescopeDAQ.cpp \
- TDeviceChipOperator.cpp \
+ TDeviceChipVisitor.cpp \
  THisto.cpp \
  TReadoutBoard.cpp \
  TReadoutBoardDAQ.cpp \
