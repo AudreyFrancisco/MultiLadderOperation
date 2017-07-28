@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
+#include "TAlpide.h"
 
 class TChipConfig;
 class TBoardConfig;
@@ -21,8 +22,10 @@ protected:
     virtual int ReadChipRegister(std::uint16_t Address, std::uint16_t &Value, std::uint8_t chipID = 0) = 0;
     int GetControlInterface( const std::uint8_t chipId) const;
     int GetChipById( const std::uint8_t chipId) const;
-
-    friend class TAlpide;     // could be reduced to the relevant methods ReadRegister, WriteRegister
+    
+    friend int TAlpide::ReadRegister( const uint16_t address, uint16_t &value );
+    friend int TAlpide::WriteRegister( const uint16_t address,
+                                      uint16_t value, const bool verify );
 
 public:
     
