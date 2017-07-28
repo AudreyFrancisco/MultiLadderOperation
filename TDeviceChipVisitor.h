@@ -1,7 +1,7 @@
-#ifndef DEVICE_CHIP_OPERATOR_H
-#define DEVICE_CHIP_OPERATOR_H
+#ifndef DEVICE_CHIP_VISITOR_H
+#define DEVICE_CHIP_VISITOR_H
 
-/// \class TDeviceChipOperator
+/// \class TDeviceChipVisitor
 /// \brief This class forward configure operations to each chip in the device.
 ///
 /// The methods iterate over all chips in the device to perform the requested configure
@@ -14,7 +14,7 @@
 class TDevice;
 enum class AlpidePulseType;
 
-class TDeviceChipOperator : public TVerbosity {
+class TDeviceChipVisitor : public TVerbosity {
 
 private:
 
@@ -23,9 +23,9 @@ private:
 public:
     
     #pragma mark - Constructors/destructor
-    TDeviceChipOperator();
-    TDeviceChipOperator( std::shared_ptr<TDevice> aDevice );
-    virtual ~TDeviceChipOperator();
+    TDeviceChipVisitor();
+    TDeviceChipVisitor( std::shared_ptr<TDevice> aDevice );
+    virtual ~TDeviceChipVisitor();
     
     #pragma mark - setters
     void SetDevice( std::shared_ptr<TDevice> aDevice );

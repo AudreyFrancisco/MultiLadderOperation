@@ -1,4 +1,4 @@
-#include "TDeviceChipOperator.h"
+#include "TDeviceChipVisitor.h"
 #include "AlpideDictionary.h"
 #include "TAlpide.h"
 #include "TDevice.h"
@@ -12,14 +12,14 @@ using namespace std;
 #pragma mark - Constructors/destructor
 
 //___________________________________________________________________
-TDeviceChipOperator::TDeviceChipOperator() : TVerbosity(),
+TDeviceChipVisitor::TDeviceChipVisitor() : TVerbosity(),
     fDevice( nullptr )
 {
     
 }
 
 //___________________________________________________________________
-TDeviceChipOperator::TDeviceChipOperator( shared_ptr<TDevice> aDevice ) : TVerbosity(),
+TDeviceChipVisitor::TDeviceChipVisitor( shared_ptr<TDevice> aDevice ) : TVerbosity(),
     fDevice( nullptr )
 {
     try {
@@ -31,7 +31,7 @@ TDeviceChipOperator::TDeviceChipOperator( shared_ptr<TDevice> aDevice ) : TVerbo
 }
 
 //___________________________________________________________________
-TDeviceChipOperator::~TDeviceChipOperator()
+TDeviceChipVisitor::~TDeviceChipVisitor()
 {
     if ( fDevice ) fDevice.reset();
 }
@@ -39,22 +39,43 @@ TDeviceChipOperator::~TDeviceChipOperator()
 #pragma mark - setters
 
 //___________________________________________________________________
-void TDeviceChipOperator::SetDevice( shared_ptr<TDevice> aDevice )
+void TDeviceChipVisitor::SetDevice( shared_ptr<TDevice> aDevice )
 {
     if ( !aDevice ) {
-        throw runtime_error( "TDeviceChipOperator::SetDevice() - can not use a null pointer !" );
+        throw runtime_error( "TDeviceChipVisitor::SetDevice() - can not use a null pointer !" );
     }
     fDevice = aDevice;
+}
+
+#pragma mark - Propagate verbosity down to the TDevice
+
+//___________________________________________________________________
+void TDeviceChipVisitor::SetVerboseLevel( const int level )
+{
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::SetVerboseLevel() - can not use a null pointer !" );
+    }
+    if ( fDevice->GetNChips() == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::SetVerboseLevel() - no chip found !" );
+    }
+    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+        if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
+        if ( fDevice->GetChipConfig(i)->HasEnabledSlave() ) continue;
+        fDevice->GetChip(i)->SetVerboseLevel( level );
+    }
 }
 
 #pragma mark - forward configure operations to each Alpide in the device
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoConfigureFromu( const AlpidePulseType pulseType,
+void TDeviceChipVisitor::DoConfigureFromu( const AlpidePulseType pulseType,
                                           const bool testStrobe )
 {
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureFromu() - can not use a null pointer !" );
+    }
     if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoConfigureFromu() - no chip found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureFromu() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -64,10 +85,13 @@ void TDeviceChipOperator::DoConfigureFromu( const AlpidePulseType pulseType,
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoConfigureFromu()
+void TDeviceChipVisitor::DoConfigureFromu()
 {
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureFromu() - can not use a null pointer !" );
+    }
     if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoConfigureFromu() - no chip found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureFromu() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -77,10 +101,13 @@ void TDeviceChipOperator::DoConfigureFromu()
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoConfigureBuffers()
+void TDeviceChipVisitor::DoConfigureBuffers()
 {
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureBuffers() - can not use a null pointer !" );
+    }
     if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoConfigureBuffers() - no chip found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureBuffers() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -89,10 +116,13 @@ void TDeviceChipOperator::DoConfigureBuffers()
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoConfigureCMU()
+void TDeviceChipVisitor::DoConfigureCMU()
 {
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureCMU() - can not use a null pointer !" );
+    }
     if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoConfigureCMU() - no chip found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureCMU() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -102,10 +132,13 @@ void TDeviceChipOperator::DoConfigureCMU()
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoConfigureMaskStage( int nPix, const int iStage )
+void TDeviceChipVisitor::DoConfigureMaskStage( int nPix, const int iStage )
 {
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - can not use a null pointer !" );
+    }
     if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoConfigureMaskStage() - no chip found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -114,10 +147,13 @@ void TDeviceChipOperator::DoConfigureMaskStage( int nPix, const int iStage )
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoBaseConfigPLL()
+void TDeviceChipVisitor::DoBaseConfigPLL()
 {
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigPLL() - can not use a null pointer !" );
+    }
     if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoBaseConfigPLL() - no chip found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigPLL() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -126,10 +162,13 @@ void TDeviceChipOperator::DoBaseConfigPLL()
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoBaseConfigMask()
+void TDeviceChipVisitor::DoBaseConfigMask()
 {
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoBaseConfigMask() - no chip found !" );
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigMask() - can not use a null pointer !" );
+    }
+   if ( fDevice->GetNChips() == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigMask() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -138,10 +177,13 @@ void TDeviceChipOperator::DoBaseConfigMask()
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoBaseConfigFromu()
+void TDeviceChipVisitor::DoBaseConfigFromu()
 {
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoBaseConfigFromu() - no chip found !" );
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigFromu() - can not use a null pointer !" );
+    }
+   if ( fDevice->GetNChips() == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigFromu() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -150,10 +192,13 @@ void TDeviceChipOperator::DoBaseConfigFromu()
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoBaseConfigDACs()
+void TDeviceChipVisitor::DoBaseConfigDACs()
 {
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoBaseConfigDACs() - no chip found !" );
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigDACs() - can not use a null pointer !" );
+    }
+   if ( fDevice->GetNChips() == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigDACs() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
@@ -162,10 +207,13 @@ void TDeviceChipOperator::DoBaseConfigDACs()
 }
 
 //___________________________________________________________________
-void TDeviceChipOperator::DoBaseConfig()
+void TDeviceChipVisitor::DoBaseConfig()
 {
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfig() - can not use a null pointer !" );
+    }
     if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipOperator::DoBaseConfig() - no chip found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfig() - no chip found !" );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         if ( !(fDevice->GetChipConfig(i)->IsEnabled()) ) continue;
