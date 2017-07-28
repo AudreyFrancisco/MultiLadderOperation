@@ -13,7 +13,7 @@
 #include "TSetup.h"
 #include "TDevice.h"
 #include "AlpideDictionary.h"
-#include "TDeviceChipOperator.h"
+#include "TDeviceChipVisitor.h"
 
 using namespace std;
 
@@ -54,11 +54,11 @@ int main(int argc, char** argv) {
     theBoard->SendOpCode( (std::uint16_t)AlpideOpCode::PRST );
     
     // configure chip(s)
-    TDeviceChipOperator theDeviceChipOperator( theDevice );
-    theDeviceChipOperator.SetVerboseLevel( mySetup.GetVerboseLevel() );
-    theDeviceChipOperator.DoBaseConfig();
-    theDeviceChipOperator.DoConfigureFromu();
-    theDeviceChipOperator.DoConfigureCMU();
+    TDeviceChipVisitor theDeviceChipVisitor( theDevice );
+    theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
+    theDeviceChipVisitor.DoBaseConfig();
+    theDeviceChipVisitor.DoConfigureFromu();
+    theDeviceChipVisitor.DoConfigureCMU();
     
     // readout reset
     theBoard->SendOpCode( (std::uint16_t)AlpideOpCode::RORST );
