@@ -5,7 +5,7 @@
 
 enum class TDataType {kIDLE, kCHIPHEADER, kCHIPTRAILER, kEMPTYFRAME, kREGIONHEADER, kDATASHORT, kDATALONG, kBUSYON, kBUSYOFF, kUNKNOWN};
 
-typedef struct {
+typedef struct TPixHit {
   int chipId;
   int region; 
   int dcol;
