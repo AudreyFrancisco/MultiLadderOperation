@@ -1,4 +1,5 @@
 #include "TScan.h"
+#include "TScanConfig.h"
 #include "THisto.h"
 #include "TAlpide.h"
 #include "TDevice.h"
@@ -12,17 +13,35 @@ bool fScanAbort;
 TScan::TScan()
 {
     fScanAbort = false;
+    for ( int i = 0; i < MAXLOOPLEVEL; i++ ) {
+        fStart[i] = 0;
+        fStop[i] = 0;
+        fStep[i] = 0;
+        fValue[i] = 0;
+    }
+    for ( int i = 0; i < MAXBOARDS; i++ ) {
+        fEnabled[i] = 0;
+    }
 }
 
 //___________________________________________________________________
-TScan::TScan( shared_ptr<TScanConfig> config,
+TScan::TScan( shared_ptr<TScanConfig> aConfig,
               shared_ptr<TDevice> aDevice,
              std::deque<TScanHisto> *histoQue ) :
-    fConfig( config ),
+    fConfig( aConfig ),
     fDevice( aDevice ),
     fHistoQue( histoQue )
 {
     fScanAbort = false;
+    for ( int i = 0; i < MAXLOOPLEVEL; i++ ) {
+        fStart[i] = 0;
+        fStop[i] = 0;
+        fStep[i] = 0;
+        fValue[i] = 0;
+    }
+    for ( int i = 0; i < MAXBOARDS; i++ ) {
+        fEnabled[i] = 0;
+    }
 }
 
 //___________________________________________________________________
@@ -86,7 +105,7 @@ void TScan::CreateScanHisto()
             }
         }
     }
-    cout << "CreateHisto: generated map with " << fHisto->GetSize() << " elements" << endl;
+    cout << "TScan::CreateHisto() - generated map with " << fHisto->GetSize() << " elements" << endl;
 }
 
 //___________________________________________________________________
@@ -94,13 +113,13 @@ TMaskScan::TMaskScan() : TScan()
 { }
 
 //___________________________________________________________________
-TMaskScan::TMaskScan( shared_ptr<TScanConfig> config,
+TMaskScan::TMaskScan( shared_ptr<TScanConfig> aConfig,
                      shared_ptr<TDevice> aDevice,
                      deque<TScanHisto> *histoQue )
-: TScan(config, aDevice, histoQue)
+: TScan( aConfig, aDevice, histoQue )
 {
-    shared_ptr<TScanConfig> currentConfig = fConfig.lock();
-    fPixPerStage = currentConfig->GetParamValue("PIXPERREGION");
+    shared_ptr<TScanConfig> currentScanConfig = fConfig.lock();
+    fPixPerStage = currentScanConfig->GetParamValue("PIXPERREGION");
 }
 
 //___________________________________________________________________

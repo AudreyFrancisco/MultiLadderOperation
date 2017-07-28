@@ -2,11 +2,12 @@
 #define TSCAN_H
 
 #include <deque>
-#include "TScanConfig.h"
-#include "THisto.h"
 #include <memory>
 
 class TDevice;
+class TScanConfig;
+class TScanHisto;
+class THisto;
 
 extern bool fScanAbort;
 
@@ -32,7 +33,7 @@ protected:
     
 public:
     TScan();
-    TScan( std::shared_ptr<TScanConfig> config,
+    TScan( std::shared_ptr<TScanConfig> aConfig,
           std::shared_ptr<TDevice> aDevice,
           std::deque<TScanHisto> *histoQue );
     virtual ~TScan() {};
@@ -59,7 +60,7 @@ protected:
 
 public:
     TMaskScan();
-    TMaskScan( std::shared_ptr<TScanConfig> config,
+    TMaskScan( std::shared_ptr<TScanConfig> aConfig,
               std::shared_ptr<TDevice> aDevice,
               std::deque<TScanHisto> *histoQue );
     virtual ~TMaskScan() {};

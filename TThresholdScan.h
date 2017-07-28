@@ -5,10 +5,13 @@
 #include <vector>
 #include <memory>
 #include "TScan.h"
-#include "AlpideDecoder.h"
 
 class THisto;
 class TScanHisto;
+struct TPixHit;
+
+class TScanConfig;
+class TDevice;
 
 class TThresholdScan : public TMaskScan {
 private:

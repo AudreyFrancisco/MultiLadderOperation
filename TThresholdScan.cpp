@@ -8,6 +8,9 @@
 #include "TReadoutBoardMOSAIC.h"
 #include "TReadoutBoardDAQ.h"
 #include "TBoardConfig.h"
+#include "AlpideDecoder.h"
+#include "TScanConfig.h"
+
 
 using namespace std;
 
@@ -24,21 +27,21 @@ TThresholdScan::TThresholdScan( shared_ptr<TScanConfig> config,
                                deque<TScanHisto> *histoQue )
 : TMaskScan( config, aDevice, histoQue )
 {
-    shared_ptr<TScanConfig> currentConfig = fConfig.lock();
-    fStart[0]  = currentConfig->GetChargeStart();
-    fStop [0]  = currentConfig->GetChargeStop ();
-    fStep [0]  = currentConfig->GetChargeStep ();
+    shared_ptr<TScanConfig> currentScanConfig = fConfig.lock();
+    fStart[0]  = currentScanConfig->GetChargeStart();
+    fStop [0]  = currentScanConfig->GetChargeStop ();
+    fStep [0]  = currentScanConfig->GetChargeStep ();
     
     fStart[1]  = 0;
     fStep [1]  = 1;
-    fStop [1]  = currentConfig->GetNMaskStages();
+    fStop [1]  = currentScanConfig->GetNMaskStages();
     
     fStart[2]  = 0;
     fStep [2]  = 1;
     fStop [2]  = 1;
     
     fVPULSEH   = 170;
-    fNTriggers = currentConfig->GetParamValue("NINJ");
+    fNTriggers = currentScanConfig->GetParamValue("NINJ");
     CreateScanHisto();
 }
 
@@ -113,11 +116,13 @@ void TThresholdScan::Init()
 void TThresholdScan::PrepareStep( const int loopIndex )
 {
     shared_ptr<TDevice> currentDevice = fDevice.lock();
+    
     switch ( loopIndex ) {
         case 0:    // innermost loop: change VPULSEL
             for ( int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
                 if (! ((currentDevice->GetChipConfig( ichip ))->IsEnabled()) ) continue;
-                (currentDevice->GetChip( ichip ))->WriteRegister( AlpideRegister::VPULSEL, fVPULSEH - fValue[0] );
+                fVPULSEH = (currentDevice->GetChipConfig( ichip ))->GetParamValue("VPULSEH"); // Replace default value with the one from config file
+                (currentDevice->GetChip( ichip ))->WriteRegister( AlpideRegister::VPULSEL, fVPULSEH - fValue[0] ); // Automatically matches max pulse = VPULSEH in config
             }
             break;
         case 1:    // 2nd loop: mask staging
@@ -151,10 +156,10 @@ void TThresholdScan::Execute()
         int trials = 0;
         while ( itrg < fNTriggers * fEnabled[iboard] ) {
             if ((currentDevice->GetBoard( iboard ))->ReadEventData(n_bytes_data, buffer) == -1) { // no event available in buffer yet, wait a bit
-                usleep(100);
+                usleep(100); // Increment from 100us
                 trials++;
-                if (trials == 3) {
-                    cout << "Board " << iboard << ": reached 3 timeouts, giving up on this event" << endl;
+                if (trials == 10) {
+                    cout << "Board " << iboard << ": reached 10 timeouts, giving up on this event" << endl;
                     itrg = fNTriggers * fEnabled[iboard];
                     skipped++;
                     trials = 0;
