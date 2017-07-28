@@ -4,6 +4,7 @@
 #include <cstdint>
 
 enum class AlpideRegister : std::uint16_t {
+    // addresses of periphery control registers (alpide manual, section 3.2.2, page 36)
     COMMAND         = 0x0,
     MODECONTROL     = 0x1,
     REGDISABLE_LOW  = 0x2,
@@ -22,8 +23,8 @@ enum class AlpideRegister : std::uint16_t {
     CMUIO_DACS      = 0xf,
     CMUDMU_CONFIG   = 0x10,
     CMUDMU_STATUS   = 0x11,
-    CMUFIFO_LOW     = 0x12,
-    CMUFIFO_HIGH    = 0x13,
+    DMUFIFO_LOW     = 0x12,
+    DMUFIFO_HIGH    = 0x13,
     DTU_CONFIG      = 0x14,
     DTU_DACS        = 0x15,
     PLL_LOCK1       = 0x16,
@@ -32,7 +33,7 @@ enum class AlpideRegister : std::uint16_t {
     DTU_TEST2       = 0x19,
     DTU_TEST3       = 0x1a,
     BUSY_MINWIDTH   = 0x1b,
-    PIXELCONFIG     = 0x500,
+    // addresses of dacs and monitoring control registers (alpide manual, section 3.2.5, page 50)
     ANALOGMON       = 0x600,
     VRESETP         = 0x601,
     VRESETD         = 0x602,
@@ -73,6 +74,7 @@ enum class AlpideRegister : std::uint16_t {
     ADC_IRESET      = 0x625,
     ADC_BG2V        = 0x626,
     ADC_T2V         = 0x627,
+    // addresses of test and debug control registers (alpide manual, section 3.2.6, page 54)
     SEU_ERROR_COUNT = 0x700,
     TEST_CONTROL    = 0x701,
     BMU_DEBUG       = 0x702,
@@ -81,19 +83,23 @@ enum class AlpideRegister : std::uint16_t {
     RRU_DEBUG       = 0x705,
     FROMU_DEBUG     = 0x706,
     ADC_DEBUG       = 0x707,
-    // region register base addresses (addres for region 0),
+    // (alpide manual, section 3.2.3, page 46)
+    // region register base addresses (address for region 0),
     // to be ORed with 0x0800 - 0xf800 for regions 1 - 31 or
     // with 0x80 for region broadcast
     RRU_MEB_LSB_BASE   = 0x100,    // to be ORed with 0x00 - 0x7f for the different RAM words
     RRU_MEB_MSB_BASE   = 0x200,    // same here
     DCOL_DISABLE_BASE  = 0x300,
     REGION_STATUS_BASE = 0x301,
-    COLSEL1_BASE       = 0x401,
-    COLSEL2_BASE       = 0x402,
-    ROWSEL_BASE        = 0x404,
-    PULSESEL_BASE      = 0x408
+    // pixel control registers (alpide manual, section 3.2.4, page 48)
+    PIXELCONFIG     = 0x500,
+    COLSEL1_BASE    = 0x401,
+    COLSEL2_BASE    = 0x402,
+    ROWSEL_BASE     = 0x404,
+    PULSESEL_BASE   = 0x408
 };
 
+// command codes recognized by the Command Register
 enum class AlpideOpCode : std::uint16_t {
     TRIGGER1     = 0xb1,
     TRIGGER2     = 0x55,
@@ -125,10 +131,19 @@ enum class AlpidePulseType {
     ANALOGUE = 1
 };
 
+// Bits 5:4 of the Mode Control Register
+enum class AlpideIBSerialLinkSpeed {
+    IB400   = 0,
+    IB600   = 1,
+    IB1200  = 2
+};
+    
+    
+// Bits 1:0 of the Mode Control Register
 enum class AlpideChipMode {
-    CONFIG      = 0,
-    TRIGGERED   = 1,
-    CONTINUOUS  = 2
+    CONFIG      = 0, // (readout disabled)
+    TRIGGERED   = 1, // (readout enabled)
+    CONTINUOUS  = 2  // (readout enabled)
 };
 
 #endif
