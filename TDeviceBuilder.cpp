@@ -109,7 +109,7 @@ void TDeviceBuilder::SetDeviceParamValue( const char *Name, const char *Value, i
 //___________________________________________________________________
 void TDeviceBuilder::CheckControlInterface()
 {
-    uint16_t WriteValue = 10;
+    const uint16_t WriteValue = 10;
     uint16_t Value;
     if ( fVerboseLevel ) {
         cout << endl
@@ -135,9 +135,9 @@ void TDeviceBuilder::CheckControlInterface()
         
         if ( !(fCurrentDevice->GetChipConfig(i)->IsEnabled()) ) continue;
         
-        fCurrentDevice->GetChip(i)->WriteRegister( 0x60d, WriteValue );
+        fCurrentDevice->GetChip(i)->WriteRegister( AlpideRegister::IBIAS, WriteValue );
         try {
-            fCurrentDevice->GetChip(i)->ReadRegister( 0x60d, Value );
+            fCurrentDevice->GetChip(i)->ReadRegister( AlpideRegister::IBIAS, Value );
             if ( WriteValue == Value ) {
                 if ( fVerboseLevel ) {
                     cout << "TDeviceBuilder::CheckControlInterface() -  Chip ID "
