@@ -160,14 +160,18 @@ void TSetup::ReadConfigFile()
         if (!strcmp(Param,"NCHIPS")){
             sscanf(Rest, "%d", &nChips);
             if ( dt == TDeviceType::kTELESCOPE ) {
-                (dynamic_pointer_cast<TDeviceBuilderTelescope>(fDeviceBuilder))->SetNChips( nChips );
+                if ( dynamic_pointer_cast<TDeviceBuilderTelescope>(fDeviceBuilder) ) {
+                    (dynamic_pointer_cast<TDeviceBuilderTelescope>(fDeviceBuilder))->SetNChips( nChips );
+                }
             }
         }
         int nModules = 0;
         if (!strcmp(Param,"NMODULES")){
             sscanf(Rest, "%d", &nModules);
             if ( dt == TDeviceType::kHALFSTAVE ) {
-                (dynamic_pointer_cast<TDeviceBuilderHalfStave>(fDeviceBuilder))->SetNModules( nModules );
+                if ( dynamic_pointer_cast<TDeviceBuilderHalfStave>(fDeviceBuilder) ) {
+                    (dynamic_pointer_cast<TDeviceBuilderHalfStave>(fDeviceBuilder))->SetNModules( nModules );
+                }
             }
         }
         try {
