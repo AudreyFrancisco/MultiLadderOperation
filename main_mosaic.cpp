@@ -57,8 +57,6 @@ int main(int argc, char** argv) {
     TDeviceChipVisitor theDeviceChipVisitor( theDevice );
     theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceChipVisitor.DoBaseConfig();
-    theDeviceChipVisitor.DoConfigureFromu();
-    theDeviceChipVisitor.DoConfigureCMU();
     
     // readout reset
     theBoard->SendOpCode( (std::uint16_t)AlpideOpCode::RORST );
@@ -76,16 +74,16 @@ int main(int argc, char** argv) {
 	int timeoutLimit = 10; // ten seconds
 
 	// sets the trigger
-	theBoard->SetTriggerConfig (enablePulse, enableTrigger, triggerDelay, pulseDelay);
-	theBoard->SetTriggerSource (TTriggerSource::kTRIG_INT);
+	theBoard->SetTriggerConfig( enablePulse, enableTrigger, triggerDelay, pulseDelay );
+	theBoard->SetTriggerSource( TTriggerSource::kTRIG_INT );
 
 	(dynamic_pointer_cast<TReadoutBoardMOSAIC>(theBoard))->StartRun(); // Activate the data taking ...
 
-	theBoard->Trigger(nTriggers); // Preset end start the trigger
+	theBoard->Trigger( nTriggers ); // Preset end start the trigger
 
-	while(!isDataTackingEnd) { // while we don't receive a timeout
-		returnCode = theBoard->ReadEventData(numberOfReadByte, theBuffer);
-		if(returnCode != 0) { // we have some thing
+	while( !isDataTackingEnd ) { // while we don't receive a timeout
+		returnCode = theBoard->ReadEventData( numberOfReadByte, theBuffer );
+		if( returnCode != 0 ) { // we have some thing
 			std::cout << "Read an event !  Dimension :" << numberOfReadByte << std::endl;   // Consume the buffer ...
 			usleep(20000); // wait
 		} else { // read nothing is finished ?
