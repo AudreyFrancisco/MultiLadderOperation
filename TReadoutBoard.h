@@ -23,10 +23,20 @@ protected:
     int GetControlInterface( const std::uint8_t chipId) const;
     int GetChipById( const std::uint8_t chipId) const;
     
-    friend int TAlpide::ReadRegister( const uint16_t address, uint16_t &value );
-    friend int TAlpide::WriteRegister( const uint16_t address,
-                                      uint16_t value, const bool verify );
-
+    friend void TAlpide::ReadRegister( const AlpideRegister address,
+                                      std::uint16_t& value,
+                                      const bool skipDisabledChip );
+    friend void TAlpide::ReadRegister( const std::uint16_t address,
+                                      std::uint16_t& value,
+                                      const bool skipDisabledChip );
+    friend void TAlpide::WriteRegister( const AlpideRegister address,
+                                       std::uint16_t value,
+                                       const bool verify,
+                                       const bool skipDisabledChip );
+    friend void TAlpide::WriteRegister( const std::uint16_t address,
+                                       std::uint16_t value,
+                                       const bool verify,
+                                       const bool skipDisabledChip );
 public:
     
     TReadoutBoard();
