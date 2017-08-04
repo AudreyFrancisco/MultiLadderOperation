@@ -121,12 +121,12 @@ enum class AlpideOpCode : std::uint16_t {
     ADCMEASURE   = 0xff20
 };
 
-enum class AlpidePixReg {
+enum class AlpidePixConfigReg { // previously named AlpidePixReg
     MASK   = 0x0,
     SELECT = 0x1
 };
 
-enum class AlpidePulseType {
+enum class AlpideTestPulseMode { // previously named AlpidePulseType
     DIGITAL  = 0,
     ANALOGUE = 1
 };
