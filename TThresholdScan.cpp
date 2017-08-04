@@ -73,9 +73,8 @@ void TThresholdScan::ConfigureChip( const int ichip )
 {
     shared_ptr<TDevice> currentDevice = fDevice.lock();
     shared_ptr<TAlpide> chip = currentDevice->GetChip( ichip );
+    // the user should use a config file with settings relevant for threshold scan
     chip->BaseConfig();
-    chip->ConfigureFromu();
-    chip->ConfigureCMU();
 }
 
 //___________________________________________________________________
