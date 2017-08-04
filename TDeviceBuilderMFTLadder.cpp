@@ -77,7 +77,7 @@ void TDeviceBuilderMFTLadder::CreateDeviceConfig()
     }
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
     
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderMFTLadder::CreateDeviceConfig() - done" << endl;
     }
     fCurrentDevice->FreezeConfig();
@@ -108,7 +108,7 @@ void TDeviceBuilderMFTLadder::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderMFTLadder::InitSetup() - start" << endl;
     }
     
@@ -163,6 +163,8 @@ void TDeviceBuilderMFTLadder::InitSetup()
             receiver = boardConfig->GetRCVMAP(index);
             chipConfig->SetParamValue("RECEIVER", receiver);
         }
+        chipConfig->SetPreviousId(0xf); // see page 75 alpide manual (section 3.8.3)
+        chipConfig->SetInitialToken(false); // see page 75 alpide manual (section 3.8.3)
         auto alpide = make_shared<TAlpide>( chipConfig );
         alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
         fCurrentDevice->AddChip( alpide );
@@ -173,6 +175,9 @@ void TDeviceBuilderMFTLadder::InitSetup()
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
         exit(0);
+    }
+    if ( fVerboseLevel > kTERSE ) {
+        cout << "TDeviceBuilderMFTLadder::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
 }

@@ -111,7 +111,7 @@ void TDeviceBuilder::CheckControlInterface()
 {
     const uint16_t WriteValue = 10;
     uint16_t Value;
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << endl
         << "TDeviceBuilder::CheckControlInterface() - Before starting actual test:"
         << endl
@@ -139,7 +139,7 @@ void TDeviceBuilder::CheckControlInterface()
         try {
             fCurrentDevice->GetChip(i)->ReadRegister( AlpideRegister::IBIAS, Value );
             if ( WriteValue == Value ) {
-                if ( fVerboseLevel ) {
+                if ( fVerboseLevel > kTERSE ) {
                     cout << "TDeviceBuilder::CheckControlInterface() -  Chip ID "
                          << fCurrentDevice->GetChipConfig(i)->GetChipId()
                          << ", readback correct." << endl;

@@ -67,7 +67,7 @@ void TDeviceBuilderTelescope::CreateDeviceConfig()
     }
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
 
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderTelescope::CreateDeviceConfig() - done" << endl;
     }
     fCurrentDevice->FreezeConfig();
@@ -95,14 +95,14 @@ void TDeviceBuilderTelescope::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderTelescope::InitSetup() - start" << endl;
     }
     
     // FIXME: not implemeted yet
     cout << "TDeviceBuilderTelescope::InitSetup() - NOT IMPLEMENTED YET" << endl;
     
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderTelescope::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();

@@ -50,7 +50,7 @@ void TDeviceBuilderIBSingleMosaic::CreateDeviceConfig()
     fCurrentDevice->AddChipConfig( newChipConfig );
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
 
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderIBSingleMosaic::CreateDeviceConfig() - done" << endl;
     }
     fCurrentDevice->FreezeConfig();
@@ -80,7 +80,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderIBSingleMosaic::InitSetup() - start" << endl;
     }
     
@@ -97,7 +97,9 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         control  = 0;
         chipConfig->SetParamValue("CONTROLINTERFACE", control);
     }
-    
+    chipConfig->SetPreviousId(0xf); // see page 75 alpide manual (section 3.8.3)
+    chipConfig->SetInitialToken(false); // see page 75 alpide manual (section 3.8.3)
+
     shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>) (fCurrentDevice->GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
     Mosaic::TReceiverSpeed speed;
@@ -126,7 +128,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
     fCurrentDevice->AddChip( alpide );
     (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderIBSingleMosaic::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();

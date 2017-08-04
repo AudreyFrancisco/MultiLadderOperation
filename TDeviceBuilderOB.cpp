@@ -56,7 +56,7 @@ void TDeviceBuilderOB::CreateDeviceConfig()
     }
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
 
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOB::CreateDeviceConfig() - done" << endl;
     }
     fCurrentDevice->FreezeConfig();
@@ -91,7 +91,7 @@ void TDeviceBuilderOB::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOB::InitSetup() - start" << endl;
     }
     
@@ -145,7 +145,7 @@ void TDeviceBuilderOB::InitSetup()
     }
     sleep(5);
     MakeDaisyChain();
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOB::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();

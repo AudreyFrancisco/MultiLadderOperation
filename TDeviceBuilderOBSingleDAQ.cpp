@@ -51,7 +51,7 @@ void TDeviceBuilderOBSingleDAQ::CreateDeviceConfig()
     fCurrentDevice->AddChipConfig( newChipConfig );
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
 
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOBSingleDAQ::CreateDeviceConfig() - done" << endl;
     }
     fCurrentDevice->FreezeConfig();
@@ -79,7 +79,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOBSingleDAQ::InitSetup() - start" << endl;
     }
     
@@ -115,7 +115,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
     shared_ptr<TReadoutBoardDAQ> myDAQBoard = ((dynamic_pointer_cast<TReadoutBoardDAQ>)(fCurrentDevice->GetBoard(0)));
     PowerOnDaqBoard(myDAQBoard);
     
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE) {
         cout << "TDeviceBuilderOBSingleDAQ::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();

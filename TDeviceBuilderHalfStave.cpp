@@ -61,7 +61,7 @@ void TDeviceBuilderHalfStave::CreateDeviceConfig()
     }
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
     
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderHalfStave::CreateDeviceConfig() - done" << endl;
     }
     fCurrentDevice->FreezeConfig();
@@ -91,7 +91,7 @@ void TDeviceBuilderHalfStave::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderHalfStave::InitSetup() - start" << endl;
     }
     for (int i = 0; i < fCurrentDevice->GetNBoards(true); i++) {
@@ -129,7 +129,7 @@ void TDeviceBuilderHalfStave::InitSetup()
     }
     sleep(5);
     MakeDaisyChain();
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderHalfStave::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();

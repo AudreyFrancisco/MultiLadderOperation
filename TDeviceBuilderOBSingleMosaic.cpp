@@ -51,7 +51,7 @@ void TDeviceBuilderOBSingleMosaic::CreateDeviceConfig()
     fCurrentDevice->AddChipConfig( newChipConfig );
     fCurrentDevice->SetNChips( fCurrentDevice->GetChipConfigsVectorSize() );
    
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOBSingleMosaic::CreateDeviceConfig() - done" << endl;
     }
     fCurrentDevice->FreezeConfig();
@@ -82,7 +82,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOBSingleMosaic::InitSetup() - start" << endl;
     }
     
@@ -111,7 +111,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
     fCurrentDevice->AddChip(alpide);
     (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
-    if ( fVerboseLevel ) {
+    if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOBSingleMosaic::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
