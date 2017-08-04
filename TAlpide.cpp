@@ -2,7 +2,9 @@
 #include "TAlpide.h"
 #include "TChipConfig.h"
 #include "TReadoutBoard.h"
+#include <bitset>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 using namespace std;
@@ -71,207 +73,345 @@ void TAlpide::SetEnable( const bool Enable )
     }
 }
 
+#pragma mark - dump
+
+//___________________________________________________________________
+void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* config )
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::DumpConfig() - chip config. not found!" );
+    }
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::DumpConfig() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+
+    uint16_t value;
+   
+    if (writeFile) {
+        FILE *fp = fopen(fileName, "w");
+        fprintf(fp, "Chip ID %i\n", fChipId);
+        // DACs
+        ReadRegister( AlpideRegister::VRESETP, value );
+        fprintf(fp, "VRESETP %i\n", value);
+        ReadRegister( AlpideRegister::VRESETD, value );
+        fprintf(fp, "VRESETD %i\n", value);
+        ReadRegister( AlpideRegister::VCASP, value );
+        fprintf(fp, "VCASP   %i\n", value);
+        ReadRegister( AlpideRegister::VCASN, value );
+        fprintf(fp, "VCASN   %i\n", value);
+        ReadRegister( AlpideRegister::VPULSEH, value );
+        fprintf(fp, "VPULSEH %i\n", value);
+        ReadRegister( AlpideRegister::VPULSEL, value );
+        fprintf(fp, "VPULSEL %i\n", value);
+        ReadRegister( AlpideRegister::VCASN2, value );
+        fprintf(fp, "VCASN2  %i\n", value);
+        ReadRegister( AlpideRegister::VCLIP, value );
+        fprintf(fp, "VCLIP   %i\n", value);
+        ReadRegister( AlpideRegister::VTEMP, value );
+        fprintf(fp, "VTEMP   %i\n", value);
+        ReadRegister( AlpideRegister::IAUX2, value );
+        fprintf(fp, "IAUX2   %i\n", value);
+        ReadRegister( AlpideRegister::IRESET, value );
+        fprintf(fp, "IRESET  %i\n", value);
+        ReadRegister( AlpideRegister::IDB, value );
+        fprintf(fp, "IDB     %i\n", value);
+        ReadRegister( AlpideRegister::IBIAS, value );
+        fprintf(fp, "IBIAS   %i\n", value);
+        ReadRegister( AlpideRegister::ITHR, value );
+        fprintf(fp, "ITHR    %i\n", value);
+        
+        fprintf(fp, "\n");
+        // Mode control register
+        ReadRegister( AlpideRegister::MODECONTROL, value );
+        fprintf( fp, "MODECONTROL  %i\n", value );
+        
+        // FROMU config reg 1: [5]: test pulse mode; [6]: enable test strobe, etc.
+        ReadRegister( AlpideRegister::FROMU_CONFIG1, value );
+        fprintf( fp, "FROMU_CONFIG1  %i\n", value );
+        
+        // FROMU config reg 2: strobe duration
+        ReadRegister( AlpideRegister::FROMU_CONFIG2, value );
+        fprintf( fp, "FROMU_CONFIG2  %i\n", value );
+        
+        // FROMU pulsing reg 1: delay between pulse and strobe if the feature of automatic strobing is enabled
+        ReadRegister( AlpideRegister::FROMU_PULSING1, value );
+        fprintf( fp, "FROMU_PULSING1  %i\n", value );
+        
+        // FROMU pulsing reg 2: pulse duration
+        ReadRegister( AlpideRegister::FROMU_PULSING2, value );
+        fprintf( fp, "FROMU_PULSING2  %i\n", value );
+        
+        // CMU DMU config reg
+        ReadRegister( AlpideRegister::CMUDMU_CONFIG, value );
+        fprintf( fp, "CMUDMU_CONFIG  %i\n", value );
+        
+        fclose( fp );
+    }
+
+    config[0] = '\0';
+    // DACs
+    ReadRegister( AlpideRegister::VRESETP, value );
+    sprintf( config, "VRESETP %i\n", value );
+    ReadRegister( AlpideRegister::VRESETD, value );
+    sprintf( config, "%sVRESETD %i\n", config, value );
+    ReadRegister( AlpideRegister::VCASP, value );
+    sprintf( config, "%sVCASP   %i\n", config, value );
+    ReadRegister( AlpideRegister::VCASN, value );
+    sprintf( config, "%sVCASN   %i\n", config, value );
+    ReadRegister( AlpideRegister::VPULSEH, value );
+    sprintf( config, "%sVPULSEH %i\n", config, value );
+    ReadRegister( AlpideRegister::VPULSEL, value);
+    sprintf( config, "%sVPULSEL %i\n", config, value );
+    ReadRegister( AlpideRegister::VCASN2, value );
+    sprintf( config, "%sVCASN2  %i\n", config, value );
+    ReadRegister( AlpideRegister::VCLIP, value );
+    sprintf( config, "%sVCLIP   %i\n", config, value );
+    ReadRegister( AlpideRegister::VTEMP, value );
+    sprintf( config, "%sVTEMP   %i\n", config, value );
+    ReadRegister( AlpideRegister::IAUX2, value );
+    sprintf( config, "%sIAUX2   %i\n", config, value );
+    ReadRegister( AlpideRegister::IRESET, value );
+    sprintf( config, "%sIRESET  %i\n", config, value );
+    ReadRegister( AlpideRegister::IDB, value );
+    sprintf( config, "%sIDB     %i\n", config, value );
+    ReadRegister( AlpideRegister::IBIAS, value );
+    sprintf( config, "%sIBIAS   %i\n", config, value );
+    ReadRegister( AlpideRegister::ITHR, value );
+    sprintf( config, "%sITHR    %i\n", config, value );
+
+    sprintf( config, "%s\n", config );
+    // Mode control register
+    ReadRegister( AlpideRegister::MODECONTROL, value );
+    sprintf( config, "%sMODECONTROL  %i\n", config, value );
+  
+    // FROMU config reg 1: [5]: test pulse mode; [6]: enable test strobe, etc.
+    ReadRegister( AlpideRegister::FROMU_CONFIG1, value );
+    sprintf( config, "%sFROMU_CONFIG1  %i\n", config, value );
+  
+    // FROMU config reg 2: strobe duration
+    ReadRegister( AlpideRegister::FROMU_CONFIG2, value );
+    sprintf( config, "%sFROMU_CONFIG2  %i\n", config, value );
+
+    // FROMU pulsing reg 1: delay between pulse and strobe if the feature of
+    // automatic strobing is enabled
+    ReadRegister( AlpideRegister::FROMU_PULSING1, value );
+    sprintf( config, "%sFROMU_PULSING1  %i\n", config, value );
+
+    // FROMU pulsing reg 2: pulse duration
+    ReadRegister( AlpideRegister::FROMU_PULSING2, value );
+    sprintf( config, "%sFROMU_PULSING2  %i\n", config, value );
+
+    // CMU DMU config reg
+    ReadRegister( AlpideRegister::CMUDMU_CONFIG, value );
+    sprintf( config, "%sCMUDMU_CONFIG  %i\n", config, value );
+
+}
+
 #pragma mark - basic operations with registers
 
 //___________________________________________________________________
-int TAlpide::ReadRegister( const AlpideRegister address, uint16_t &value )
-{
-  return ReadRegister( (uint16_t) address, value );
-}
-
-
-//___________________________________________________________________
-int TAlpide::ReadRegister( const uint16_t address, uint16_t &value )
+void TAlpide::ReadRegister( const AlpideRegister address,
+                          uint16_t& value,
+                          const bool skipDisabledChip )
 {
     if ( fChipId < 0 ) {
         throw domain_error( "TAlpide::ReadRegister() - undefined chip id.");
     }
     shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
-    if ( spBoard ) {
-        int err = spBoard->ReadChipRegister( address, value, fChipId );
-        //if (err < 0) return err;  // readout board should have thrown an exception before
-        return err;
-    } else {
+    if ( !spBoard ) {
+        cerr << "TAlpide::ReadRegister() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ReadRegister() - unuseable readout board." );
     }
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ReadRegister() - chip config. not found!" );
+    }
+    if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ReadRegister() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+
+    int err = spBoard->ReadChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+    if ( err < 0 ) {
+        cerr << "TAlpide::ReadRegister() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ReadRegister() - failed." );
+    }
+    return;
 }
 
 //___________________________________________________________________
-int TAlpide::WriteRegister( const AlpideRegister address,
-                            uint16_t value, const bool verify)
+void TAlpide::ReadRegister( const uint16_t address,
+                           uint16_t& value,
+                           const bool skipDisabledChip )
 {
-  return WriteRegister( (uint16_t) address, value, verify );
+    if ( fChipId < 0 ) {
+        throw domain_error( "TAlpide::ReadRegister() - undefined chip id.");
+    }
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( !spBoard ) {
+        cerr << "TAlpide::ReadRegister() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ReadRegister() - unuseable readout board." );
+    }
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ReadRegister() - chip config. not found!" );
+    }
+    if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ReadRegister() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    
+    int err = spBoard->ReadChipRegister( address, value, (uint8_t)fChipId );
+    if ( err < 0 ) {
+        cerr << "TAlpide::ReadRegister() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ReadRegister() - failed." );
+    }
+    return;
 }
 
 //___________________________________________________________________
-int TAlpide::WriteRegister( const uint16_t address,
-                            uint16_t value, const bool verify )
+void TAlpide::WriteRegister( const AlpideRegister address,
+                            uint16_t value,
+                            const bool verify,
+                            const bool skipDisabledChip )
 {
     if ( fChipId < 0 ) {
         throw domain_error( "TAlpide::WriteRegister() - undefined chip id.");
     }
     shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
-    if ( spBoard ) {
-        int result = spBoard->WriteChipRegister( address, value, fChipId );
-        if ((!verify) || (result < 0)) return result;
-        uint16_t check;
-        result = ReadRegister( address, check );
-        if (result < 0) return result;
-        if (check != value) return -1;      // raise exception (warning) readback != write value;
-        return 0;  
-    } else {
+    if ( !spBoard ) {
+        cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::WriteRegister() - unuseable readout board." );
     }
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::WriteRegister() - chip config. not found!" );
+    }
+    if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::WriteRegister() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+
+    int result = spBoard->WriteChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+    if ( result < 0 ) {
+        cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::WriteRegister() - failed." );
+    }
+    if ( verify ) {
+        uint16_t check;
+        try {
+            ReadRegister( address, check );
+        } catch ( ... ) {
+            cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
+            throw runtime_error( "TAlpide::WriteRegister() - readback check failed." );
+        }
+        if ( check != value ) {
+            cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
+            cerr << "TAlpide::WriteRegister() - value = " << value << endl;
+            cerr << "TAlpide::WriteRegister() - readback value = " << check << endl;
+            throw runtime_error( "TAlpide::WriteRegister() - wrong readback value." );
+        }
+    }
+    return;
 }
 
 //___________________________________________________________________
-int TAlpide::ModifyRegisterBits( const AlpideRegister address,
-                                 const uint8_t lowBit,
-                                 const uint8_t nBits,
-                                 uint16_t value,
-                                 const bool verify )
+void TAlpide::WriteRegister( const uint16_t address,
+                            uint16_t value,
+                            const bool verify,
+                            const bool skipDisabledChip )
 {
-  if ((lowBit < 0) || (lowBit > 15) || (lowBit + nBits > 15)) {
-    return -1;    // raise exception illegal limits
-  }
-  uint16_t registerValue, mask = 0xffff; 
-  ReadRegister( address, registerValue );
-  
-  for (int i = lowBit; i < lowBit + nBits; i++) {
-    mask -= 1 << i;
-  }
-
-  registerValue &= mask;                  // set all bits that are to be overwritten to 0
-  value         &= (1 << nBits) -1;       // make sure value fits into nBits
-  registerValue |= value << nBits;        // or value into the foreseen spot
-
-  return WriteRegister( address, registerValue, verify );
-
+    if ( fChipId < 0 ) {
+        throw domain_error( "TAlpide::WriteRegister() - undefined chip id.");
+    }
+    shared_ptr<TReadoutBoard> spBoard = fReadoutBoard.lock();
+    if ( !spBoard ) {
+        cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::WriteRegister() - unuseable readout board." );
+    }
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::WriteRegister() - chip config. not found!" );
+    }
+    if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::WriteRegister() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    
+    int result = spBoard->WriteChipRegister( address, value, (uint8_t)fChipId );
+    if ( result < 0 ) {
+        cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::WriteRegister() - failed." );
+    }
+    if ( verify ) {
+        uint16_t check;
+        try {
+            ReadRegister( address, check );
+        } catch ( ... ) {
+            cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
+            throw runtime_error( "TAlpide::WriteRegister() - readback check failed." );
+        }
+        if ( check != value ) {
+            cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
+            cerr << "TAlpide::WriteRegister() - value = " << value << endl;
+            cerr << "TAlpide::WriteRegister() - readback value = " << check << endl;
+            throw runtime_error( "TAlpide::WriteRegister() - wrong readback value." );
+        }
+    }
+    return;
 }
 
-#pragma mark - dump
-
 //___________________________________________________________________
-void TAlpide::DumpConfig( const char *fName, const bool writeFile, char *config )
+void TAlpide::ModifyRegisterBits( const AlpideRegister address,
+                                const uint8_t lowBit,
+                                const uint8_t nBits,
+                                uint16_t value,
+                                const bool verify,
+                                 const bool skipDisabledChip )
 {
-  uint16_t value;
-   
-  if (writeFile) {
-    FILE *fp = fopen(fName, "w");
-    // DACs
-    ReadRegister(0x601, value);
-    fprintf(fp, "VRESETP %i\n", value);
-    ReadRegister(0x602, value);
-    fprintf(fp, "VRESETD %i\n", value);
-    ReadRegister(0x603, value);
-    fprintf(fp, "VCASP   %i\n", value);
-    ReadRegister(0x604, value);
-    fprintf(fp, "VCASN   %i\n", value);
-    ReadRegister(0x605, value);
-    fprintf(fp, "VPULSEH %i\n", value);
-    ReadRegister(0x606, value);
-    fprintf(fp, "VPULSEL %i\n", value);
-    ReadRegister(0x607, value);
-    fprintf(fp, "VCASN2  %i\n", value);
-    ReadRegister(0x608, value);
-    fprintf(fp, "VCLIP   %i\n", value);
-    ReadRegister(0x609, value);
-    fprintf(fp, "VTEMP   %i\n", value);
-    ReadRegister(0x60a, value);
-    fprintf(fp, "IAUX2   %i\n", value);
-    ReadRegister(0x60b, value);
-    fprintf(fp, "IRESET  %i\n", value);
-    ReadRegister(0x60c, value);
-    fprintf(fp, "IDB     %i\n", value);
-    ReadRegister(0x60d, value);
-    fprintf(fp, "IBIAS   %i\n", value);
-    ReadRegister(0x60e, value);
-    fprintf(fp, "ITHR    %i\n", value);
-
-    fprintf(fp, "\n");
-    // Mode control register
-    ReadRegister( 0x1, value );
-    fprintf( fp, "MODECONTROL  %i\n", value );
     
-    // FROMU config reg 1: [5]: test pulse mode; [6]: enable test strobe, etc.
-    ReadRegister( 0x4, value );
-    fprintf( fp, "FROMU_CONFIG1  %i\n", value );
+    if ((lowBit < 0) || (lowBit > 15) || (lowBit + nBits > 15)) {
+        throw domain_error( "TAlpide::ModifyRegisterBits() - illegal limits." );
+    }
+    uint16_t registerValue, mask = 0xffff;
+    try {
+        ReadRegister( address, registerValue, skipDisabledChip );
+    } catch ( ... ) {
+        cerr << "TAlpide::ModifyRegisterBits() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ModifyRegisterBits() - readback step failed." );
+    }
     
-    // FROMU config reg 2: strobe duration
-    ReadRegister( 0x5, value );
-    fprintf( fp, "FROMU_CONFIG2  %i\n", value );
-
-    // FROMU pulsing reg 1: delay between pulse and strobe if the feature of automatic strobing is enabled
-    ReadRegister( 0x7, value );
-    fprintf( fp, "FROMU_PULSING1  %i\n", value );
-
-    // FROMU pulsing reg 2: pulse duration
-    ReadRegister( 0x8, value );
-    fprintf( fp, "FROMU_PULSING2  %i\n", value );
-
-    // CMU DMU config reg
-    ReadRegister( 0x10, value );
-    fprintf( fp, "CMUDMU_CONFIG  %i\n", value );
-
-    fclose( fp );
-  }
-
-  config[0] = '\0';
-  // DACs
-  ReadRegister( 0x601, value );
-  sprintf( config, "VRESETP %i\n", value );
-  ReadRegister( 0x602, value );
-  sprintf( config, "%sVRESETD %i\n", config, value );
-  ReadRegister( 0x603, value );
-  sprintf( config, "%sVCASP   %i\n", config, value );
-  ReadRegister( 0x604, value );
-  sprintf( config, "%sVCASN   %i\n", config, value );
-  ReadRegister( 0x605, value );
-  sprintf( config, "%sVPULSEH %i\n", config, value );
-  ReadRegister(0x606, value);
-  sprintf( config, "%sVPULSEL %i\n", config, value );
-  ReadRegister( 0x607, value );
-  sprintf( config, "%sVCASN2  %i\n", config, value );
-  ReadRegister( 0x608, value );
-  sprintf( config, "%sVCLIP   %i\n", config, value );
-  ReadRegister( 0x609, value );
-  sprintf( config, "%sVTEMP   %i\n", config, value );
-  ReadRegister( 0x60a, value );
-  sprintf( config, "%sIAUX2   %i\n", config, value );
-  ReadRegister( 0x60b, value );
-  sprintf( config, "%sIRESET  %i\n", config, value );
-  ReadRegister( 0x60c, value );
-  sprintf( config, "%sIDB     %i\n", config, value );
-  ReadRegister( 0x60d, value );
-  sprintf( config, "%sIBIAS   %i\n", config, value );
-  ReadRegister( 0x60e, value );
-  sprintf( config, "%sITHR    %i\n", config, value );
-
-  sprintf( config, "%s\n", config );
-  // Mode control register
-  ReadRegister( 0x1, value );
-  sprintf( config, "%sMODECONTROL  %i\n", config, value );
-  
-  // FROMU config reg 1: [5]: test pulse mode; [6]: enable test strobe, etc.
-  ReadRegister( 0x4, value );
-  sprintf( config, "%sFROMU_CONFIG1  %i\n", config, value );
-  
-  // FROMU config reg 2: strobe duration
-  ReadRegister( 0x5, value );
-  sprintf( config, "%sFROMU_CONFIG2  %i\n", config, value );
-
-  // FROMU pulsing reg 1: delay between pulse and strobe if the feature of automatic strobing is enabled
-  ReadRegister( 0x7, value );
-  sprintf( config, "%sFROMU_PULSING1  %i\n", config, value );
-
-  // FROMU pulsing reg 2: pulse duration
-  ReadRegister( 0x8, value );
-  sprintf( config, "%sFROMU_PULSING2  %i\n", config, value );
-
-  // CMU DMU config reg
-  ReadRegister( 0x10, value );
-  sprintf( config, "%sCMUDMU_CONFIG  %i\n", config, value );
-
+    for (int i = lowBit; i < lowBit + nBits; i++) {
+        mask -= 1 << i;
+    }
+    
+    registerValue &= mask;                // set all bits that are to be overwritten to 0
+    value         &= (1 << nBits) -1;     // make sure value fits into nBits
+    registerValue |= value << nBits;      // or value into the foreseen spot
+    try {
+        WriteRegister( address, registerValue, verify, skipDisabledChip );
+    } catch ( ... ) {
+        cerr << "TAlpide::ModifyRegisterBits() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ModifyRegisterBits() - failed to overwrite bits." );
+    }
+    return;
 }
 
 #pragma mark - operations with ADC or DAC
@@ -357,7 +497,7 @@ void TAlpide::Init()
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixConfReg( AlpidePixReg reg, const bool data )
+void TAlpide::WritePixConfReg( AlpidePixConfigReg reg, const bool data )
 {
     uint16_t pixconfig = (int) reg & 0x1;
     pixconfig         |= (data?1:0) << 1;
@@ -365,20 +505,20 @@ void TAlpide::WritePixConfReg( AlpidePixReg reg, const bool data )
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixRegAll( AlpidePixReg reg, const bool data )
+void TAlpide::WritePixRegAll( AlpidePixConfigReg reg, const bool data )
 {
     // TODO: To be checked whether this methods works or whether a loop over rows has to be implemented
 
     WritePixConfReg( reg, data );
     
     // set all colsel and all rowsel to 1
-    WriteRegister( 0x487, 0xffff );
+    WriteRegister( 0x487, 0xffff ); // see alpide manual, section 3.6.2, page 70
 
     ClearPixSelectBits( false );
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixRegRow( AlpidePixReg reg, const bool data, const int row)
+void TAlpide::WritePixRegRow( AlpidePixConfigReg reg, const bool data, const int row)
 {
     WritePixConfReg( reg, data);
     // set all colsel to 1 and leave all rowsel at 0
@@ -397,7 +537,7 @@ void TAlpide::WritePixRegRow( AlpidePixReg reg, const bool data, const int row)
 }
 
 //___________________________________________________________________
-void TAlpide::WritePixRegSingle( AlpidePixReg reg,
+void TAlpide::WritePixRegSingle( AlpidePixConfigReg reg,
                                      const bool data,
                                      const int row,
                                      const int col )
@@ -429,77 +569,144 @@ void TAlpide::WritePixRegSingle( AlpidePixReg reg,
 //___________________________________________________________________
 void TAlpide::ApplyStandardDACSettings( const float backBias )
 {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ConfigureCMU() - chip config. not found!" );
+    }
+   if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ApplyStandardDACSettings() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
     // TODO: pAlpide 3 settings, to be confirmed
     if ( backBias == 0 ) {
-        WriteRegister( AlpideRegister::VCASN,    60 );
-        WriteRegister( AlpideRegister::VCASN2,   62 );
-        WriteRegister( AlpideRegister::VRESETD, 147 );
-        WriteRegister( AlpideRegister::IDB,      29 );
+        spConfig->SetParamValue( "VCASN",    50 );
+        spConfig->SetParamValue( "VCASN2",   62 );
+        spConfig->SetParamValue( "VCLIP",     0 );
+        spConfig->SetParamValue( "VRESETD", 147 );
+        spConfig->SetParamValue( "IDB",      29 );
     } else if ( backBias == 3 ) {
-        WriteRegister( AlpideRegister::VCASN,   105 );
-        WriteRegister( AlpideRegister::VCASN2,  117 );
-        WriteRegister( AlpideRegister::VCLIP,    60 );
-        WriteRegister( AlpideRegister::VRESETD, 147 );
-        WriteRegister( AlpideRegister::IDB,      29 );
+        spConfig->SetParamValue( "VCASN",   105 );
+        spConfig->SetParamValue( "VCASN2",  117 );
+        spConfig->SetParamValue( "VCLIP",    60 );
+        spConfig->SetParamValue( "VRESETD", 147 );
+        spConfig->SetParamValue( "IDB",      29 );
     } else if ( backBias == 6 ) {
-        WriteRegister( AlpideRegister::VCASN,   135 );
-        WriteRegister( AlpideRegister::VCASN2,  147 );
-        WriteRegister( AlpideRegister::VCLIP,   100 );
-        WriteRegister( AlpideRegister::VRESETD, 170 );
-        WriteRegister( AlpideRegister::IDB,      29 );
+        spConfig->SetParamValue( "VCASN",   135 );
+        spConfig->SetParamValue( "VCASN2",  147 );
+        spConfig->SetParamValue( "VCLIP",   100 );
+        spConfig->SetParamValue( "VRESETD", 170 );
+        spConfig->SetParamValue( "IDB",      29 );
     } else {
-        cout << "TAlpide::ApplyStandardDACSettings() - Settings not defined for back bias " << backBias << " V. Please set manually." << endl;
+        cerr << "TAlpide::ApplyStandardDACSettings() - back bias " << backBias << " V undefined." << endl;
+        throw runtime_error( "TAlpide::ApplyStandardDACSettings() - Settings not defined for this back bias value. Please set manually." );
+    }
+    try {
+        WriteRegister( AlpideRegister::VCASN,    spConfig->GetParamValue("VCASN") );
+        WriteRegister( AlpideRegister::VCASN2,   spConfig->GetParamValue("VCASN2") );
+        WriteRegister( AlpideRegister::VCLIP,    spConfig->GetParamValue("VCLIP") );
+        WriteRegister( AlpideRegister::VRESETD,  spConfig->GetParamValue("VRESETD") );
+        WriteRegister( AlpideRegister::IDB,      spConfig->GetParamValue("IDB") );
+    } catch ( ... ) {
+        cerr << "TAlpide::ApplyStandardDACSettings() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ApplyStandardDACSettings() - failed." );
     }
 }
 
+// Setting up of readout - CMU part
+// (alpide manual, section 3.8.3, page 75)
 //___________________________________________________________________
-void TAlpide::ConfigureFromu( const AlpidePulseType pulseType,
-                              const bool testStrobe )
+void TAlpide::ConfigureCMU()
 {
-    // MARK: for the time being use these hard coded values; if needed move to configuration
-    int  mebmask          = 0;
-    bool rotatePulseLines = false;
-    bool internalStrobe   = false;    // strobe sequencer for continuous mode
-    bool busyMonitoring   = true;
-    
-    
     shared_ptr<TChipConfig> spConfig = fConfig.lock();
     if ( !spConfig ) {
-        throw runtime_error( "TAlpide::ConfigureFromu() - chip config. not found!" );
+        throw runtime_error( "TAlpide::ConfigureCMU() - chip config. not found!" );
     }
     
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ConfigureCMU() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+
+    uint16_t cmuconfig = 0;
+    
+    cmuconfig |= (spConfig->GetPreviousId() & 0xf);
+    cmuconfig |= (spConfig->GetInitialToken     () ? 1:0) << 4;
+    cmuconfig |= (spConfig->GetDisableManchester() ? 1:0) << 5;
+    cmuconfig |= (spConfig->GetEnableDdr        () ? 1:0) << 6;
+    
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::ConfigureBuffers() - chip id = " << DecomposeChipId()  <<  endl;
+        cout << "TAlpide::ConfigureBuffers() - value = " <<  endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (bin) " << std::bitset<16> ( cmuconfig ) << endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (hex) " << std::hex << cmuconfig << endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (dec) " << std::dec << cmuconfig << endl;
+    }
+    try {
+        WriteRegister( AlpideRegister::CMUDMU_CONFIG, cmuconfig );
+    } catch ( ... ) {
+        cerr << "TAlpide::ConfigureCMU() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ConfigureCMU() - failed." );
+    }
+}
+
+// Setting up of readout - FROMU part
+// (alpide manual, section 3.8.3, page 76)
+//___________________________________________________________________
+void TAlpide::ConfigureFROMU()
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ConfigureFROMU() - chip config. not found!" );
+    }
+
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ConfigureFROMU() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+
+    const int  mebmask          = spConfig->GetPixelMEBMask();
+    const bool internalStrobe   = spConfig->GetEnableInternalStrobe();
+    const bool busyMonitoring   = spConfig->GetEnableBusyMonitoring();
+    const int  testPulseMode    = spConfig->GetTestPulseMode();
+    const bool testStrobe       = spConfig->GetEnableTestStrobe();
+    const bool rotatePulseLines = spConfig->GetEnableRotatePulseLines();
+    const int  triggerDelay     = spConfig->GetTriggerDelay();
+   
     uint16_t fromuconfig = 0;
     
     fromuconfig |= mebmask;
     fromuconfig |= (internalStrobe   ? 1:0)          << 3;
     fromuconfig |= (busyMonitoring   ? 1:0)          << 4;
-    fromuconfig |= ((int) pulseType)                 << 5;
+    fromuconfig |= ((int) testPulseMode)                 << 5;
     fromuconfig |= (testStrobe       ? 1:0)          << 6;
     fromuconfig |= (rotatePulseLines ? 1:0)          << 7;
-    fromuconfig |= (spConfig->GetTriggerDelay() & 0x7) << 8;
+    fromuconfig |= (triggerDelay & 0x7) << 8;
     
-    WriteRegister( AlpideRegister::FROMU_CONFIG1,  fromuconfig );
-    WriteRegister( AlpideRegister::FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
-    WriteRegister( AlpideRegister::FROMU_PULSING1, spConfig->GetStrobeDelay() );
-    WriteRegister( AlpideRegister::FROMU_PULSING2, spConfig->GetPulseDuration() );
-}
-
-// Simpler configuration for threshold scan
-//___________________________________________________________________
-void TAlpide::ConfigureFromu()
-{
-    shared_ptr<TChipConfig> spConfig = fConfig.lock();
-    if ( !spConfig ) {
-        throw runtime_error( "TAlpide::ConfigureFromu() - chip config. not found!" );
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::ConfigureFROMU() - chip id = " << DecomposeChipId()  <<  endl;
+        cout << "TAlpide::ConfigureFROMU() - value = " <<  endl;
+        cout << "TAlpide::ConfigureFROMU() - \t (bin) " << std::bitset<16> ( fromuconfig ) << endl;
+        cout << "TAlpide::ConfigureFROMU() - \t (hex) " << std::hex << fromuconfig << endl;
+        cout << "TAlpide::ConfigureFROMU() - \t (dec) " << std::dec << fromuconfig << endl;
     }
-    // fromu config 1: digital pulsing (put to 0x20 for analogue)
-    WriteRegister( AlpideRegister::FROMU_CONFIG1,  0x20 );
-    // fromu config 2: strobe length
-    WriteRegister( AlpideRegister::FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
-    // fromu pulsing 1: delay pulse - strobe (not used here, since using external strobe)
-    WriteRegister( AlpideRegister::FROMU_PULSING1, spConfig->GetStrobeDelay() );
-    // fromu pulsing 2: pulse length
-    WriteRegister( AlpideRegister::FROMU_PULSING2, spConfig->GetPulseDuration() );
+    try {
+        WriteRegister( AlpideRegister::FROMU_CONFIG1,  fromuconfig );
+        WriteRegister( AlpideRegister::FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
+        WriteRegister( AlpideRegister::FROMU_PULSING1, spConfig->GetStrobeDelay() );
+        WriteRegister( AlpideRegister::FROMU_PULSING2, spConfig->GetPulseDuration() );
+    } catch ( ... ) {
+        cerr << "TAlpide::ConfigureFROMU() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ConfigureFROMU() - failed." );
+    }
 }
 
 //___________________________________________________________________
@@ -508,6 +715,14 @@ void TAlpide::ConfigureBuffers()
     shared_ptr<TChipConfig> spConfig = fConfig.lock();
     if ( !spConfig ) {
         throw runtime_error( "TAlpide::ConfigureBuffers() - chip config. not found!" );
+    }
+
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ConfigureBuffers() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
     }
 
     uint16_t clocks = 0, ctrl = 0;
@@ -519,49 +734,61 @@ void TAlpide::ConfigureBuffers()
     ctrl   |= (spConfig->GetDctrlReceiver() & 0xf);
     ctrl   |= (spConfig->GetDctrlDriver  () & 0xf) << 4;
     
-    WriteRegister( AlpideRegister::CLKIO_DACS, clocks );
-    WriteRegister( AlpideRegister::CMUIO_DACS, ctrl );
-}
-
-//___________________________________________________________________
-void TAlpide::ConfigureCMU()
-{
-    shared_ptr<TChipConfig> spConfig = fConfig.lock();
-    if ( !spConfig ) {
-        throw runtime_error( "TAlpide::ConfigureCMU() - chip config. not found!" );
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::ConfigureBuffers() - chip id = " << DecomposeChipId()  <<  endl;
+        cout << "TAlpide::ConfigureBuffers() - clocks = " <<  endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (bin) " << std::bitset<16> ( clocks ) << endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (hex) " << std::hex << clocks << endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (dec) " << std::dec << clocks << endl;
+        cout << "TAlpide::ConfigureBuffers() - ctrl = " <<  endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (bin) " << std::bitset<16> ( ctrl ) << endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (hex) " << std::hex << ctrl << endl;
+        cout << "TAlpide::ConfigureBuffers() - \t (dec) " << std::dec << ctrl << endl;
     }
     
-    uint16_t cmuconfig = 0;
-    
-    cmuconfig |= (spConfig->GetPreviousId() & 0xf);
-    cmuconfig |= (spConfig->GetInitialToken     () ? 1:0) << 4;
-    cmuconfig |= (spConfig->GetDisableManchester() ? 1:0) << 5;
-    cmuconfig |= (spConfig->GetEnableDdr        () ? 1:0) << 6;
-    
-    WriteRegister( AlpideRegister::CMUDMU_CONFIG, cmuconfig );
+    try {
+        WriteRegister( AlpideRegister::CLKIO_DACS, clocks );
+        WriteRegister( AlpideRegister::CMUIO_DACS, ctrl );
+    } catch ( ... ) {
+        cerr << "TAlpide::ConfigureBuffers() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ConfigureBuffers() - failed." );
+    }
 }
 
 //___________________________________________________________________
 int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
 {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ConfigureMaskStage() - chip config. not found!" );
+    }
+
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ConfigureMaskStage() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return iStage;
+    }
+
     // check that nPix is one of (1, 2, 4, 8, 16, 32)
     if ((nPix <= 0) || (nPix & (nPix - 1)) || (nPix > 32)) {
         cout << "TAlpide::ConfigureMaskStage() - Warning: bad number of pixels for mask stage (" << nPix << ", using 1 instead" << endl;
         nPix = 1;
     }
-    WritePixRegAll( AlpidePixReg::MASK,   true );
-    WritePixRegAll( AlpidePixReg::SELECT, false );
+    WritePixRegAll( AlpidePixConfigReg::MASK,   true );
+    WritePixRegAll( AlpidePixConfigReg::SELECT, false );
     
     // complete row
     if ( nPix == 32 ) {
-        WritePixRegRow( AlpidePixReg::MASK,   false, iStage );
-        WritePixRegRow( AlpidePixReg::SELECT, true, iStage );
+        WritePixRegRow( AlpidePixConfigReg::MASK,   false, iStage );
+        WritePixRegRow( AlpidePixConfigReg::SELECT, true, iStage );
         return iStage;
     } else {
         int colStep = 32 / nPix;
         for ( int icol = 0; icol < 1024; icol += colStep ) {
-            WritePixRegSingle( AlpidePixReg::MASK,   false, iStage % 512, icol + iStage / 512);
-            WritePixRegSingle( AlpidePixReg::SELECT, true,  iStage % 512, icol + iStage / 512);
+            WritePixRegSingle( AlpidePixConfigReg::MASK,   false, iStage % 512, icol + iStage / 512);
+            WritePixRegSingle( AlpidePixConfigReg::SELECT, true,  iStage % 512, icol + iStage / 512);
         }
         return (iStage % 512);
     }
@@ -575,22 +802,65 @@ void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
     if ( !spConfig ) {
         throw runtime_error( "TAlpide::WriteControlReg() - chip config. not found!" );
     }
+    
+    if ( !(spConfig->IsEnabled()) || (spConfig->IsOBSlave()) ) {
+        // TODO for OB: is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
+        if ( GetVerboseLevel() > kTERSE ) {
+            if ( !(spConfig->IsEnabled()) ) {
+                cout << "TAlpide::WriteControlReg() - chip id = "
+                    << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+            }
+            if ( spConfig->IsOBSlave() ) {
+                cout << "TAlpide::WriteControlReg() - chip id = "
+                << DecomposeChipId()  << " : chip in OB slave mode, skipped." <<  endl;
+            }
+        }
+        return;
+    }
 
     uint16_t controlreg = 0;
     
-    controlreg |= (uint16_t) chipMode;
+    if ( chipMode == AlpideChipMode::CONFIG ) {
+        controlreg = 0x20; // set chip to config mode
+        // this is equivalent to:
+        //   const bool fEnableClustering = false;
+        //   const int fMatrixReadoutSpeed = 0;
+        //   const int fSerialLinkSpeed = AlpideIBSerialLinkSpeed::IB1200;
+        //   const bool fEnableSkewingGlobal = false;
+        //   const bool fEnableSkewingStartRO = false;
+        //   const bool fEnableClockGating = false;
+        //   const bool fEnableCMUReadout = false;
+    } else {
+        controlreg |= (uint16_t) chipMode;
+        
+        controlreg |= (spConfig->GetEnableClustering    () ? 1:0) << 2;
+        controlreg |= (spConfig->GetMatrixReadoutSpeed  () & 0x1) << 3;
+        controlreg |= (spConfig->GetSerialLinkSpeed     () & 0x3) << 4;
+        controlreg |= (spConfig->GetEnableSkewingGlobal () ? 1:0) << 6;
+        controlreg |= (spConfig->GetEnableSkewingStartRO() ? 1:0) << 7;
+        controlreg |= (spConfig->GetEnableClockGating   () ? 1:0) << 8;
+        controlreg |= (spConfig->GetEnableCMUReadout    () ? 1:0) << 9;
+    }
     
-    controlreg |= (spConfig->GetEnableClustering    () ? 1:0) << 2;
-    controlreg |= (spConfig->GetMatrixReadoutSpeed  () & 0x1) << 3;
-    controlreg |= (spConfig->GetSerialLinkSpeed     () & 0x3) << 4;
-    controlreg |= (spConfig->GetEnableSkewingGlobal () ? 1:0) << 6;
-    controlreg |= (spConfig->GetEnableSkewingStartRO() ? 1:0) << 7;
-    controlreg |= (spConfig->GetEnableClockGating   () ? 1:0) << 8;
-    controlreg |= (spConfig->GetEnableCMUReadout    () ? 1:0) << 9;
-    
-    WriteRegister( AlpideRegister::MODECONTROL, controlreg);
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::WriteControlReg() - chip id = "
+        << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        cout << "TAlpide::WriteControlReg() - value = " <<  endl;
+        cout << "TAlpide::WriteControlReg() - \t (bin) " << std::bitset<16> ( controlreg ) << endl;
+        cout << "TAlpide::WriteControlReg() - \t (hex) " << std::hex << controlreg << endl;
+        cout << "TAlpide::WriteControlReg() - \t (dec) " << std::dec << controlreg << endl;
+    }
+
+    try {
+        WriteRegister( AlpideRegister::MODECONTROL, controlreg );
+    } catch ( ... ) {
+        cerr << "TAlpide::WriteControlReg() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::WriteControlReg() - failed." );
+    }
 }
 
+// Configuration and start-up of the DTU
+// (alpide manual, section 3.8.2, page 75)
 //___________________________________________________________________
 void TAlpide::BaseConfigPLL()
 {
@@ -599,27 +869,68 @@ void TAlpide::BaseConfigPLL()
         throw runtime_error( "TAlpide::BaseConfigPLL() - chip config. not found!" );
     }
 
-    if ( spConfig->GetParamValue("LINKSPEED") == -1 ) return; // high-speed link deactivated
+    if ( spConfig->GetParamValue("LINKSPEED") < 0 ) {
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TAlpide::BaseConfigPLL() - high-speed link deactivated" << endl;
+        }
+        return;
+    }
+    if ( !(spConfig->IsEnabled()) || (spConfig->IsOBSlave()) ) {
+        // TODO for OB: is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
+        if ( GetVerboseLevel() > kTERSE ) {
+            if ( !(spConfig->IsEnabled()) ) {
+                cout << "TAlpide::BaseConfigPLL() - chip id = "
+                << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+            }
+            if ( spConfig->IsOBSlave() ) {
+                cout << "TAlpide::BaseConfigPLL() - chip id = "
+                << DecomposeChipId()  << " : chip in OB slave mode, skipped." <<  endl;
+            }
+        }
+        return;
+    }
     
-    uint16_t Phase      = 8;  // 4bit Value, default 8
-    uint16_t Stages     = 1; // 0 = 3 stages, 1 = 4,  3 = 5 (typical 4)
-    uint16_t ChargePump = 8;
-    uint16_t Driver     = 15;
-    uint16_t Preemp     = 15;
+    //--- Configure the PLL
+
+    // Write to DTU config register and DTU DACs register
+    
+    const uint16_t Phase      = 8; // 4bit Value, default 8
+    const uint16_t Stages     = 1; // 0 -> 3 stages, 1 -> 4,  3 -> 5 (typical 4 stages)
+    const uint16_t ChargePump = 8; // charge pump current (4bit value, default 8)
+    const uint16_t Driver     = 15; // line driver current
+    const uint16_t Preemp     = 15; // pre-emphasis driver
     uint16_t Value;
     
     Value = (Stages & 0x3) | 0x4 | 0x8 | ((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x8: PLL off
-    
     WriteRegister( AlpideRegister::DTU_CONFIG, Value );
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::BaseConfigPLL() - chip id = "
+        << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        cout << "TAlpide::BaseConfigPLL() - DTU config reg., value = " <<  endl;
+        cout << "TAlpide::BaseConfigPLL() - \t (bin) " << std::bitset<16> ( Value ) << endl;
+        cout << "TAlpide::BaseConfigPLL() - \t (hex) " << std::hex << Value << endl;
+        cout << "TAlpide::BaseConfigPLL() - \t (dec) " << std::dec << Value << endl;
+    }
     
     Value = (ChargePump & 0xf) | ((Driver & 0xf) << 4) | ((Preemp & 0xf) << 8);
-    
     WriteRegister( AlpideRegister::DTU_DACS, Value );
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::BaseConfigPLL() - DTU DACs reg., value = " <<  endl;
+        cout << "TAlpide::BaseConfigPLL() - \t (bin) " << std::bitset<16> ( Value ) << endl;
+        cout << "TAlpide::BaseConfigPLL() - \t (hex) " << std::hex << Value << endl;
+        cout << "TAlpide::BaseConfigPLL() - \t (dec) " << std::dec << Value << endl;
+    }
     
-    // Clear PLL off signal
+    //--- Clear PLL off signal bit to start the PLL up
+
     Value = (Stages & 0x3) | 0x4 | ((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x8: PLL off
     WriteRegister( AlpideRegister::DTU_CONFIG, Value );
-    // Force PLL reset
+
+    //--- Force PLL reset
+    
+    // first set and then clear the PLL reset bit with 2 subsequent transactions
+    // (leave all the other bits of the DTU config register unchanged)
+
     Value = (Stages & 0x3) | 0x4 | 0x100 |((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x100: Reset
     WriteRegister( AlpideRegister::DTU_CONFIG, Value );
     Value = (Stages & 0x3) | 0x4 |((Phase & 0xf) << 4);           // Reset off
@@ -629,15 +940,16 @@ void TAlpide::BaseConfigPLL()
 //___________________________________________________________________
 void TAlpide::BaseConfigMask()
 {
-    WritePixRegAll( AlpidePixReg::MASK,   true );
-    WritePixRegAll( AlpidePixReg::SELECT, false );
-}
-
-//___________________________________________________________________
-void TAlpide::BaseConfigFromu()
-{
-    // FIXME: not implemeted yet
-    cout << "TAlpide::BaseConfigFromu() - NOT IMPLEMENTED YET" << endl;
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::BaseConfigMask() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    WritePixRegAll( AlpidePixConfigReg::MASK,   true );
+    WritePixRegAll( AlpidePixConfigReg::SELECT, false );
 }
 
 //___________________________________________________________________
@@ -647,24 +959,39 @@ void TAlpide::BaseConfigDACs()
     if ( !spConfig ) {
         throw runtime_error( "TAlpide::BaseConfigDACs() - chip config. not found!" );
     }
+    
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::BaseConfigDACs() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
  
-    WriteRegister( AlpideRegister::VPULSEH, spConfig->GetParamValue("VPULSEH"));
-    WriteRegister( AlpideRegister::VPULSEL, spConfig->GetParamValue("VPULSEL"));
-    WriteRegister( AlpideRegister::VRESETD, spConfig->GetParamValue("VRESETD"));
-    WriteRegister( AlpideRegister::VCASN,   spConfig->GetParamValue("VCASN"));
-    WriteRegister( AlpideRegister::VCASN2,  spConfig->GetParamValue("VCASN2"));
-    WriteRegister( AlpideRegister::VCLIP,   spConfig->GetParamValue("VCLIP"));
-    WriteRegister( AlpideRegister::ITHR,    spConfig->GetParamValue("ITHR"));
-    WriteRegister( AlpideRegister::IDB,     spConfig->GetParamValue("IDB"));
-    WriteRegister( AlpideRegister::IBIAS,   spConfig->GetParamValue("IBIAS"));
-    WriteRegister( AlpideRegister::VCASP,   spConfig->GetParamValue("VCASP"));
-    // not used DACs..
-    WriteRegister( AlpideRegister::VTEMP,   spConfig->GetParamValue("VTEMP"));
-    WriteRegister( AlpideRegister::VRESETP, spConfig->GetParamValue("VRESETP"));
-    WriteRegister( AlpideRegister::IRESET,  spConfig->GetParamValue("IRESET"));
-    WriteRegister( AlpideRegister::IAUX2,   spConfig->GetParamValue("IAUX2"));
+    try {
+        WriteRegister( AlpideRegister::ITHR,    spConfig->GetParamValue("ITHR"));
+        WriteRegister( AlpideRegister::IDB,     spConfig->GetParamValue("IDB"));
+        WriteRegister( AlpideRegister::VCASN,   spConfig->GetParamValue("VCASN"));
+        WriteRegister( AlpideRegister::VCASN2,  spConfig->GetParamValue("VCASN2"));
+        WriteRegister( AlpideRegister::VCLIP,   spConfig->GetParamValue("VCLIP"));
+        WriteRegister( AlpideRegister::VRESETD, spConfig->GetParamValue("VRESETD"));
+        WriteRegister( AlpideRegister::VCASP,   spConfig->GetParamValue("VCASP"));
+        WriteRegister( AlpideRegister::VPULSEL, spConfig->GetParamValue("VPULSEL"));
+        WriteRegister( AlpideRegister::VPULSEH, spConfig->GetParamValue("VPULSEH"));
+        WriteRegister( AlpideRegister::IBIAS,   spConfig->GetParamValue("IBIAS"));
+        // not used DACs..
+        WriteRegister( AlpideRegister::VRESETP, spConfig->GetParamValue("VRESETP"));
+        //WriteRegister( AlpideRegister::VTEMP,   spConfig->GetParamValue("VTEMP")); // TODO: uncomment when default value is known (see also TChipConfig class)
+        WriteRegister( AlpideRegister::IRESET,  spConfig->GetParamValue("IRESET"));
+        //WriteRegister( AlpideRegister::IAUX2,   spConfig->GetParamValue("IAUX2")); // TODO: uncomment when default value is known (see also TChipConfig class)
+    } catch ( ... ) {
+        cerr << "TAlpide::BaseConfigDACs() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::BaseConfigDACs() - failed." );
+    }
 }
 
+// Propagate the chip configuration to the chip registers
+// All chip configuration comes from TChipConfig, hence from the config file
 //___________________________________________________________________
 void TAlpide::BaseConfig()
 {
@@ -673,42 +1000,24 @@ void TAlpide::BaseConfig()
         throw runtime_error( "TAlpide::BaseConfig() - chip config. not found!" );
     }
 
-    // put all chip configurations before the start of the test here
+    try {
+        WriteControlReg( AlpideChipMode::CONFIG ); // set chip to config mode
+    } catch ( ... ) {
+        cerr << "TAlpide::BaseConfig() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::BaseConfig() - chip can not be set into config mode." );
+    }
     
-    WriteRegister( AlpideRegister::MODECONTROL, 0x20 ); // set chip to config mode
-    //TODO: use chip config here, the config should be written accordingly at this point!
-    
-    
-    // CMU/DMU config: turn manchester encoding off or on etc, initial token=1, disable DDR
-    int cmudmu_config = 0x10 | ((spConfig->GetDisableManchester()) ? 0x20 : 0x00);
-    
-    BaseConfigFromu();
+    ConfigureCMU();
+    ConfigureFROMU();
     BaseConfigDACs();
     BaseConfigMask();
     BaseConfigPLL();
     
-    uint16_t value;
-
-    switch (spConfig->GetParamValue("LINKSPEED")) {
-        case -1: // DTU not activated
-            value = 0x21;
-            break;
-        case 400:
-            value = 0x01;
-            break;
-        case 600:
-            value = 0x11;
-            break;
-        case 1200:
-            value = 0x21;
-            break;
-        default:
-            cout << "TAlpide::BaseConfig() - Warning: invalid link speed, using 1200" << endl;
-            value = 0x21;
-            break;
+    if ( spConfig->GetReadoutMode() ) {
+        WriteControlReg( AlpideChipMode::CONTINUOUS );
+    } else {
+        WriteControlReg( AlpideChipMode::TRIGGERED ); // strobed readout mode
     }
-    
-    WriteRegister( AlpideRegister::MODECONTROL, value ); // strobed readout mode
 }
 
 
@@ -723,7 +1032,7 @@ void TAlpide::PrintDebugStream()
     uint16_t Value;
 
     cout << "TAlpide::PrintDebugStream() - start" << endl;
-    cout << "Debug Stream chip id " << spConfig->GetChipId() << ": " << endl;
+    cout << "Debug Stream chip id " << DecomposeChipId() << ": " << endl;
     
     for (int i = 0; i < 2; i++) {
         ReadRegister( AlpideRegister::BMU_DEBUG, Value );
@@ -886,6 +1195,19 @@ void TAlpide::ClearPixSelectBits( const bool clearPulseGating)
     else
         WriteRegister( 0x487, 0 );
 }
+
+#pragma mark - other
+//___________________________________________________________________
+string TAlpide::DecomposeChipId()
+{
+    const int moduleID = (fChipId & 0x70) >> 4;
+    const int chipPos = (fChipId & 0xf);
+    stringstream sschipid;
+    sschipid << std::bitset<3> ( moduleID ) << "_" << std::bitset<4> ( chipPos ) ;
+    string label = sschipid.str();
+    return label;
+}
+
 
 
 

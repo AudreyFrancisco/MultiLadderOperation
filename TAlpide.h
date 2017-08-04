@@ -4,12 +4,14 @@
 #include <unistd.h>
 #include <cstdint>
 #include <memory>
+#include <string>
+#include "TVerbosity.h"
 #include "AlpideDictionary.h"
 
 class TChipConfig;
 class TReadoutBoard;
 
-class TAlpide {
+class TAlpide : public TVerbosity {
     
  private:
     int fChipId;
@@ -70,6 +72,7 @@ class TAlpide {
     virtual ~TAlpide();
 
     #pragma mark - setters/getters
+    
     // setter
     void SetReadoutBoard( std::shared_ptr<TReadoutBoard> readoutBoard ) { fReadoutBoard = readoutBoard; }
     void SetEnable( bool Enable );
@@ -78,30 +81,81 @@ class TAlpide {
     std::weak_ptr<TReadoutBoard> GetReadoutBoard() { return fReadoutBoard; }
     int GetADCBias() const { return fADCBias; }
 
-    #pragma mark - basic operations with registers
-    int  ReadRegister( const AlpideRegister address, std::uint16_t &value );
-    int  ReadRegister( const std::uint16_t address, std::uint16_t &value );
-    int  WriteRegister( const AlpideRegister address,
-                        std::uint16_t value,
-                        const bool verify = false );
-    int WriteRegister( const std::uint16_t address,
-                        std::uint16_t value,
-                        const bool verify = false );
-    int ModifyRegisterBits( const AlpideRegister address,
-                            const std::uint8_t lowBit,
-                            const std::uint8_t nBits, std::uint16_t value,
-                            const bool verify = false );
     #pragma mark - dump
-    void DumpConfig( const char *fName, const bool writeFile=true, char *Config = 0 );
+    
+    void DumpConfig( const char* fileName, const bool writeFile=true, char* config = 0 );
 
+    #pragma mark - basic operations with registers
+    
+    void ReadRegister( const AlpideRegister address,
+                     std::uint16_t& value,
+                     const bool skipDisabledChip = true );
+    void ReadRegister( const std::uint16_t address,
+                     std::uint16_t& value,
+                     const bool skipDisabledChip = true );
+
+    void WriteRegister( const AlpideRegister address,
+                      std::uint16_t value,
+                      const bool verify = false,
+                      const bool skipDisabledChip = true );
+    void WriteRegister( const std::uint16_t address,
+                      std::uint16_t value,
+                      const bool verify = false,
+                      const bool skipDisabledChip = true );
+    
+    void ModifyRegisterBits( const AlpideRegister address,
+                           const std::uint8_t lowBit,
+                           const std::uint8_t nBits, std::uint16_t value,
+                           const bool verify = false,
+                           const bool skipDisabledChip = true );
+    
+
+    #pragma mark - chip configuration operations
+
+    void Init();
+    
+    void WritePixConfReg( AlpidePixConfigReg reg, const bool data);
+
+    /// This method writes data to the selected pixel register in the whole matrix simultaneously.
+    void WritePixRegAll( AlpidePixConfigReg reg, const bool data);
+
+    /// Writes data to complete row. This assumes that select bits have been cleared before.
+    void WritePixRegRow( AlpidePixConfigReg reg, const bool data, const int row);
+    
+    void WritePixRegSingle( AlpidePixConfigReg reg, const bool data,
+                            const int row, const int col);
+    void ApplyStandardDACSettings( const float backBias );
+    void ConfigureBuffers();
+
+    /// Setting up of readout - CMU part
+    void ConfigureCMU();
+    
+    /// Setting up of readout - FROMU part
+    void ConfigureFROMU();
+
+    /// Return value: active row (needed for threshold scan histogramming).
+    int  ConfigureMaskStage( int nPix, const int iStage );
+    
+    /// Write the bits in the Mode Control Register
+    void WriteControlReg( const AlpideChipMode chipMode );
+    
+    /// Configuration and start-up of the DTU
+    void BaseConfigPLL();
+    
+    void BaseConfigMask();
+    void BaseConfigDACs();
+    void BaseConfig();
+    void PrintDebugStream();
+    
     #pragma mark - operations with ADC or DAC
+    
     /// Reads the temperature sensor by means of internal ADC.
     /**
      Returns the value in Celsius degree.
      - Note:
      
-       if this was the first measure after the chip configuration phase, a calibration
-       will be automatically executed.
+     if this was the first measure after the chip configuration phase, a calibration
+     will be automatically executed.
      */
     float ReadTemperature();
     
@@ -127,36 +181,6 @@ class TAlpide {
      */
     float ReadDACCurrent( AlpideRegister ADac );
     
-    #pragma mark - chip configuration operations
-    void Init();
-    void WritePixConfReg( AlpidePixReg reg, const bool data);
-
-    /// This method writes data to the selected pixel register in the whole matrix simultaneously.
-    void WritePixRegAll( AlpidePixReg reg, const bool data);
-
-    /// Writes data to complete row. This assumes that select bits have been cleared before.
-    void WritePixRegRow( AlpidePixReg reg, const bool data, const int row);
-    
-    void WritePixRegSingle( AlpidePixReg reg, const bool data,
-                            const int row, const int col);
-    void ApplyStandardDACSettings( const float backBias );
-    void ConfigureFromu( const AlpidePulseType pulseType,
-                         const bool testStrobe );
-    void ConfigureFromu();
-    void ConfigureBuffers();
-    void ConfigureCMU();
-
-    /// return value: active row (needed for threshold scan histogramming).
-    int  ConfigureMaskStage( int nPix, const int iStage );
-    
-    void WriteControlReg( const AlpideChipMode chipMode );
-    void BaseConfigPLL();
-    void BaseConfigMask();
-    void BaseConfigFromu();
-    void BaseConfigDACs();
-    void BaseConfig();
-    void PrintDebugStream();
-
 private:
     
     #pragma mark - needed to operate with ADC or DAC
@@ -190,14 +214,18 @@ private:
                             DACMonIref IRef = DACMonIref::IREF_100uA );
     
     #pragma mark - needed for chip config. operations
+    
     /// Clear all column and row select bits.
     /**
      \param clearPulseGating If set, the pulse gating registers will also be reset
      (possibly useful at startup, but not in-between setting of mask patterns).
      */
     void ClearPixSelectBits( const bool clearPulseGating );
+    
+    #pragma mark - other
+    
+    std::string DecomposeChipId();
 
 };
-
 
 #endif  /* ALPIDE_H */
