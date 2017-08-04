@@ -123,7 +123,7 @@ public:
     
     bool GetReadoutMode() const             { return fReadoutMode; }
     bool GetEnableClustering() const        { return fEnableClustering; }
-    int  GetMatrixReadoutSpeed() const      { return fMatrixReadoutSpeed; }
+    bool GetMatrixReadoutSpeed() const      { return fMatrixReadoutSpeed; }
     int  GetSerialLinkSpeed() const         { return fSerialLinkSpeed; }
     bool GetEnableSkewingGlobal() const     { return fEnableSkewingGlobal; }
     bool GetEnableSkewingStartRO() const    { return fEnableSkewingStartRO; }
