@@ -16,6 +16,14 @@ public:
     
     #pragma mark - getters
     int GetVerboseLevel() const { return fVerboseLevel; }
+    
+public:
+    enum VerbosityLevel {
+        kSILENT = 0,
+        kTERSE = 1,
+        kVERBOSE = 3,
+        kCHATTY = 4
+    };
 
 };
 
