@@ -5,8 +5,9 @@
 /// \brief This class forward configure operations to each chip in the device.
 ///
 /// The methods iterate over all chips in the device to perform the requested configure
-/// operation. Some operations have no effect or a different effect on chips with slave
-/// compared to chips without slave. Disabled chips are skipped.
+/// operation. The configure operation itself is delegated to the TAlpide methods.
+/// As can be seen in these TAlpide methods: some operations have no effect on
+/// OB slave chips, and disabled chips are systematically skipped.
 
 #include<memory>
 #include "TVerbosity.h"
@@ -34,14 +35,13 @@ public:
     virtual void SetVerboseLevel( const int level );
     
     #pragma mark - forward configure operations to each Alpide in the device
-    void DoConfigureFromu( const AlpidePulseType pulseType, const bool testStrobe );
-    void DoConfigureFromu();
+    void DoApplyStandardDACSettings( const float backBias );
+    void DoConfigureFROMU();
     void DoConfigureBuffers();
     void DoConfigureCMU();
     void DoConfigureMaskStage( int nPix, const int iStage );
     void DoBaseConfigPLL();
     void DoBaseConfigMask();
-    void DoBaseConfigFromu();
     void DoBaseConfigDACs();
     void DoBaseConfig();
     
