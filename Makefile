@@ -36,6 +36,7 @@ CLASS= AlpideDecoder.cpp \
  TDeviceBuilderOBSingleMosaic.cpp \
  TDeviceBuilderTelescopeDAQ.cpp \
  TDeviceChipVisitor.cpp \
+ TDeviceFifoTest.cpp \
  THisto.cpp \
  TReadoutBoard.cpp \
  TReadoutBoardDAQ.cpp \
@@ -67,7 +68,7 @@ CLASS= AlpideDecoder.cpp \
 OBJS = $(CLASS:.cpp=.o)
 $(info OBJS="$(OBJS)")
 
-all:    test_mosaic test_noiseocc test_threshold test_digital test_fifo test_dacscan test_pulselength test_source test_poweron test_noiseocc_ext test_scantest test_temperature
+all:    test_mosaic test_fifo test_noiseocc test_threshold test_digital test_dacscan test_pulselength test_source test_poweron test_noiseocc_ext test_scantest test_temperature
 
 $(OBJECT):   $(OBJS) main.cpp
 	$(CC) -o $(OBJECT) $(OBJS) $(CFLAGS) main.cpp $(LINKFLAGS)
@@ -77,6 +78,9 @@ lib: $(OBJS)
 
 test_mosaic:   $(OBJS) main_mosaic.cpp
 	$(CC) -o test_mosaic $(OBJS) $(CFLAGS) main_mosaic.cpp $(LINKFLAGS)
+
+test_fifo:   $(OBJS) main_fifo.cpp
+	$(CC) -o test_fifo $(OBJS) $(CFLAGS) main_fifo.cpp $(LINKFLAGS)
 
 test_noiseocc:   $(OBJS) main_noiseocc.cpp
 	$(CC) -o test_noiseocc $(OBJS) $(CFLAGS) main_noiseocc.cpp $(LINKFLAGS)
@@ -92,9 +96,6 @@ test_threshold_pb:   $(OBJS) main_threshold_pb.cpp
 
 test_digital:   $(OBJS) main_digitalscan.cpp
 	$(CC) -o test_digital $(OBJS) $(CFLAGS) main_digitalscan.cpp $(LINKFLAGS)
-
-test_fifo:   $(OBJS) main_fifo.cpp
-	$(CC) -o test_fifo $(OBJS) $(CFLAGS) main_fifo.cpp $(LINKFLAGS)
 
 test_dacscan:   $(OBJS) main_dacscan.cpp
 	$(CC) -o test_dacscan $(OBJS) $(CFLAGS) main_dacscan.cpp $(LINKFLAGS)
