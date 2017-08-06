@@ -2,19 +2,19 @@
 #define DEVICE_CHIP_VISITOR_H
 
 /**
-* \class TDeviceChipVisitor
-*
-* \brief This class forward configure operations to each chip in the device.
-*
-* \author Andry Rakotozafindrabe
-*
-* The methods iterate over all chips in the device to perform the requested configure
-* operation. The configure operation itself is delegated to the TAlpide methods.
-* As can be seen in these TAlpide methods: some operations have no effect on
-* OB slave chips, and disabled chips are systematically skipped.
-*/
+ * \class TDeviceChipVisitor
+ *
+ * \brief This class forward configure operations to each chip in the device.
+ *
+ * \author Andry Rakotozafindrabe
+ *
+ * The methods iterate over all chips in the device to perform the requested configure
+ * operation. The configure operation itself is delegated to the TAlpide methods.
+ * As can be seen in these TAlpide methods: some operations have no effect on
+ * OB slave chips, and disabled chips are systematically skipped.
+ */
 
-#include<memory>
+#include <memory>
 #include "TVerbosity.h"
 
 class TDevice;
@@ -22,7 +22,7 @@ enum class AlpidePulseType;
 
 class TDeviceChipVisitor : public TVerbosity {
 
-private:
+protected:
 
     std::shared_ptr<TDevice> fDevice;
     
@@ -43,7 +43,7 @@ public:
     void DoApplyStandardDACSettings( const float backBias );
     void DoConfigureFROMU();
     void DoConfigureBuffers();
-    void DoConfigureCMU();
+    virtual void DoConfigureCMU();
     void DoConfigureMaskStage( int nPix, const int iStage );
     void DoBaseConfigPLL();
     void DoBaseConfigMask();
