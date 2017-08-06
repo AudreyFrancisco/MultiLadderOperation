@@ -585,19 +585,19 @@ void TAlpide::ApplyStandardDACSettings( const float backBias )
         spConfig->SetParamValue( "VCASN",    50 );
         spConfig->SetParamValue( "VCASN2",   62 );
         spConfig->SetParamValue( "VCLIP",     0 );
-        spConfig->SetParamValue( "VRESETD", 147 );
+        spConfig->SetParamValue( "VRESETD", 117 );
         spConfig->SetParamValue( "IDB",      29 );
     } else if ( backBias == 3 ) {
         spConfig->SetParamValue( "VCASN",   105 );
         spConfig->SetParamValue( "VCASN2",  117 );
         spConfig->SetParamValue( "VCLIP",    60 );
-        spConfig->SetParamValue( "VRESETD", 147 );
+        spConfig->SetParamValue( "VRESETD", 117 );
         spConfig->SetParamValue( "IDB",      29 );
     } else if ( backBias == 6 ) {
         spConfig->SetParamValue( "VCASN",   135 );
         spConfig->SetParamValue( "VCASN2",  147 );
         spConfig->SetParamValue( "VCLIP",   100 );
-        spConfig->SetParamValue( "VRESETD", 170 );
+        spConfig->SetParamValue( "VRESETD", 147 );
         spConfig->SetParamValue( "IDB",      29 );
     } else {
         cerr << "TAlpide::ApplyStandardDACSettings() - back bias " << backBias << " V undefined." << endl;
@@ -615,7 +615,7 @@ void TAlpide::ApplyStandardDACSettings( const float backBias )
     }
 }
 
-// Setting up of readout - CMU part
+// Setting up of readout from config file- CMU part
 // (alpide manual, section 3.8.3, page 75)
 //___________________________________________________________________
 void TAlpide::ConfigureCMU()
@@ -684,12 +684,12 @@ void TAlpide::ConfigureFROMU()
     uint16_t fromuconfig = 0;
     
     fromuconfig |= mebmask;
-    fromuconfig |= (internalStrobe   ? 1:0)          << 3;
-    fromuconfig |= (busyMonitoring   ? 1:0)          << 4;
-    fromuconfig |= ((int) testPulseMode)                 << 5;
-    fromuconfig |= (testStrobe       ? 1:0)          << 6;
-    fromuconfig |= (rotatePulseLines ? 1:0)          << 7;
-    fromuconfig |= (triggerDelay & 0x7) << 8;
+    fromuconfig |= (internalStrobe   ? 1:0) << 3;
+    fromuconfig |= (busyMonitoring   ? 1:0) << 4;
+    fromuconfig |= ((int) testPulseMode)    << 5;
+    fromuconfig |= (testStrobe       ? 1:0) << 6;
+    fromuconfig |= (rotatePulseLines ? 1:0) << 7;
+    fromuconfig |= (triggerDelay & 0x7)     << 8;
     
     if ( GetVerboseLevel() > kVERBOSE ) {
         cout << "TAlpide::ConfigureFROMU() - chip id = " << DecomposeChipId()  <<  endl;
