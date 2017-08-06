@@ -1,13 +1,18 @@
 #ifndef DEVICE_CHIP_VISITOR_H
 #define DEVICE_CHIP_VISITOR_H
 
-/// \class TDeviceChipVisitor
-/// \brief This class forward configure operations to each chip in the device.
-///
-/// The methods iterate over all chips in the device to perform the requested configure
-/// operation. The configure operation itself is delegated to the TAlpide methods.
-/// As can be seen in these TAlpide methods: some operations have no effect on
-/// OB slave chips, and disabled chips are systematically skipped.
+/**
+* \class TDeviceChipVisitor
+*
+* \brief This class forward configure operations to each chip in the device.
+*
+* \author Andry Rakotozafindrabe
+*
+* The methods iterate over all chips in the device to perform the requested configure
+* operation. The configure operation itself is delegated to the TAlpide methods.
+* As can be seen in these TAlpide methods: some operations have no effect on
+* OB slave chips, and disabled chips are systematically skipped.
+*/
 
 #include<memory>
 #include "TVerbosity.h"
