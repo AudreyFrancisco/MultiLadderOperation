@@ -2,21 +2,21 @@
 #define DEVICEBUILDER_H
 
 /** 
-* \class TDeviceBuilder
-*
-* \brief This class instantiates the objects in the TDevice class.
-*
-* \author Andry Rakotozafindrabe
-*
-* This is an abstract class composed with aTDevice object. The inherited classes
-* provide specific procedures relevant to instantiante the objects in the TDevice class
-* depending on the TDevice type that is wanted in the end.
-*
-* \note 
-* This class re-uses most of the code written in (obsolete) SetupHelpers to
-* check the control interface, and in (obsolete) TConfig class to set the device 
-* parameter value. 
-*/
+ * \class TDeviceBuilder
+ *
+ * \brief This class instantiates the objects in the TDevice class.
+ *
+ * \author Andry Rakotozafindrabe
+ *
+ * This is an abstract class composed with aTDevice object. The inherited classes
+ * provide specific procedures relevant to instantiante the objects in the TDevice class
+ * depending on the TDevice type that is wanted in the end.
+ *
+ * \note
+ * This class re-uses most of the code written in (obsolete) SetupHelpers to
+ * check the control interface, and in (obsolete) TConfig class to set the device
+ * parameter value.
+ */
 
 #include <memory>
 #include "TVerbosity.h"

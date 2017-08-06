@@ -18,6 +18,13 @@
 * This class re-uses most of the code written in the (obsolete) TConfig class to read
 * and decode the input config file. It is also re-using most of the code in the function
 * written in the obsolete SetupHelpers to decode the line command parameters.
+*
+* \warning
+* The current code can not correctly handle a number N > 1 of readout boards 
+* (currently only one is written). See for e.g. TDeviceBuilder::SetDeviceParamValue(). 
+* In particular, nothing is written (yet) to link a given number of chips to n readout
+* boards. For MFT, this is enough since the implemented device types (the different 
+* types of MFT ladders) only need one readout board to be entirely read.
 */
 
 #include <unistd.h>

@@ -101,24 +101,24 @@ enum class AlpideRegister : std::uint16_t {
 
 // command codes recognized by the Command Register
 enum class AlpideOpCode : std::uint16_t {
-    TRIGGER1     = 0xb1,
-    TRIGGER2     = 0x55,
-    TRIGGER3     = 0xc9,
-    TRIGGER4     = 0x2d,
-    GRST         = 0xd2,
-    PRST         = 0xe4,
-    PULSE        = 0x78,
-    BCRST        = 0x36,
-    DEBUG        = 0xaa,
-    RORST        = 0x63,
-    WROP         = 0x9c,
-    RDOP         = 0x4e,
-    CMU_CLEARERR = 0xff00,
-    FIFOTEST     = 0xff01,
-    LOADOBDEFCFG = 0xff02,
-    XOFF         = 0xff10,
-    XON          = 0xff11,
-    ADCMEASURE   = 0xff20
+    TRIGGER1     = 0xb1,   // trigger command
+    TRIGGER2     = 0x55,   // trigger command
+    TRIGGER3     = 0xc9,   // trigger command
+    TRIGGER4     = 0x2d,   // trigger command
+    GRST         = 0xd2,   // chip global reset
+    PRST         = 0xe4,   // pixel matrix reset
+    PULSE        = 0x78,   // pixel matrix pulse
+    BCRST        = 0x36,   // bunch counter reset
+    DEBUG        = 0xaa,   // store snapshot into debug registers
+    RORST        = 0x63,   // readout (RRU/TRU/DMU) reset
+    WROP         = 0x9c,   // start unicast or multicast write
+    RDOP         = 0x4e,   // start unicast read
+    CMU_CLEARERR = 0xff00, // clear CMU error flags
+    FIFOTEST     = 0xff01, // starts region memory test
+    LOADOBDEFCFG = 0xff02, // loads default config for the OB module
+    XOFF         = 0xff10, // stops sending data off-chip
+    XON          = 0xff11, // resume data sending
+    ADCMEASURE   = 0xff20  // start ADC measure
 };
 
 enum class AlpidePixConfigReg { // previously named AlpidePixReg

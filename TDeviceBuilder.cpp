@@ -77,10 +77,8 @@ void TDeviceBuilder::SetDeviceParamValue( const char *Name, const char *Value, i
         BoardStop = Chip+1;
     }
     
-    // Todo: correctly handle the number of readout boards
-    // currently only one is written
-    // Note: having a config file with parameters for the mosaic board, but a setup with a DAQ board
-    // (or vice versa) will issue unknown-parameter warnings...
+    // TODO: correctly handle the number of readout boards (currently only one is written)
+    // FIXME: having a config file with parameters for the mosaic board, but a setup with a DAQ board (or vice versa) will issue unknown-parameter warnings...
     if ( (fCurrentDevice->GetChipConfig(0))->IsParameter(Name) ) {
         for (int i = Start; i < ChipStop; i++) {
             (fCurrentDevice->GetChipConfig(i))->SetParamValue( Name, Value );

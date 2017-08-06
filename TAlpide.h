@@ -127,10 +127,10 @@ class TAlpide : public TVerbosity {
     void ApplyStandardDACSettings( const float backBias );
     void ConfigureBuffers();
 
-    /// Setting up of readout - CMU part
+    /// Setting up of readout from config file - CMU part
     void ConfigureCMU();
     
-    /// Setting up of readout - FROMU part
+    /// Setting up of readout from config file - FROMU part
     void ConfigureFROMU();
 
     /// Return value: active row (needed for threshold scan histogramming).
