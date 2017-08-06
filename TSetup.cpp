@@ -30,7 +30,7 @@ TSetup::TSetup() : TVerbosity(),
     fDevice( nullptr ),
     fScanConfig( nullptr )
 {
-    cout << "**  ALICE new-alpide-software  v." << NEWALPIDEVERSION
+    cout << "**  ALICE new-alpide-software for MFT v." << NEWALPIDEVERSION
          << " **" << endl<< endl;
     fScanConfig = make_shared<TScanConfig>();
 }
