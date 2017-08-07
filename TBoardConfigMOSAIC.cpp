@@ -121,12 +121,12 @@ void TBoardConfigMOSAIC::SetSpeedMode(Mosaic::TReceiverSpeed ASpeedMode)
 //___________________________________________________________________
 void TBoardConfigMOSAIC::SetIPaddress(const char *AIPaddress)
 {
-	std::cout << "IP Address " << AIPaddress << std::endl ;
+	std::cout << "TBoardConfigMOSAIC::SetIPaddress() - IP Address " << AIPaddress << std::endl ;
 	try {
-		if(AIPaddress == NULL) throw std::invalid_argument("MOSAIC Config : invalid IP number");
+		if(AIPaddress == NULL) throw std::invalid_argument("TBoardConfigMOSAIC::SetIPaddress() - invalid IP number");
 		strcpy(IPAddress, AIPaddress);
 	} catch (...) {
-		throw std::invalid_argument("MOSAIC Config : bad IP parameter specification");
+		throw std::invalid_argument("TBoardConfigMOSAIC::SetIPaddress() - bad IP parameter specification");
 	}
 	return;
 }

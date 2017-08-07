@@ -108,7 +108,7 @@ void TDeviceBuilderMFTLadder::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel > kTERSE ) {
+    if ( GetVerboseLevel() > kTERSE ) {
         cout << "TDeviceBuilderMFTLadder::InitSetup() - start" << endl;
     }
     
@@ -131,7 +131,9 @@ void TDeviceBuilderMFTLadder::InitSetup()
             speed = Mosaic::RCV_RATE_1200;
             break;
     }
-    cout << "TDeviceBuilderMFTLadder::InitSetup() - Speed mode = " << speed << endl;
+    if ( GetVerboseLevel() > kSILENT ) {
+        cout << "TDeviceBuilderMFTLadder::InitSetup() - Speed mode = " << speed << endl;
+    }
     boardConfig->SetSpeedMode( speed );
     
     auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
