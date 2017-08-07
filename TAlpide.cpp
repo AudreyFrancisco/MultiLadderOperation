@@ -238,8 +238,13 @@ void TAlpide::ReadRegister( const AlpideRegister address,
         }
         return;
     }
-
-    int err = spBoard->ReadChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+    
+    int err = -1;
+    try {
+        err = spBoard->ReadChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+    }
     if ( err < 0 ) {
         cerr << "TAlpide::ReadRegister() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ReadRegister() - failed." );
@@ -271,8 +276,13 @@ void TAlpide::ReadRegister( const uint16_t address,
         }
         return;
     }
-    
-    int err = spBoard->ReadChipRegister( address, value, (uint8_t)fChipId );
+
+    int err = -1;
+    try {
+        err = spBoard->ReadChipRegister( address, value, (uint8_t)fChipId );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+    }
     if ( err < 0 ) {
         cerr << "TAlpide::ReadRegister() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ReadRegister() - failed." );
@@ -306,7 +316,12 @@ void TAlpide::WriteRegister( const AlpideRegister address,
         return;
     }
 
-    int result = spBoard->WriteChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+    int result = -1;
+    try {
+        result = spBoard->WriteChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+    }
     if ( result < 0 ) {
         cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::WriteRegister() - failed." );
@@ -315,7 +330,8 @@ void TAlpide::WriteRegister( const AlpideRegister address,
         uint16_t check;
         try {
             ReadRegister( address, check );
-        } catch ( ... ) {
+        } catch ( exception& msg ) {
+            cerr << msg.what() << endl;
             cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
             throw runtime_error( "TAlpide::WriteRegister() - readback check failed." );
         }
@@ -355,7 +371,12 @@ void TAlpide::WriteRegister( const uint16_t address,
         return;
     }
     
-    int result = spBoard->WriteChipRegister( address, value, (uint8_t)fChipId );
+    int result = -1;
+    try {
+        result = spBoard->WriteChipRegister( address, value, (uint8_t)fChipId );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+    }
     if ( result < 0 ) {
         cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::WriteRegister() - failed." );
@@ -364,7 +385,8 @@ void TAlpide::WriteRegister( const uint16_t address,
         uint16_t check;
         try {
             ReadRegister( address, check );
-        } catch ( ... ) {
+        } catch ( exception& msg ) {
+            cerr << msg.what() << endl;
             cerr << "TAlpide::WriteRegister() - chip id = " << DecomposeChipId() << endl;
             throw runtime_error( "TAlpide::WriteRegister() - readback check failed." );
         }
@@ -375,6 +397,7 @@ void TAlpide::WriteRegister( const uint16_t address,
             throw runtime_error( "TAlpide::WriteRegister() - wrong readback value." );
         }
     }
+
     return;
 }
 
@@ -387,13 +410,14 @@ void TAlpide::ModifyRegisterBits( const AlpideRegister address,
                                  const bool skipDisabledChip )
 {
     
-    if ((lowBit < 0) || (lowBit > 15) || (lowBit + nBits > 15)) {
+    if ( (lowBit > 15) || (lowBit + nBits > 15)) {
         throw domain_error( "TAlpide::ModifyRegisterBits() - illegal limits." );
     }
     uint16_t registerValue, mask = 0xffff;
     try {
         ReadRegister( address, registerValue, skipDisabledChip );
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::ModifyRegisterBits() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ModifyRegisterBits() - readback step failed." );
     }
@@ -407,7 +431,8 @@ void TAlpide::ModifyRegisterBits( const AlpideRegister address,
     registerValue |= value << nBits;      // or value into the foreseen spot
     try {
         WriteRegister( address, registerValue, verify, skipDisabledChip );
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::ModifyRegisterBits() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ModifyRegisterBits() - failed to overwrite bits." );
     }
@@ -609,7 +634,8 @@ void TAlpide::ApplyStandardDACSettings( const float backBias )
         WriteRegister( AlpideRegister::VCLIP,    spConfig->GetParamValue("VCLIP") );
         WriteRegister( AlpideRegister::VRESETD,  spConfig->GetParamValue("VRESETD") );
         WriteRegister( AlpideRegister::IDB,      spConfig->GetParamValue("IDB") );
-    } catch ( ... ) {
+    } catch ( exception& msg  ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::ApplyStandardDACSettings() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ApplyStandardDACSettings() - failed." );
     }
@@ -649,7 +675,8 @@ void TAlpide::ConfigureCMU()
     }
     try {
         WriteRegister( AlpideRegister::CMUDMU_CONFIG, cmuconfig );
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::ConfigureCMU() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ConfigureCMU() - failed." );
     }
@@ -703,7 +730,8 @@ void TAlpide::ConfigureFROMU()
         WriteRegister( AlpideRegister::FROMU_CONFIG2,  spConfig->GetStrobeDuration() );
         WriteRegister( AlpideRegister::FROMU_PULSING1, spConfig->GetStrobeDelay() );
         WriteRegister( AlpideRegister::FROMU_PULSING2, spConfig->GetPulseDuration() );
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::ConfigureFROMU() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ConfigureFROMU() - failed." );
     }
@@ -749,7 +777,8 @@ void TAlpide::ConfigureBuffers()
     try {
         WriteRegister( AlpideRegister::CLKIO_DACS, clocks );
         WriteRegister( AlpideRegister::CMUIO_DACS, ctrl );
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::ConfigureBuffers() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ConfigureBuffers() - failed." );
     }
@@ -853,7 +882,8 @@ void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
 
     try {
         WriteRegister( AlpideRegister::MODECONTROL, controlreg );
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::WriteControlReg() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::WriteControlReg() - failed." );
     }
@@ -984,7 +1014,8 @@ void TAlpide::BaseConfigDACs()
         //WriteRegister( AlpideRegister::VTEMP,   spConfig->GetParamValue("VTEMP")); // TODO: uncomment when default value is known (see also TChipConfig class)
         WriteRegister( AlpideRegister::IRESET,  spConfig->GetParamValue("IRESET"));
         //WriteRegister( AlpideRegister::IAUX2,   spConfig->GetParamValue("IAUX2")); // TODO: uncomment when default value is known (see also TChipConfig class)
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::BaseConfigDACs() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::BaseConfigDACs() - failed." );
     }
@@ -1002,7 +1033,8 @@ void TAlpide::BaseConfig()
 
     try {
         WriteControlReg( AlpideChipMode::CONFIG ); // set chip to config mode
-    } catch ( ... ) {
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
         cerr << "TAlpide::BaseConfig() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::BaseConfig() - chip can not be set into config mode." );
     }

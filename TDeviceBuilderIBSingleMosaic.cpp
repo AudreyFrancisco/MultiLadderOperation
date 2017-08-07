@@ -42,6 +42,10 @@ void TDeviceBuilderIBSingleMosaic::CreateDeviceConfig()
     if ( fCurrentDevice->IsConfigFrozen() ) {
         return;
     }
+    if ( fVerboseLevel > kTERSE ) {
+        cout << "TDeviceBuilderIBSingleMosaic::CreateDeviceConfig() - start" << endl;
+    }
+
     fCurrentDevice->SetBoardType( TBoardType::kBOARD_MOSAIC );
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fCurrentDevice->AddBoardConfig( newBoardConfig );
@@ -80,7 +84,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( fVerboseLevel > kTERSE ) {
+    if ( GetVerboseLevel() > kTERSE ) {
         cout << "TDeviceBuilderIBSingleMosaic::InitSetup() - start" << endl;
     }
     
@@ -128,7 +132,14 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
     fCurrentDevice->AddChip( alpide );
     (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
-    if ( fVerboseLevel > kTERSE ) {
+    try {
+        CheckControlInterface();
+    } catch ( runtime_error &err ) {
+        cerr << err.what() << endl;
+        exit(0);
+    }
+
+    if ( GetVerboseLevel() > kTERSE ) {
         cout << "TDeviceBuilderIBSingleMosaic::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();

@@ -44,9 +44,6 @@ public:
     void SetDeviceParamValue( const char *Name, const char *Value, int Chip );
     virtual void InitSetup() = 0;
     
-    #pragma mark - Propagate verbosity down to the TDevice
-    virtual void SetVerboseLevel( const int level );
-
     #pragma mark - Getters
     std::shared_ptr<TDevice> GetCurrentDevice() { return fCurrentDevice; }
 

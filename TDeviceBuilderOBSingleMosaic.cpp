@@ -111,6 +111,13 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
     fCurrentDevice->AddChip(alpide);
     (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
+    try {
+        CheckControlInterface();
+    } catch ( runtime_error &err ) {
+        cerr << err.what() << endl;
+        exit(0);
+    }
+    
     if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOBSingleMosaic::InitSetup() - end" << endl;
     }
