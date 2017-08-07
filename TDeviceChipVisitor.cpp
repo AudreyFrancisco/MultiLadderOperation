@@ -3,6 +3,9 @@
 #include "TAlpide.h"
 #include "TDevice.h"
 #include "TChipConfig.h"
+#include "TReadoutBoard.h"
+#include "TReadoutBoardDAQ.h"
+#include "TReadoutBoardMOSAIC.h"
 #include <stdexcept>
 #include <iostream>
 
@@ -187,8 +190,17 @@ void TDeviceChipVisitor::DoBaseConfig()
     if ( fDevice->GetNChips() == 0 ) {
         throw runtime_error( "TDeviceChipVisitor::DoBaseConfig() - no chip found !" );
     }
+    shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard(0);
+    if ( !myBoard ) {
+        throw runtime_error( "TDeviceFifoTest::DoConfigureCMU() - no readout board found!" );
+    }
+    myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
+    myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
+
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
             fDevice->GetChip(i)->BaseConfig();
     }
+    myBoard->SendOpCode( (uint16_t)AlpideOpCode::RORST );
+
 }
 
