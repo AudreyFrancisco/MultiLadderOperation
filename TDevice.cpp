@@ -41,7 +41,7 @@ TDevice::~TDevice()
 //___________________________________________________________________
 void TDevice::SetNChips( const int number )
 {
-    if ( fCreatedConfig ) {
+    if ( IsConfigFrozen() ) {
         cerr << "TDevice::SetNChips() - not allowed: config already created !" << endl;
         return;
     }
@@ -54,7 +54,7 @@ void TDevice::SetNChips( const int number )
 //___________________________________________________________________
 void TDevice::SetNModules( const int number )
 {
-    if ( fCreatedConfig ) {
+    if ( IsConfigFrozen() ) {
         cerr << "TDevice::SetNModules() - not allowed: config already created !" << endl;
         return;
     }
@@ -67,7 +67,7 @@ void TDevice::SetNModules( const int number )
 //___________________________________________________________________
 void TDevice::SetStartChipId( const int Id )
 {
-    if ( fCreatedConfig ) {
+    if ( IsConfigFrozen() ) {
         cerr << "TDevice::SetStartChipId() - not allowed: config already created !" << endl;
         return;
     }
@@ -80,7 +80,7 @@ void TDevice::SetStartChipId( const int Id )
 //___________________________________________________________________
 void TDevice::SetBoardType( const TBoardType bt )
 {
-    if ( fCreatedConfig ) {
+    if ( IsConfigFrozen() ) {
         cerr << "TDevice::SetBoardType() - not allowed: config already created !" << endl;
         return;
     }
@@ -90,7 +90,7 @@ void TDevice::SetBoardType( const TBoardType bt )
 //___________________________________________________________________
 void TDevice::SetDeviceType( const TDeviceType dt )
 {
-    if ( fCreatedConfig ) {
+    if ( IsConfigFrozen() ) {
         cerr << "TDevice::SetDeviceType() - not allowed: config already created !" << endl;
         return;
     }
@@ -102,8 +102,8 @@ void TDevice::SetDeviceType( const TDeviceType dt )
 //___________________________________________________________________
 void TDevice::AddBoard( std::shared_ptr<TReadoutBoard> newBoard )
 {
-    if ( fCreatedConfig ) {
-        cerr << "TDevice::AddBoard() - not allowed: config already created !" << endl;
+    if ( IsSetupFrozen() ) {
+        cerr << "TDevice::AddBoard() - not allowed: setup already done !" << endl;
         return;
     }
     if ( !newBoard ) {
@@ -115,7 +115,7 @@ void TDevice::AddBoard( std::shared_ptr<TReadoutBoard> newBoard )
 //___________________________________________________________________
 void TDevice::AddBoardConfig( std::shared_ptr<TBoardConfig> newBoardConfig )
 {
-    if ( fCreatedConfig ) {
+    if ( IsConfigFrozen() ) {
         cerr << "TDevice::AddBoardConfig() - not allowed: config already created !" << endl;
         return;
     }
@@ -128,8 +128,8 @@ void TDevice::AddBoardConfig( std::shared_ptr<TBoardConfig> newBoardConfig )
 //___________________________________________________________________
 void TDevice::AddChip( std::shared_ptr<TAlpide> newChip )
 {
-    if ( fCreatedConfig ) {
-        cerr << "TDevice::AddChip() - not allowed: config already created !" << endl;
+    if ( IsSetupFrozen() ) {
+        cerr << "TDevice::AddChip() - not allowed: setup already done !" << endl;
         return;
     }
     if ( !newChip ) {
@@ -141,7 +141,7 @@ void TDevice::AddChip( std::shared_ptr<TAlpide> newChip )
 //___________________________________________________________________
 void TDevice::AddChipConfig( std::shared_ptr<TChipConfig> newChipConfig )
 {
-    if ( fCreatedConfig ) {
+    if ( IsConfigFrozen() ) {
         cerr << "TDevice::AddChipConfig() - not allowed: config already created !" << endl;
         return;
     }
@@ -165,7 +165,7 @@ void TDevice::IncrementWorkingChipCounter()
 //___________________________________________________________________
 shared_ptr<TReadoutBoard> TDevice::GetBoard( const int iBoard )
 {
-    if ( (!fInitialisedSetup) || fBoards.empty() ) {
+    if ( fBoards.empty() ) {
         throw runtime_error( "TDevice::GetBoard() - no board defined!" );
     }
     if ( (iBoard < 0) || (iBoard >= (int)fBoards.size()) ) {
@@ -183,7 +183,7 @@ shared_ptr<TReadoutBoard> TDevice::GetBoard( const int iBoard )
 //___________________________________________________________________
 shared_ptr<TBoardConfig> TDevice::GetBoardConfig( const int iBoard )
 {
-    if ( (!fCreatedConfig) || fBoardConfigs.empty() ) {
+    if ( fBoardConfigs.empty() ) {
         throw runtime_error( "TDevice::GetBoardConfig() - no config defined!" );
     }
     if ( (iBoard < 0) || (iBoard >= (int)fBoardConfigs.size()) ) {
@@ -201,7 +201,7 @@ shared_ptr<TBoardConfig> TDevice::GetBoardConfig( const int iBoard )
 //___________________________________________________________________
 shared_ptr<TReadoutBoard> TDevice::GetBoardByChip( const int iChip )
 {
-    if ( (!fInitialisedSetup) || fBoards.empty() || fChips.empty() ) {
+    if ( (!IsSetupFrozen()) || fBoards.empty() || fChips.empty() ) {
         throw runtime_error( "TDevice::GetBoardByChip() - no chip or board defined!" );
     }
     if ( (iChip < 0) || (iChip >= (int)fChips.size()) ) {
@@ -226,7 +226,7 @@ shared_ptr<TReadoutBoard> TDevice::GetBoardByChip( const int iChip )
 //___________________________________________________________________
 shared_ptr<TBoardConfig> TDevice::GetBoardConfigByChip( const int iChip )
 {
-    if ( (!fInitialisedSetup) || fBoardConfigs.empty() || fChips.empty() ) {
+    if ( (!IsSetupFrozen()) || fBoardConfigs.empty() || fChips.empty() ) {
         throw runtime_error( "TDevice::GetBoardConfigByChip() - no chip or board config defined!" );
     }
     if ( (iChip < 0) || (iChip >= (int)fChips.size()) ) {
@@ -256,7 +256,7 @@ shared_ptr<TBoardConfig> TDevice::GetBoardConfigByChip( const int iChip )
 //___________________________________________________________________
 shared_ptr<TAlpide> TDevice::GetChip( const int iChip )
 {
-    if ( (!fInitialisedSetup) || fChips.empty() ) {
+    if ( fChips.empty() ) {
         throw runtime_error( "TDevice::GetChip() - no chip defined!" );
     }
     if ( (iChip < 0) || (iChip >= (int)fChips.size()) ) {
@@ -274,7 +274,7 @@ shared_ptr<TAlpide> TDevice::GetChip( const int iChip )
 //___________________________________________________________________
 shared_ptr<TAlpide> TDevice::GetChipById( const int chipId )
 {
-    if ( (!fInitialisedSetup) || fChipConfigs.empty() ||  fChips.empty() ) {
+    if ( (!IsSetupFrozen()) || fChipConfigs.empty() ||  fChips.empty() ) {
         throw runtime_error( "TDevice::GetChipById() - no chip or chip config defined!" );
     }
     shared_ptr<TAlpide> myChip = nullptr;
@@ -295,7 +295,7 @@ shared_ptr<TAlpide> TDevice::GetChipById( const int chipId )
 //___________________________________________________________________
 int TDevice::GetChipIndexById( const int chipId ) const
 {
-    if ( (!fInitialisedSetup) || fChipConfigs.empty() ||  fChips.empty() ) {
+    if ( (!IsSetupFrozen()) || fChipConfigs.empty() ||  fChips.empty() ) {
         throw runtime_error( "TDevice::GetChipById() - no chip or chip config defined!" );
     }
     shared_ptr<TAlpide> myChip = nullptr;
@@ -320,7 +320,7 @@ int TDevice::GetChipIndexById( const int chipId ) const
 //___________________________________________________________________
 shared_ptr<TChipConfig> TDevice::GetChipConfig( const int iChip )
 {
-    if ( (!fCreatedConfig) || fChipConfigs.empty()  ) {
+    if ( fChipConfigs.empty()  ) {
         throw runtime_error( "TDevice::GetChipConfig() - no config defined!" );
     }
     if ( (iChip < 0) || (iChip >= (int)fChipConfigs.size()) ) {
@@ -338,7 +338,7 @@ shared_ptr<TChipConfig> TDevice::GetChipConfig( const int iChip )
 //___________________________________________________________________
 shared_ptr<TChipConfig> TDevice::GetChipConfigById( const int chipId )
 {
-    if ( (!fCreatedConfig) || fChipConfigs.empty() ) {
+    if ( fChipConfigs.empty() ) {
         throw runtime_error( "TDevice::GetChipConfigById() - no config defined!" );
     }
     shared_ptr<TChipConfig> config = nullptr;
@@ -394,9 +394,6 @@ int TDevice::GetStartChipId()
 //___________________________________________________________________
 bool TDevice::IsMFTLadder() const
 {
-    if ( !fCreatedConfig ) {
-        throw runtime_error( "TDevice::IsMFTLadder() - device not created yet." );
-    }
     if ( (GetDeviceType() == TDeviceType::kMFT_LADDER5)
         || (GetDeviceType() == TDeviceType::kMFT_LADDER4)
         || (GetDeviceType() == TDeviceType::kMFT_LADDER3)
