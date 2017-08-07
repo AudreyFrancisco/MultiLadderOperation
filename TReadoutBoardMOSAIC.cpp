@@ -51,6 +51,7 @@
 #include "AlpideDecoder.h"
 #include "TAlpide.h"
 #include "MosaicSrc/mexception.h"
+#include "MosaicSrc/pexception.h"
 
 using namespace std;
 std::vector<unsigned char> fDebugBuffer;
@@ -99,8 +100,13 @@ TReadoutBoardMOSAIC::~TReadoutBoardMOSAIC()
 int TReadoutBoardMOSAIC::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId)
 {
     uint_fast16_t Cii = GetControlInterface(chipId);
-    fControlInterface[Cii]->addWriteReg(chipId, address, value);
-    fControlInterface[Cii]->execute();
+    try {
+        fControlInterface[Cii]->addWriteReg(chipId, address, value);
+        fControlInterface[Cii]->execute();
+    } catch ( exception &err ) {
+        cerr << err.what() << endl;
+        throw err;
+    }
     return(0);
 }
 
@@ -108,8 +114,13 @@ int TReadoutBoardMOSAIC::WriteChipRegister (uint16_t address, uint16_t value, ui
 int TReadoutBoardMOSAIC::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId)
 {
     uint_fast16_t Cii = GetControlInterface(chipId);
-    fControlInterface[Cii]->addReadReg( chipId,  address,  &value);
-    fControlInterface[Cii]->execute();
+    try {
+        fControlInterface[Cii]->addReadReg( chipId,  address,  &value);
+        fControlInterface[Cii]->execute();
+    } catch ( exception &err ) {
+        cerr << err.what() << endl;
+        throw err;
+    }
     return(0);
 }
 
@@ -117,8 +128,13 @@ int TReadoutBoardMOSAIC::ReadChipRegister (uint16_t address, uint16_t &value, ui
 int TReadoutBoardMOSAIC::SendOpCode (uint16_t  OpCode, uint8_t chipId)
 {
     uint_fast16_t Cii = GetControlInterface(chipId);
-    fControlInterface[Cii]->addWriteReg(chipId, (uint16_t)AlpideRegister::COMMAND, OpCode);
-    fControlInterface[Cii]->execute();
+    try {
+        fControlInterface[Cii]->addWriteReg(chipId, (uint16_t)AlpideRegister::COMMAND, OpCode);
+        fControlInterface[Cii]->execute();
+    } catch ( exception &err ) {
+        cerr << err.what() << endl;
+        throw err;
+    }
     return(0);
 }
 
@@ -126,9 +142,14 @@ int TReadoutBoardMOSAIC::SendOpCode (uint16_t  OpCode, uint8_t chipId)
 int TReadoutBoardMOSAIC::SendOpCode (uint16_t  OpCode)
 {
     uint8_t ShortOpCode = (uint8_t)OpCode;
-    for(int Cii=0;Cii<BoardConfigMOSAIC::MAX_MOSAICCTRLINT;Cii++){
-        fControlInterface[Cii]->addSendCmd(ShortOpCode);
-        fControlInterface[Cii]->execute();
+    try {
+        for(int Cii=0;Cii<BoardConfigMOSAIC::MAX_MOSAICCTRLINT;Cii++){
+            fControlInterface[Cii]->addSendCmd(ShortOpCode);
+            fControlInterface[Cii]->execute();
+        }
+    } catch ( exception &err ) {
+        cerr << err.what() << endl;
+        throw err;
     }
     return(0);
 }
@@ -309,13 +330,13 @@ void TReadoutBoardMOSAIC::enableDefinedReceivers()
         int dataLink = spChipConfig->GetReceiver();
         if(dataLink >= 0) { // Enable the data receiver
             if ( spChipConfig->IsEnabled() ) {
-                std::cout << "!!!!!! ENabling receiver " << dataLink << std::endl;
+                std::cout << "TReadoutBoardMOSAIC::enableDefinedReceivers() - ENabling receiver " << dataLink << std::endl;
                 fAlpideRcv[dataLink]->addEnable(true);
                 Used[dataLink] = true;
                 //fAlpideRcv[dataLink]->execute();
             }
             else if (!Used[dataLink]){
-                std::cout << "!!!!!! DISabling receiver " << dataLink << std::endl;
+                std::cout << "TReadoutBoardMOSAIC::enableDefinedReceivers() - DISabling receiver " << dataLink << std::endl;
                 fAlpideRcv[dataLink]->addEnable(false);
             }
         }
@@ -351,7 +372,7 @@ uint32_t TReadoutBoardMOSAIC::decodeError()
     uint32_t runErrors;
     mRunControl->getErrors(&runErrors);
     if (runErrors){
-        std::cout << "MOSAIC Error register: 0x" << std::hex << runErrors << std::dec << " ";
+        std::cout << "TReadoutBoardMOSAIC::decodeError() - Error register: 0x" << std::hex << runErrors << std::dec << " ";
         if (runErrors & (1<<0)) std::cout << "Board memory overflow, ";
         if (runErrors & (1<<1)) std::cout << "Board detected TCP/IP connection closed while running, ";
         for (int i=0; i<10; i++)
