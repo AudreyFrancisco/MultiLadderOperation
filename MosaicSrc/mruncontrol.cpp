@@ -120,7 +120,7 @@ void MRunControl::setSpeed(Mosaic::TReceiverSpeed ASpeed)
 			regSet = CFG_RATE_1200;
 			break;
 	}
-	std::cout << "Writing " << std::hex << regSet << std::dec << " to config register" << std::endl;
+	std::cout << "MRunControl::setSpeed() - Writing " << std::hex << regSet << std::dec << " to config register" << std::endl;
 	wbb->addRMWbits(baseAddress+regConfig, ~CFG_RATE_MASK, regSet);
 	wbb->execute();
 
