@@ -1,5 +1,6 @@
 #include "TBoardConfig.h"
 #include <stdio.h>
+#include <iostream>
 
 using namespace std;
 
@@ -22,13 +23,24 @@ void TBoardConfig::InitParamMap()
 //___________________________________________________________________
 bool TBoardConfig::SetParamValue (const char *Name, const char *Value)
 {
-  if (fSettings.find (Name) != fSettings.end()) {
-    sscanf (Value, "%d", fSettings.find(Name)->second);
-    return true;
-  }
-  return false;
+    if (fSettings.find (Name) != fSettings.end()) {
+        sscanf (Value, "%d", fSettings.find(Name)->second);
+        return true;
+    }
+    cerr << "TBoardConfig::SetParamValue() - Unknown parameter `-" << Name << "`" << endl;
+    return false;
 }
 
+//___________________________________________________________________
+bool TBoardConfig::SetParamValue(const char *Name, const int Value)
+{
+    if (fSettings.find (Name) != fSettings.end()) {
+        *(fSettings.find(Name)->second) = Value;
+        return true;
+    }
+    cerr << "TBoardConfig::SetParamValue() - Unknown parameter `-" << Name << "`" << endl;
+    return false;
+}
 
 //___________________________________________________________________
 int TBoardConfig::GetParamValue (const char *Name)

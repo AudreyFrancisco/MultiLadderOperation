@@ -28,6 +28,7 @@ public:
     
     virtual void InitParamMap();
     bool SetParamValue(const char *Name, const char *Value);
+    bool SetParamValue(const char *Name, const int Value);
     int  GetParamValue(const char *Name) ;
     bool IsParameter(const char *Name) {return (fSettings.count(Name) > 0);};
     
