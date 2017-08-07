@@ -240,36 +240,69 @@ TDeviceType TSetup::ReadDeviceType( const char* deviceName )
     
     if ( !strcmp (deviceName, "CHIPDAQ")) {
         dt = TDeviceType::kCHIP_DAQ;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kCHIP_DAQ" << endl;
+        }
     }
     else if (!strcmp(deviceName, "TELESCOPE")) {
         dt = TDeviceType::kTELESCOPE;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kTELESCOPE" << endl;
+        }
     }
     else if (!strcmp(deviceName, "OBHIC")) {
         dt = TDeviceType::kOBHIC;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kOBHIC" << endl;
+        }
     }
     else if (!strcmp(deviceName, "IBHIC")) {
         dt = TDeviceType::kIBHIC;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - IBHIC" << endl;
+        }
     }
     else if (!strcmp(deviceName, "MFT5")) {
         dt = TDeviceType::kMFT_LADDER5;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kMFT_LADDER5" << endl;
+        }
     }
     else if (!strcmp(deviceName, "MFT4")) {
         dt = TDeviceType::kMFT_LADDER4;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kMFT_LADDER4" << endl;
+        }
     }
     else if (!strcmp(deviceName, "MFT3")) {
         dt = TDeviceType::kMFT_LADDER3;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kMFT_LADDER3" << endl;
+        }
     }
     else if (!strcmp(deviceName, "MFT2")) {
         dt = TDeviceType::kMFT_LADDER2;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kMFT_LADDER2" << endl;
+        }
     }
     else if (!strcmp(deviceName, "OBCHIPMOSAIC")) {
         dt = TDeviceType::kOBCHIP_MOSAIC;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - kOBCHIP_MOSAIC" << endl;
+        }
     }
     else if (!strcmp(deviceName, "IBCHIPMOSAIC")) {
         dt = TDeviceType::kIBCHIP_MOSAIC;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - IBCHIPMOSAIC" << endl;
+        }
     }
     else if (!strcmp(deviceName, "HALFSTAVE")) {
         dt = TDeviceType::kHALFSTAVE;
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::ReadDeviceType() - HALFSTAVE" << endl;
+        }
     }
     else {
         cerr << "TSetup::ReadDeviceType() - unidentified device name = " << deviceName << endl;
@@ -322,8 +355,8 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
             throw runtime_error( "TSetup::InitDeviceBuilder() - unknown device type, doing nothing." );
             return;
     }
-    fDeviceBuilder->CreateDevice();
     fDeviceBuilder->SetVerboseLevel( this->GetVerboseLevel() );
+    fDeviceBuilder->CreateDevice();
     try {
         fDeviceBuilder->SetDeviceType( dt );
     } catch ( std::runtime_error &err ) {
