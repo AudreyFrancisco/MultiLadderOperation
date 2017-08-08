@@ -142,7 +142,6 @@ void TThresholdScan::Execute()
     int                   n_bytes_data, n_bytes_header, n_bytes_trailer;
     int                   nBad = 0, skipped = 0;
     TBoardHeader          boardInfo;
-    std::vector<TPixHit> *Hits = new std::vector<TPixHit>;
     
     shared_ptr<TDevice> currentDevice = fDevice.lock();
 
@@ -170,7 +169,7 @@ void TThresholdScan::Execute()
                 // decode Chip event
                 int n_bytes_chipevent=n_bytes_data-n_bytes_header;//-n_bytes_trailer;
                 if (boardInfo.eoeCount < 2) n_bytes_chipevent -= n_bytes_trailer;
-                if (!AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits)) {
+                if (!AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, fHits)) {
                     cout << "Found bad event, length = " << n_bytes_chipevent << endl;
                     nBad ++;
                     if (nBad > 10) continue;
@@ -189,13 +188,14 @@ void TThresholdScan::Execute()
                 itrg++;
             }
         }
-        cout << "Found " << Hits->size() << " hits" << endl;
-        FillHistos( Hits, iboard );
+        cout << "Found " << fHits.size() << " hits" << endl;
+        FillHistos( iboard );
+        fHits.clear();
     }
 }
 
 //___________________________________________________________________
-void TThresholdScan::FillHistos( std::vector<TPixHit> *Hits, const int iboard )
+void TThresholdScan::FillHistos( const int iboard )
 {
     TChipIndex idx;
     idx.boardIndex = iboard;
@@ -208,13 +208,13 @@ void TThresholdScan::FillHistos( std::vector<TPixHit> *Hits, const int iboard )
     
     shared_ptr<TDevice> currentDevice = fDevice.lock();
 
-    for (int i = 0; i < (int)Hits->size(); i++) {
-        if (Hits->at(i).address / 2 != fRow) continue;  // todo: keep track of spurious hits, i.e. hits in non-injected rows
+    for (int i = 0; i < (int)fHits.size(); i++) {
+        if ((fHits.at(i))->GetAddress() / 2 != fRow) continue;  // todo: keep track of spurious hits, i.e. hits in non-injected rows
         // !! This will not work when allowing several chips with the same Id
-        idx.dataReceiver = (currentDevice->GetBoard( iboard ))->GetReceiver(Hits->at(i).chipId);
-        idx.chipId       = Hits->at(i).chipId;
-        int col = Hits->at(i).region * 32 + Hits->at(i).dcol * 2;
-        int leftRight = ((((Hits->at(i).address % 4) == 1) || ((Hits->at(i).address % 4) == 2))? 1:0);
+        idx.dataReceiver = (currentDevice->GetBoard( iboard ))->GetReceiver((fHits.at(i))->GetChipId());
+        idx.chipId       = (fHits.at(i))->GetChipId();
+        int col = (fHits.at(i))->GetRegion() * 32 + (fHits.at(i))->GetDoubleColumn() * 2;
+        int leftRight = (((((fHits.at(i))->GetAddress() % 4) == 1) || (((fHits.at(i))->GetAddress() % 4) == 2))? 1:0);
         col += leftRight;
         
         fHisto->Incr( idx, col, fValue[0] );

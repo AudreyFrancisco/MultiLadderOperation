@@ -8,7 +8,8 @@
 
 class THisto;
 class TScanHisto;
-struct TPixHit;
+class TPixHit;
+class AlpideDecoder;
 
 class TScanConfig;
 class TDevice;
@@ -17,12 +18,14 @@ class TThresholdScan : public TMaskScan {
 private:
     int         fVPULSEH;
     int         fNTriggers;
+    std::vector<std::shared_ptr<TPixHit>> fHits;
     
     void ConfigureChip  ( const int ichip);
     void ConfigureBoard ( const int iboard );
-    void FillHistos     ( std::vector<TPixHit> *Hits, const int iboard );
+    void FillHistos     ( const int iboard );
 protected:
     std::shared_ptr<THisto> CreateHisto();
+    friend class AlpideDecoder;
 public:
     TThresholdScan();
     TThresholdScan( std::shared_ptr<TScanConfig> config,
