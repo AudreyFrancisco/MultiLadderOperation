@@ -46,7 +46,7 @@ bool TScanConfig::SetParamValue(const char *Name, const char *Value)
 }
 
 //___________________________________________________________________
-int TScanConfig::GetParamValue(const char *Name)
+int TScanConfig::GetParamValue(const char *Name) const
 {
     
     if (fSettings.find (Name) != fSettings.end()) {

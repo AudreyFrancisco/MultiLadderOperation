@@ -19,12 +19,14 @@ public:
     TScanConfig ();
     ~TScanConfig() {};
     bool SetParamValue (const char *Name, const char *Value);
-    int  GetParamValue (const char *Name) ;
+    int  GetParamValue (const char *Name) const ;
     bool IsParameter   (const char *Name) {return (fSettings.count(Name) > 0);}
-    int GetChargeStart () {return fChargeStart;}
-    int GetChargeStep  () {return fChargeStep;}
-    int GetChargeStop  () {return fChargeStop;}
-    int GetNMaskStages () {return fNMaskStages;}
+    int GetNInj        () const { return fNInj;}
+    int GetChargeStart () const { return fChargeStart; }
+    int GetChargeStep  () const { return fChargeStep; }
+    int GetChargeStop  () const { return fChargeStop; }
+    int GetNMaskStages () const { return fNMaskStages; }
+    int GetPixPerRegion() const { return fPixPerRegion; }
 private:
     #pragma mark - default value for the config
     static const int NINJ;
