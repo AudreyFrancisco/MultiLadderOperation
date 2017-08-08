@@ -194,13 +194,18 @@ void TDeviceChipVisitor::DoBaseConfig()
     if ( !myBoard ) {
         throw runtime_error( "TDeviceFifoTest::DoConfigureCMU() - no readout board found!" );
     }
+    // global reset chips
     myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
+
+    // pixel matrix reset
     myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
 
+    // configure chip(s)
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
             fDevice->GetChip(i)->BaseConfig();
     }
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::RORST );
 
+    // readout reset
+    myBoard->SendOpCode( (uint16_t)AlpideOpCode::RORST );
 }
 
