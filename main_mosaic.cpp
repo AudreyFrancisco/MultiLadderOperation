@@ -47,19 +47,10 @@ int main(int argc, char** argv) {
     
     shared_ptr<TReadoutBoard> theBoard = theDevice->GetBoard( 0 );
     
-    // global reset chips
-    theBoard->SendOpCode( (std::uint16_t)AlpideOpCode::GRST );
-
-    // pixel matrix reset
-    theBoard->SendOpCode( (std::uint16_t)AlpideOpCode::PRST );
-    
     // configure chip(s)
     TDeviceChipVisitor theDeviceChipVisitor( theDevice );
     theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceChipVisitor.DoBaseConfig();
-    
-    // readout reset
-    theBoard->SendOpCode( (std::uint16_t)AlpideOpCode::RORST );
     
 	//--- Data Tacking
 	int numberOfReadByte; // the bytes of row event
