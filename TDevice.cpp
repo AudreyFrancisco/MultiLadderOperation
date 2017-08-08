@@ -293,6 +293,24 @@ shared_ptr<TAlpide> TDevice::GetChipById( const int chipId )
 }
 
 //___________________________________________________________________
+int TDevice::GetChipId( const int iChip ) const
+{
+    if ( fChips.empty() ) {
+        throw runtime_error( "TDevice::GetChip() - no chip defined!" );
+    }
+    if ( (iChip < 0) || (iChip >= (int)fChips.size()) ) {
+        cerr << "TDevice::GetChip() - iChip = " << iChip << endl;
+        throw out_of_range( "TDevice::GetChip() - wrong chip index!" );
+    }
+    shared_ptr<TChipConfig> config = (fChips.at(iChip)->GetConfig()).lock();
+    if ( !config ) {
+        cerr << "TDevice::GetChipId() - iChip = " << iChip << endl;
+        throw runtime_error( "TDevice::GetChipId() - config for this chip does not exist!" );
+    }
+    return config->GetChipId();
+}
+
+//___________________________________________________________________
 int TDevice::GetChipIndexById( const int chipId ) const
 {
     if ( (!IsSetupFrozen()) || fChipConfigs.empty() ||  fChips.empty() ) {

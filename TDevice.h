@@ -90,6 +90,7 @@ public:
     std::shared_ptr<TBoardConfig>   GetBoardConfigByChip(const int iChip);
     std::shared_ptr<TAlpide>        GetChip(const int iChip);
     std::shared_ptr<TAlpide>        GetChipById(const int chipId);
+    int                             GetChipId(const int iChip) const;
     int                             GetChipIndexById(const int chipId) const;
     std::shared_ptr<TChipConfig>    GetChipConfig(const int iChip);
     std::shared_ptr<TChipConfig>    GetChipConfigById(const int chipId);
