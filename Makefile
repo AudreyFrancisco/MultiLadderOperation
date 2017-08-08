@@ -37,6 +37,7 @@ CLASS= AlpideDecoder.cpp \
  TDeviceBuilderTelescopeDAQ.cpp \
  TDeviceChipVisitor.cpp \
  TDeviceFifoTest.cpp \
+ TDeviceDigitalScan.cpp \
  THisto.cpp \
  TReadoutBoard.cpp \
  TReadoutBoardDAQ.cpp \
