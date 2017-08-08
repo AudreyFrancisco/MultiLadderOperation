@@ -115,7 +115,7 @@ public:
     bool HasEnabledSlave() const { return fEnabledSlave; }
 
     #pragma mark - getters
-    int  GetParamValue(const char *Name);
+    int  GetParamValue(const char *Name) const;
     int  GetChipId() const;
     int  GetControlInterface() const;
     int  GetReceiver() const;

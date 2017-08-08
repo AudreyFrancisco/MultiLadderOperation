@@ -361,7 +361,7 @@ void TChipConfig::SetEnableSlave( const bool value )
 #pragma mark - getters
 
 //___________________________________________________________________
-int TChipConfig::GetParamValue(const char *Name)
+int TChipConfig::GetParamValue(const char *Name) const
 {
     if (fSettings.find (Name) != fSettings.end()) {
         return *(fSettings.find(Name)->second);
