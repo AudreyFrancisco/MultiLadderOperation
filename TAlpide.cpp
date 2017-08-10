@@ -73,6 +73,15 @@ void TAlpide::SetEnable( const bool Enable )
     }
 }
 
+//___________________________________________________________________
+void TAlpide::SetVerboseLevel( const int level )
+{
+    if ( level > kTERSE ) {
+        cout << "TAlpide::SetVerboseLevel() - " << level << " for chip id = " << DecomposeChipId() << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
 #pragma mark - dump
 
 //___________________________________________________________________

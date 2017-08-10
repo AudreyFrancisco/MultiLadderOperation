@@ -32,6 +32,7 @@ public:
 #pragma mark - Device creation and initialisation
     void SetDeviceType( const TDeviceType dt );
     void SetNChips( const int number );
+    virtual void SetVerboseLevel( const int level );
     void CreateDeviceConfig();
     void InitSetup();
     

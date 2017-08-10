@@ -39,6 +39,15 @@ void TDeviceBuilderIB::SetDeviceType( const TDeviceType dt )
 }
 
 //___________________________________________________________________
+void TDeviceBuilderIB::SetVerboseLevel( const int level )
+{
+    if ( level > kTERSE ) {
+        cout << "TDeviceBuilderIB::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
+//___________________________________________________________________
 void TDeviceBuilderIB::CreateDeviceConfig()
 {
     if ( fCurrentDevice->IsConfigFrozen() ) {

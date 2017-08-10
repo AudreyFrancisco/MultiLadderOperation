@@ -37,6 +37,16 @@ void TDeviceBuilderIBSingleMosaic::SetDeviceType( const TDeviceType dt )
 }
 
 //___________________________________________________________________
+void TDeviceBuilderIBSingleMosaic::SetVerboseLevel( const int level )
+{
+    if ( level > kTERSE ) {
+        cout << "TDeviceBuilderIBSingleMosaic::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
+
+//___________________________________________________________________
 void TDeviceBuilderIBSingleMosaic::CreateDeviceConfig()
 {
     if ( fCurrentDevice->IsConfigFrozen() ) {

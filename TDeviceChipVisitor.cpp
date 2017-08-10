@@ -61,6 +61,10 @@ void TDeviceChipVisitor::SetVerboseLevel( const int level )
     if ( fDevice->GetNChips() == 0 ) {
         throw runtime_error( "TDeviceChipVisitor::SetVerboseLevel() - no chip found !" );
     }
+    if ( level > kTERSE ) {
+        cout << "TDeviceChipVisitor::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->SetVerboseLevel( level );
     }

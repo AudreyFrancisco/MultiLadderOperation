@@ -48,6 +48,7 @@ public:
 
     #pragma mark - setters
     void SetConfigFileName( const std::string name );
+    virtual void SetVerboseLevel( const int level );
 
     #pragma mark - getters
     inline std::string GetConfigurationFileName() const { return fConfigFileName; }

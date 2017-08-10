@@ -76,6 +76,7 @@ class TAlpide : public TVerbosity {
     // setter
     void SetReadoutBoard( std::shared_ptr<TReadoutBoard> readoutBoard ) { fReadoutBoard = readoutBoard; }
     void SetEnable( bool Enable );
+    virtual void SetVerboseLevel( const int level );
     // getter
     std::weak_ptr<TChipConfig> GetConfig() { return fConfig; }
     std::weak_ptr<TReadoutBoard> GetReadoutBoard() { return fReadoutBoard; }

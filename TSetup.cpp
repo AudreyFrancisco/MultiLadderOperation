@@ -69,6 +69,15 @@ void TSetup::SetConfigFileName( const string name )
     }
 }
 
+//___________________________________________________________________
+void TSetup::SetVerboseLevel( const int level )
+{
+    if ( level > kSILENT ) {
+        cout << "TSetup::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
 #pragma mark - other public methods
 
 // Decode line command parameters

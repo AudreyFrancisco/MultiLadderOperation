@@ -91,6 +91,15 @@ void TDeviceBuilder::SetDeviceParamValue( const char *Name, const char *Value, i
     }
 }
 
+//___________________________________________________________________
+void TDeviceBuilder::SetVerboseLevel( const int level )
+{
+    if ( level > kTERSE ) {
+        cout << "TDeviceBuilder::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
 #pragma mark - protected methods
 
 // Try to communicate with all chips, disable chips that are not answering

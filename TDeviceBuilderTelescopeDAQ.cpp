@@ -46,6 +46,15 @@ void TDeviceBuilderTelescope::SetNChips( const int number )
 }
 
 //___________________________________________________________________
+void TDeviceBuilderTelescope::SetVerboseLevel( const int level )
+{
+    if ( level > kTERSE ) {
+        cout << "TDeviceBuilderTelescope::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
+//___________________________________________________________________
 void TDeviceBuilderTelescope::CreateDeviceConfig()
 {
     if ( fCurrentDevice->IsConfigFrozen() ) {

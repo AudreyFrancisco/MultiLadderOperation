@@ -36,6 +36,15 @@ void TDeviceBuilderHalfStave::SetNModules( const int number )
 }
 
 //___________________________________________________________________
+void TDeviceBuilderHalfStave::SetVerboseLevel( const int level )
+{
+    if ( level > kTERSE ) {
+        cout << "TDeviceBuilderHalfStave::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
+//___________________________________________________________________
 void TDeviceBuilderHalfStave::CreateDeviceConfig()
 {
     if ( fCurrentDevice->IsConfigFrozen() ) {

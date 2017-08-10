@@ -30,8 +30,11 @@ public:
     
     #pragma mark - Device creation and initialisation
     void SetNModules( const int number );
+    virtual void SetVerboseLevel( const int level );
     void CreateDeviceConfig();
     void InitSetup();
+    
+    
 
 };
 

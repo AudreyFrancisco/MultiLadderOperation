@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <bitset>
+#include <string.h>
+
 
 using namespace std;
 

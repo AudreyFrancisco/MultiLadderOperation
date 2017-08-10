@@ -37,6 +37,15 @@ void TDeviceBuilderOBSingleDAQ::SetDeviceType( const TDeviceType dt )
 }
 
 //___________________________________________________________________
+void TDeviceBuilderOBSingleDAQ::SetVerboseLevel( const int level )
+{
+    if ( level > kTERSE ) {
+        cout << "TDeviceBuilderOBSingleDAQ::SetVerboseLevel() - " << level << endl;
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
+//___________________________________________________________________
 void TDeviceBuilderOBSingleDAQ::CreateDeviceConfig()
 {
     if ( fCurrentDevice->IsConfigFrozen() ) {

@@ -42,6 +42,7 @@ public:
     virtual void SetDeviceType( const TDeviceType dt );
     virtual void CreateDeviceConfig() = 0;
     void SetDeviceParamValue( const char *Name, const char *Value, int Chip );
+    virtual void SetVerboseLevel( const int level );
     virtual void InitSetup() = 0;
     
     #pragma mark - Getters
