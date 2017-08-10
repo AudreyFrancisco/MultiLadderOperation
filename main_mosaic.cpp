@@ -56,11 +56,14 @@ int main(int argc, char** argv) {
 	int numberOfReadByte; // the bytes of row event
 	unsigned char *theBuffer; // the buffer containing the event
 
-	int enablePulse = -1, enableTrigger = -1, triggerDelay = -1, pulseDelay = -1, nTriggers = -1; // variables that define the trigger/pulse
+    // variables that define the trigger/pulse
+	//int enablePulse = -1, enableTrigger = -1, triggerDelay = -1, pulseDelay = -1, nTriggers = -1; // AR: original settings
+    bool enablePulse = true, enableTrigger = true;
+    int triggerDelay = 160, pulseDelay = 1000, nTriggers = -1; // AR: using nTriggers > 0 only slows down the rate at which pulses are produced
 
 	theBuffer = (unsigned char*) malloc(200 * 1024); // allocates 200 kilobytes ...
 
-	bool isDataTackingEnd = false; // break the execution of read polling
+	bool isDataTakingEnd = false; // break the execution of read polling
 	int returnCode = 0;
 	int timeoutLimit = 10; // ten seconds
 
@@ -70,15 +73,22 @@ int main(int argc, char** argv) {
 
 	(dynamic_pointer_cast<TReadoutBoardMOSAIC>(theBoard))->StartRun(); // Activate the data taking ...
 
-	theBoard->Trigger( nTriggers ); // Preset end start the trigger
+	theBoard->Trigger( nTriggers ); // Preset and start the trigger
 
-	while( !isDataTackingEnd ) { // while we don't receive a timeout
+    int nEvents = 0;
+    const int MAX_N_EVENTS = 100;
+	while( !isDataTakingEnd ) { // while we don't receive a timeout or we don't have enough events yet
+        if ( nEvents > MAX_N_EVENTS ) {
+            isDataTakingEnd = true;
+        }
 		returnCode = theBoard->ReadEventData( numberOfReadByte, theBuffer );
 		if( returnCode != 0 ) { // we have some thing
 			std::cout << "Read an event !  Dimension :" << numberOfReadByte << std::endl;   // Consume the buffer ...
+            if( numberOfReadByte == 0 ) isDataTakingEnd = true; // AR: some unreliable chip can provide 0 dimension for ages !
+            nEvents++;
 			usleep(20000); // wait
 		} else { // read nothing is finished ?
-			if(timeoutLimit-- == 0) isDataTackingEnd = true;
+			if(timeoutLimit-- == 0) isDataTakingEnd = true;
 			sleep(1);
 		}
 	}
