@@ -20,7 +20,10 @@
  * const bool fEnableDdr = true;
  *
  * \note 
- * Most of the code was moved from the original main_fifo.cpp
+ * Most of the code was moved from the original main_fifo.cpp written by ITS team.
+ * More safety checks, better initialization, improved code readability and 
+ * reset of error counters for each new chip were added in this new class w.r.t. the 
+ * original code.
  */
 
 #include <memory>
@@ -31,22 +34,22 @@ class TDeviceFifoTest : public TDeviceChipVisitor {
     /// index of the current chip being tested
     int fCurrentChipIndex;
     
-    /// counter to keep tracks of the failure for the FIFO test pattern 0x0
+    /// counter to keep tracks of the failure for the FIFO test pattern 0x0 per chip
     int fErrCount0;
 
-    /// counter to keep tracks of the failure for the FIFO test pattern 0x555555
+    /// counter to keep tracks of the failure for the FIFO test pattern 0x555555 per chip
     int fErrCount5;
     
-    /// counter to keep tracks of the failure for the FIFO test pattern 0xffffff
+    /// counter to keep tracks of the failure for the FIFO test pattern 0xffffff per chip
     int fErrCountF;
     
-    /// index of the region for whose pixel memory are currently tested
+    /// index of the current region of the chip whose pixel memories are being tested
     int fRegion;
     
-    /// index of the pixel control register for the pixel to be tested
+    /// index of the current pixel control register being tested
     int fOffset;
     
-    /// bit pattern currently used for the memory test and written to the registers
+    /// bit pattern currently used for the memory test and written to the pixel register
     int fBitPattern;
     
 public:
@@ -63,15 +66,25 @@ public:
     /// configure all chips for FIFO test
     virtual void DoConfigureCMU();
     
+    /// decorate the base class SetVerboseLevel() method
+    virtual void SetVerboseLevel( const int level );
+    
     /// run the FIFO test on all chips of the device
     void Go();
     
 private:
     
+    /// write to a given pixel control register
     void WriteMem();
+    
+    /// read a given pixel control register
     int  ReadMem();
+    
+    /// perform write pattern + readback in a given pixel control register
     void MemReadback();
-    void MemTest();
+    
+    /// perform MemReadback() for all patterns in a given pixel control register
+    bool MemTest();
     
     enum MemoryPattern {
         kTEST_ALL_ZERO = 0x0,
