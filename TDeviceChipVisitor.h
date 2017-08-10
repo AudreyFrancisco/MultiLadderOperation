@@ -37,7 +37,7 @@ public:
     void SetDevice( std::shared_ptr<TDevice> aDevice );
     
     #pragma mark - Propagate verbosity down to each Alpide in the device
-    virtual void SetVerboseLevel( const int level );
+    void SetVerboseLevel( const int level );
     
     #pragma mark - forward configure operations to each Alpide in the device
     void DoApplyStandardDACSettings( const float backBias );

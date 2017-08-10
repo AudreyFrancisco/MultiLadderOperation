@@ -66,9 +66,6 @@ public:
     /// configure all chips for FIFO test
     virtual void DoConfigureCMU();
     
-    /// decorate the base class SetVerboseLevel() method
-    virtual void SetVerboseLevel( const int level );
-    
     /// run the FIFO test on all chips of the device
     void Go();
     

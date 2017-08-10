@@ -73,15 +73,6 @@ void TDeviceFifoTest::DoConfigureCMU()
 }
 
 //___________________________________________________________________
-void TDeviceFifoTest::SetVerboseLevel( const int level )
-{
-    if ( level > kTERSE ) {
-        cout << "TDeviceFifoTest::SetVerboseLevel() - " << level << endl;
-    }
-    TVerbosity::SetVerboseLevel( level );
-}
-
-//___________________________________________________________________
 void TDeviceFifoTest::Go()
 {
     // loop over all chips
