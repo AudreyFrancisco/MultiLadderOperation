@@ -136,8 +136,8 @@ void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* conf
         
         fprintf(fp, "\n");
         // Mode control register
-        ReadRegister( AlpideRegister::MODECONTROL, value );
-        fprintf( fp, "MODECONTROL  %i\n", value );
+        ReadRegister( AlpideRegister::MODE_CONTROL, value );
+        fprintf( fp, "MODE_CONTROL  %i\n", value );
         
         // FROMU config reg 1: [5]: test pulse mode; [6]: enable test strobe, etc.
         ReadRegister( AlpideRegister::FROMU_CONFIG1, value );
@@ -156,8 +156,8 @@ void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* conf
         fprintf( fp, "FROMU_PULSING2  %i\n", value );
         
         // CMU DMU config reg
-        ReadRegister( AlpideRegister::CMUDMU_CONFIG, value );
-        fprintf( fp, "CMUDMU_CONFIG  %i\n", value );
+        ReadRegister( AlpideRegister::CMU_DMU_CONFIG, value );
+        fprintf( fp, "CMU_DMU_CONFIG  %i\n", value );
         
         fclose( fp );
     }
@@ -195,8 +195,8 @@ void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* conf
 
     sprintf( config, "%s\n", config );
     // Mode control register
-    ReadRegister( AlpideRegister::MODECONTROL, value );
-    sprintf( config, "%sMODECONTROL  %i\n", config, value );
+    ReadRegister( AlpideRegister::MODE_CONTROL, value );
+    sprintf( config, "%sMODE_CONTROL  %i\n", config, value );
   
     // FROMU config reg 1: [5]: test pulse mode; [6]: enable test strobe, etc.
     ReadRegister( AlpideRegister::FROMU_CONFIG1, value );
@@ -216,8 +216,8 @@ void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* conf
     sprintf( config, "%sFROMU_PULSING2  %i\n", config, value );
 
     // CMU DMU config reg
-    ReadRegister( AlpideRegister::CMUDMU_CONFIG, value );
-    sprintf( config, "%sCMUDMU_CONFIG  %i\n", config, value );
+    ReadRegister( AlpideRegister::CMU_DMU_CONFIG, value );
+    sprintf( config, "%sCMU_DMU_CONFIG  %i\n", config, value );
 
 }
 
@@ -535,7 +535,7 @@ void TAlpide::WritePixConfReg( AlpidePixConfigReg reg, const bool data )
 {
     uint16_t pixconfig = (int) reg & 0x1;
     pixconfig         |= (data?1:0) << 1;
-    WriteRegister( AlpideRegister::PIXELCONFIG, pixconfig );
+    WriteRegister( AlpideRegister::PIXEL_CONFIG, pixconfig );
 }
 
 //___________________________________________________________________
@@ -683,7 +683,7 @@ void TAlpide::ConfigureCMU()
         cout << "TAlpide::ConfigureBuffers() - \t (dec) " << std::dec << cmuconfig << endl;
     }
     try {
-        WriteRegister( AlpideRegister::CMUDMU_CONFIG, cmuconfig );
+        WriteRegister( AlpideRegister::CMU_DMU_CONFIG, cmuconfig );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
         cerr << "TAlpide::ConfigureCMU() - chip id = " << DecomposeChipId() << endl;
@@ -691,7 +691,49 @@ void TAlpide::ConfigureCMU()
     }
 }
 
+// Setting up of DTU test register 1 (DTU_TEST1) bits
+// (alpide manual, section 3.2.2, page 44)
+//___________________________________________________________________
+void TAlpide::ConfigureDTU_TEST1()
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ConfigureDTU_TEST1() - chip config. not found!" );
+    }
+    
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ConfigureDTU_TEST1() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    
+    uint16_t config = 0;
+    config |= (spConfig->GetParamValue("DTU_TEST1_TEST_ENABLE") ? 1 : 0);
+    config |= (spConfig->GetParamValue("DTU_TEST1_PRBS_ENABLE") ? 1 : 0) << 1;
+    config |= (spConfig->GetParamValue("DTU_TEST1_SINGLE_MODE") ? 1 : 0) << 2;
+    config |= (spConfig->GetParamValue("DTU_TEST1_PRBS_RATE") & 0x3 ) << 3;
+    config |= (spConfig->GetParamValue("DTU_TEST1_BYPASS_8B10B") ? 1 : 0) << 5;
+    
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::ConfigureDTU_TEST1() - chip id = " << DecomposeChipId()  <<  endl;
+        cout << "TAlpide::ConfigureDTU_TEST1() - value = " <<  endl;
+        cout << "TAlpide::ConfigureDTU_TEST1() - \t (bin) " << std::bitset<16> ( config ) << endl;
+        cout << "TAlpide::ConfigureDTU_TEST1() - \t (hex) " << std::hex << config << endl;
+        cout << "TAlpide::ConfigureDTU_TEST1() - \t (dec) " << std::dec << config << endl;
+    }
+    try {
+        WriteRegister( AlpideRegister::DTU_TEST1, config );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        cerr << "TAlpide::ConfigureDTU_TEST1() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ConfigureDTU_TEST1() - failed." );
+    }
+}
+
 // Setting up of readout - FROMU part
+// (alpide manual, section 3.2.2, page 38-40)
 // (alpide manual, section 3.8.3, page 76)
 //___________________________________________________________________
 void TAlpide::ConfigureFROMU()
@@ -784,8 +826,8 @@ void TAlpide::ConfigureBuffers()
     }
     
     try {
-        WriteRegister( AlpideRegister::CLKIO_DACS, clocks );
-        WriteRegister( AlpideRegister::CMUIO_DACS, ctrl );
+        WriteRegister( AlpideRegister::DACS_CLKIO_BUF, clocks );
+        WriteRegister( AlpideRegister::DACS_CMUIO_BUF, ctrl );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
         cerr << "TAlpide::ConfigureBuffers() - chip id = " << DecomposeChipId() << endl;
@@ -890,7 +932,7 @@ void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
     }
 
     try {
-        WriteRegister( AlpideRegister::MODECONTROL, controlreg );
+        WriteRegister( AlpideRegister::MODE_CONTROL, controlreg );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
         cerr << "TAlpide::WriteControlReg() - chip id = " << DecomposeChipId() << endl;

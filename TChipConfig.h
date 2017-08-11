@@ -17,7 +17,9 @@ private:
     bool fEnabledSlave;
     int fReceiver;
     int fControlInterface;
-    #pragma mark - DACs used
+
+#pragma mark - DACs used
+
     int fITHR;
     int fIDB;
     int fVCASN;
@@ -28,12 +30,16 @@ private:
     int fVPULSEL;
     int fVPULSEH;
     int fIBIAS;
-    #pragma mark - DACs unused
+
+#pragma mark - DACs unused
+
     int fVRESETP;
     //int fVTEMP; // TODO: uncomment when default value is known (see also TAlpide::BaseConfigDACs() )
     //int fIAUX2; // TODO: uncomment when default value is known (see also TAlpide::BaseConfigDACs() )
     int fIRESET;
-    #pragma mark - Mode Control Register settings
+
+#pragma mark - Mode Control Register settings
+
     bool fReadoutMode; // false = triggered, true = continuous (influences busy handling)
     bool fEnableClustering;
     bool fMatrixReadoutSpeed;
@@ -42,42 +48,72 @@ private:
     bool fEnableSkewingStartRO;
     bool fEnableClockGating;
     bool fEnableCMUReadout;
-    #pragma mark - Fromu settings
-    /// default b000 enables all three MEB slices (bits 2:0 FROMU config register 1)
+
+#pragma mark - Fromu settings
+
+    //---------------- FROMU config register 1
+    
+    /// default b000 enables all three MEB slices (bits 2:0)
     int  fMEBmask;
-    /// strobe sequencer for continuous mode (bit 3 FROMU config register 1)
+
+    /// strobe sequencer for continuous mode (bit 3 FROMU)
     bool fEnableInternalStrobe;
-    /// controls if FROMU monitors the BUSY input and reject triggers when the BUSY is asserted (bit 4 FROMU config register 1)
+
+    /// controls if FROMU monitors the BUSY input and reject triggers when the BUSY is asserted (bit 4)
     bool fEnableBusyMonitoring;
-    /// type of pulsing (analog or digital) of the pixels (bit 5 FROMU config trgister 1)
+
+    /// type of pulsing (analog or digital) of the pixels (bit 5)
     int fTestPulseMode;
-    /// enable the automatic generation of an internal TRIGGER pulse after a PULSE command (bit 6 FROMU config register 1)
+
+    /// enable the automatic generation of an internal TRIGGER pulse after a PULSE command (bit 6)
     bool fEnableTestStrobe;
-    /// enable automatic shift and rotate selected pulse line after each PULSE signal (bit 7 FROMU config register 1)
+
+    /// enable automatic shift and rotate selected pulse line after each PULSE signal (bit 7)
     bool fEnableRotatePulseLines;
-    //---- all in unit of clock cycles (assuming a clock period of 25 ns)
-    /// delay between external trigger command and internally generated strobe (bits 10:9 of the value in FROMU config register 1)
+
+    //  all delays in unit of clock cycles (assuming a clock period of 25 ns)
+    
+    /// delay between external trigger command and internally generated strobe (bits 10:9)
     int fTriggerDelay;
-    //-- min. 1 clock cycle, max. 65536
+    
+    //---------------- other FROMU registers
+
+    //  min. 1 clock cycle, max. 65536
+    
     /// (value in FROMU config register 2)
     int fStrobeDuration;
+
     /// gap between subsequent strobes when internal sequencer mode is activated (value in FROMU config register 3)
     int fStrobeGap;
+
     /// delay from pulse to strobe if strobe generated internally (value in FROMU pulsing register 1)
     int fStrobeDelay;
+
     /// (value in FROMU pulsing register 2)
     int fPulseDuration;
-    #pragma mark - Buffer current settings
+
+#pragma mark - Buffer current settings
+
     int  fDclkReceiver;
     int  fDclkDriver;
     int  fMclkReceiver;
     int  fDctrlReceiver;
     int  fDctrlDriver;
-    #pragma mark - CMU / DMU settings
+
+#pragma mark - CMU / DMU settings
+
     int  fPreviousId;
     bool fInitialToken;
     bool fDisableManchester;
     bool fEnableDdr;
+
+#pragma mark - DTU Test Register 1 settings
+    
+    bool fDtuTest1_TestEnable;
+    bool fDtuTest1_PrbsEnable;
+    bool fDtuTest1_TestSingleMode;
+    int  fDtuTest1_PrbsRate;
+    bool fDtuTest1_Bypass8b10b;
 
 private:
     #pragma mark - private methods
@@ -201,6 +237,12 @@ private:
     static const bool INITIAL_TOKEN;
     static const bool DISABLE_MANCHESTER;
     static const bool ENABLE_DDR;
+    
+    static const bool DTU_TEST1_TEST_ENABLE;
+    static const bool DTU_TEST1_PRBS_ENABLE;
+    static const bool DTU_TEST1_SINGLE_MODE;
+    static const int  DTU_TEST1_PRBS_RATE;
+    static const bool DTU_TEST1_BYPASS_8B10B;
     
 };
 

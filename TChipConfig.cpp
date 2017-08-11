@@ -55,6 +55,12 @@ const bool TChipConfig::INITIAL_TOKEN      = true; // outer barrel scenario
 const bool TChipConfig::DISABLE_MANCHESTER = false;
 const bool TChipConfig::ENABLE_DDR         = true;
 
+const bool TChipConfig::DTU_TEST1_TEST_ENABLE = false;
+const bool TChipConfig::DTU_TEST1_PRBS_ENABLE = false;
+const bool TChipConfig::DTU_TEST1_SINGLE_MODE = false;
+const int  TChipConfig::DTU_TEST1_PRBS_RATE = (int)AlpidePrbs7Mode::PRBS1200;
+const bool TChipConfig::DTU_TEST1_BYPASS_8B10B = false;
+
 #pragma mark - constructors/destructors
 
 //___________________________________________________________________
@@ -114,6 +120,12 @@ TChipConfig::TChipConfig()
     fDisableManchester   = DISABLE_MANCHESTER;
     fEnableDdr           = ENABLE_DDR;
     
+    fDtuTest1_TestEnable        = DTU_TEST1_TEST_ENABLE;
+    fDtuTest1_PrbsEnable        = DTU_TEST1_PRBS_ENABLE;
+    fDtuTest1_TestSingleMode    = DTU_TEST1_SINGLE_MODE;
+    fDtuTest1_PrbsRate          = DTU_TEST1_PRBS_RATE;
+    fDtuTest1_Bypass8b10b       = DTU_TEST1_BYPASS_8B10B;
+
     InitParamMap();
 }
 
@@ -173,6 +185,12 @@ TChipConfig::TChipConfig( const int chipId )
     fInitialToken        = INITIAL_TOKEN;
     fDisableManchester   = DISABLE_MANCHESTER;
     fEnableDdr           = ENABLE_DDR;
+    
+    fDtuTest1_TestEnable        = DTU_TEST1_TEST_ENABLE;
+    fDtuTest1_PrbsEnable        = DTU_TEST1_PRBS_ENABLE;
+    fDtuTest1_TestSingleMode    = DTU_TEST1_SINGLE_MODE;
+    fDtuTest1_PrbsRate          = DTU_TEST1_PRBS_RATE;
+    fDtuTest1_Bypass8b10b       = DTU_TEST1_BYPASS_8B10B;
     
     InitParamMap();
 }
@@ -234,6 +252,12 @@ TChipConfig::TChipConfig( const int chipId, const int ci, const int rc )
     fDisableManchester   = DISABLE_MANCHESTER;
     fEnableDdr           = ENABLE_DDR;
     
+    fDtuTest1_TestEnable        = DTU_TEST1_TEST_ENABLE;
+    fDtuTest1_PrbsEnable        = DTU_TEST1_PRBS_ENABLE;
+    fDtuTest1_TestSingleMode    = DTU_TEST1_SINGLE_MODE;
+    fDtuTest1_PrbsRate          = DTU_TEST1_PRBS_RATE;
+    fDtuTest1_Bypass8b10b       = DTU_TEST1_BYPASS_8B10B;
+    
     InitParamMap();
 }
 
@@ -285,14 +309,21 @@ void TChipConfig::InitParamMap()
     fSettings["STROBEDELAYCHIP"]        = &fStrobeDelay;
     fSettings["PULSEDURATION"]          = &fPulseDuration;
 
-    fSettings["DCLKRECEIVER"]          = &fDclkReceiver;
-    fSettings["DCLKDRIVER"]          = &fDclkDriver;
-    fSettings["MCLKRECEIVER"]          = &fMclkReceiver;
+    fSettings["DCLKRECEIVER"]           = &fDclkReceiver;
+    fSettings["DCLKDRIVER"]             = &fDclkDriver;
+    fSettings["MCLKRECEIVER"]           = &fMclkReceiver;
     fSettings["DCTRLRECEIVER"]          = &fDctrlReceiver;
-    fSettings["DCTRLDRIVER"]          = &fDctrlDriver;
+    fSettings["DCTRLDRIVER"]            = &fDctrlDriver;
     
     fSettings["DISABLEMANCHESTER"]      = (int*)&fDisableManchester;
     fSettings["ENABLEDDR"]              = (int*)&fEnableDdr;
+    
+    fSettings["DTU_TEST1_TEST_ENABLE"]  = (int*)&fDtuTest1_TestEnable;
+    fSettings["DTU_TEST1_PRBS_ENABLE"]  = (int*)&fDtuTest1_PrbsEnable;
+    fSettings["DTU_TEST1_SINGLE_MODE"]  = (int*)&fDtuTest1_TestSingleMode;
+    fSettings["DTU_TEST1_PRBS_RATE"]    = &fDtuTest1_PrbsRate;
+    fSettings["DTU_TEST1_BYPASS_8B10B"] = (int*)&fDtuTest1_Bypass8b10b;
+
 }
 
 #pragma mark - setters

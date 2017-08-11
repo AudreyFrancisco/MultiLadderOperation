@@ -5,34 +5,39 @@
 
 enum class AlpideRegister : std::uint16_t {
     // addresses of periphery control registers (alpide manual, section 3.2.2, page 36)
-    COMMAND         = 0x0,
-    MODECONTROL     = 0x1,
-    REGDISABLE_LOW  = 0x2,
-    REGDISABLE_HIGH = 0x3,
-    FROMU_CONFIG1   = 0x4,
-    FROMU_CONFIG2   = 0x5,
-    FROMU_CONFIG3   = 0x6,
-    FROMU_PULSING1  = 0x7,
-    FROMU_PULSING2  = 0x8,
-    FROMU_STATUS1   = 0x9,
-    FROMU_STATUS2   = 0xa,
-    FROMU_STATUS3   = 0xb,
-    FROMU_STATUS4   = 0xc,
-    FROMU_STATUS5   = 0xd,
-    CLKIO_DACS      = 0xe,
-    CMUIO_DACS      = 0xf,
-    CMUDMU_CONFIG   = 0x10,
-    CMUDMU_STATUS   = 0x11,
-    DMUFIFO_LOW     = 0x12,
-    DMUFIFO_HIGH    = 0x13,
-    DTU_CONFIG      = 0x14,
-    DTU_DACS        = 0x15,
-    PLL_LOCK1       = 0x16,
-    PLL_LOCK2       = 0x17,
-    DTU_TEST1       = 0x18,
-    DTU_TEST2       = 0x19,
-    DTU_TEST3       = 0x1a,
-    BUSY_MINWIDTH   = 0x1b,
+    COMMAND             = 0x0,
+    MODE_CONTROL        = 0x1,
+    DISABLE_REGION_LOW  = 0x2,
+    DISABLE_REGION_HIGH = 0x3,
+    
+    FROMU_CONFIG1       = 0x4,
+    FROMU_CONFIG2       = 0x5,
+    FROMU_CONFIG3       = 0x6,
+    FROMU_PULSING1      = 0x7,
+    FROMU_PULSING2      = 0x8,
+    FROMU_STATUS1       = 0x9,
+    FROMU_STATUS2       = 0xa,
+    FROMU_STATUS3       = 0xb,
+    FROMU_STATUS4       = 0xc,
+    FROMU_STATUS5       = 0xd,
+
+    DACS_CLKIO_BUF      = 0xe,
+    DACS_CMUIO_BUF      = 0xf,
+
+    CMU_DMU_CONFIG      = 0x10,
+    CMU_DMU_STATUS      = 0x11,
+    DMU_FIFO_LOW        = 0x12,
+    DMU_FIFO_HIGH       = 0x13,
+
+    DTU_CONFIG          = 0x14,
+    DTU_DACS            = 0x15,
+    DTU_PLL_LOCK1       = 0x16,
+    DTU_PLL_LOCK2       = 0x17,
+    DTU_TEST1           = 0x18,
+    DTU_TEST2           = 0x19,
+    DTU_TEST3           = 0x1a,
+    BUSY_MINWIDTH       = 0x1b,
+
     // addresses of dacs and monitoring control registers (alpide manual, section 3.2.5, page 50)
     ANALOGMON       = 0x600,
     VRESETP         = 0x601,
@@ -74,6 +79,7 @@ enum class AlpideRegister : std::uint16_t {
     ADC_IRESET      = 0x625,
     ADC_BG2V        = 0x626,
     ADC_T2V         = 0x627,
+
     // addresses of test and debug control registers (alpide manual, section 3.2.6, page 54)
     SEU_ERROR_COUNT = 0x700,
     TEST_CONTROL    = 0x701,
@@ -91,12 +97,13 @@ enum class AlpideRegister : std::uint16_t {
     RRU_MEB_MSB_BASE   = 0x200,    // same here
     DCOL_DISABLE_BASE  = 0x300,
     REGION_STATUS_BASE = 0x301,
+
     // pixel control registers (alpide manual, section 3.2.4, page 48)
-    PIXELCONFIG     = 0x500,
-    COLSEL1_BASE    = 0x401,
-    COLSEL2_BASE    = 0x402,
-    ROWSEL_BASE     = 0x404,
-    PULSESEL_BASE   = 0x408
+    PIXEL_CONFIG        = 0x500,
+    PIXEL_COLSEL1_BASE  = 0x401,
+    PIXEL_COLSEL2_BASE  = 0x402,
+    PIXEL_ROWSEL_BASE   = 0x404,
+    PIXEL_PULSESEL_BASE = 0x408
 };
 
 // command codes recognized by the Command Register
@@ -145,5 +152,14 @@ enum class AlpideChipMode {
     TRIGGERED   = 1, // (readout enabled)
     CONTINUOUS  = 2  // (readout enabled)
 };
+    
+// Bits 4:3 of the DTU Test Register 1
+enum class AlpidePrbs7Mode {
+    PRBS1200   = 0, // 2b'00
+    PRBS400    = 1, // 2b'01
+    PRBS600    = 2, // 2b'10
+    PRBSRST    = 3 // 2b'11 (synchronous reset of the PRBS-7 pattern generator)
+};
+
 
 #endif

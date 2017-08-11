@@ -121,7 +121,7 @@ void TDeviceDigitalScan::Go()
         DoConfigureMaskStage( myPixPerRegion, istage );
         
         //uint16_t Value;
-        //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_CMUDMU_CONFIG, Value );
+        //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_CMU_DMU_CONFIG, Value );
         //cout << "CMU DMU Config: 0x" << std::hex << Value << std::dec << endl;
         //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_FROMU_STATUS1, Value );
         //cout << "Trigger counter before: " << Value << endl;

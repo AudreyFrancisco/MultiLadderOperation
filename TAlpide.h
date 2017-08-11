@@ -131,6 +131,9 @@ class TAlpide : public TVerbosity {
     /// Setting up of readout from config file - CMU part
     void ConfigureCMU();
     
+    /// Setting up of DTU test register 1 (DTU_TEST1) bits
+    void ConfigureDTU_TEST1();
+
     /// Setting up of readout from config file - FROMU part
     void ConfigureFROMU();
 
