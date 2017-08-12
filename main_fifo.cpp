@@ -71,9 +71,11 @@ int main(int argc, char** argv) {
   
     TDeviceFifoTest theDeviceTestor( theDevice );
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
+    theDeviceTestor.Init();
     theDeviceTestor.DoConfigureCMU();
+    
     theDeviceTestor.Go();
- 
+
     if ( myDAQBoard ) {
         myDAQBoard->PowerOff();
     }

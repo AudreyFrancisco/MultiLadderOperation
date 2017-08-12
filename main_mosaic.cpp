@@ -50,6 +50,7 @@ int main(int argc, char** argv) {
     // configure chip(s)
     TDeviceChipVisitor theDeviceChipVisitor( theDevice );
     theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
+    theDeviceChipVisitor.Init();
     theDeviceChipVisitor.DoBaseConfig();
     
 	//--- Data Tacking
