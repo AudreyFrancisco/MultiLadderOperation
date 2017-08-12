@@ -98,8 +98,11 @@ enum class AlpideRegister : std::uint16_t {
     DCOL_DISABLE_BASE  = 0x300,
     REGION_STATUS_BASE = 0x301,
 
-    // pixel control registers (alpide manual, section 3.2.4, page 48)
+    // global pixel configuration register (alpide manual, page 49)
     PIXEL_CONFIG        = 0x500,
+
+    // used to address the pixel control registers (alpide manual, section 3.2.4, page 48)
+    PIXEL_BROADCAST     = 0x080,
     PIXEL_COLSEL1_BASE  = 0x401,
     PIXEL_COLSEL2_BASE  = 0x402,
     PIXEL_ROWSEL_BASE   = 0x404,
@@ -128,9 +131,12 @@ enum class AlpideOpCode : std::uint16_t {
     ADCMEASURE   = 0xff20  // start ADC measure
 };
 
-enum class AlpidePixConfigReg { // previously named AlpidePixReg
-    MASK   = 0x0,
-    SELECT = 0x1
+// PIXCNFG_REGSEL (bit 0 in the global Pixel Configuration Register)
+// (alpide manual, section 3.2.4, page 48)
+// (see also alpide manual, section 3.6, page 66)
+enum class AlpidePixConfigReg {
+    MASK_ENABLE   = 0x0,
+    PULSE_ENABLE  = 0x1
 };
 
 enum class AlpideTestPulseMode { // previously named AlpidePulseType
