@@ -48,28 +48,16 @@ TDeviceFifoTest::~TDeviceFifoTest()
 }
 
 //___________________________________________________________________
-void TDeviceFifoTest::DoConfigureCMU()
+void TDeviceFifoTest::Init()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceFifoTest::DoConfigureCMU() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceFifoTest::DoConfigureCMU() - no chip found !" );
-    }
-
-    shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard(0);
-    if ( !myBoard ) {
-        throw runtime_error( "TDeviceFifoTest::DoConfigureCMU() - no readout board found!" );
-    }
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
-
+    TDeviceChipVisitor::Init();
+    
+    // write and read the DPRAM memories of the RRU modules can only
+    // be done when the chip is in configuration mode
+    
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->WriteControlReg( AlpideChipMode::CONFIG );
-        fDevice->GetChip(i)->ConfigureCMU();
     }
-
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::RORST );
 }
 
 //___________________________________________________________________
@@ -161,7 +149,6 @@ void TDeviceFifoTest::WriteMem()
         cerr << "TDeviceFifoTest::WriteMem() - chip:region:offset " << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset << endl;
         throw runtime_error( "TDeviceFifoTest::WriteMem() - failed." );
     }
-    
 }
 
 //___________________________________________________________________
@@ -214,7 +201,7 @@ void TDeviceFifoTest::MemReadback()
     }
 
     // MemReadback() test fails completely when one can not properly
-    // write or read the pixel control register being tested
+    // write or read the memory location under test
     
     try {
         WriteMem();
@@ -231,8 +218,8 @@ void TDeviceFifoTest::MemReadback()
         throw runtime_error( "TDeviceFifoTest::MemReadback() - failed !" );
     }
     
-    // MemReadback() test is working but the memory being tested has some
-    // malfunction
+    // MemReadback() test is working but the memory location just tested
+    // has some malfunction
     
     if ( aValue != fBitPattern ) {
         if ( GetVerboseLevel() > kSILENT ) {
@@ -261,11 +248,8 @@ void TDeviceFifoTest::MemReadback()
 //___________________________________________________________________
 bool TDeviceFifoTest::MemTest()
 {
-    // If we can not write or read the memory under test for the
-    // first pattern, then we don't lose time testing the next one.
-    // This strategy was chosen because this seems to happen only
-    // when there is some general communication problem (bad setting?)
-    // between the chip and the readout board.
+    // If we can not write or read the memory location under test for
+    // the first pattern, then we don't lose time testing the next one.
     
     fBitPattern = kTEST_ALL_ZERO;
     try {

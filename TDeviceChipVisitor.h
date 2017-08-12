@@ -35,15 +35,19 @@ public:
     
     #pragma mark - setters
     void SetDevice( std::shared_ptr<TDevice> aDevice );
-    
-    #pragma mark - Propagate verbosity down to each Alpide in the device
+
+    /// Propagate verbosity down to each Alpide in the device
     void SetVerboseLevel( const int level );
+    
+    #pragma mark - initialization
+    virtual void Init();
     
     #pragma mark - forward configure operations to each Alpide in the device
     void DoApplyStandardDACSettings( const float backBias );
     void DoConfigureFROMU();
     void DoConfigureBuffers();
-    virtual void DoConfigureCMU();
+    void DoConfigureCMU();
+    void DoConfigureDTU_TEST1();
     void DoConfigureMaskStage( int nPix, const int iStage );
     void DoBaseConfigPLL();
     void DoBaseConfigMask();

@@ -8,6 +8,11 @@
  *
  * \author Andry Rakotozafindrabe
  *
+ * For all enabled chips in the device, write various patterns of zero or one in all
+ * Region Readout Unit (RRU) DPRAM memories. Then read them, and check if the readback
+ * pattern match the written pattern. In that case, the FIFO test is successful. If not,
+ * error counters per pattern per chip are displayed.
+ *
  * \remark
  * It is recommended to disable Manchester encoding in the config file (CMU settings).
  *
@@ -43,13 +48,13 @@ class TDeviceFifoTest : public TDeviceChipVisitor {
     /// counter to keep tracks of the failure for the FIFO test pattern 0xffffff per chip
     int fErrCountF;
     
-    /// index of the current region of the chip whose pixel memories are being tested
+    /// index of the current region of the chip whose DPRAM memories are being tested
     int fRegion;
     
-    /// index of the current pixel control register being tested
+    /// index of the current DPRAM memory location being tested
     int fOffset;
     
-    /// bit pattern currently used for the memory test and written to the pixel register
+    /// bit pattern currently used for the memory test
     int fBitPattern;
     
 public:
@@ -62,25 +67,25 @@ public:
     
     /// destructor
     virtual ~TDeviceFifoTest();
-
-    /// configure all chips for FIFO test
-    virtual void DoConfigureCMU();
     
+    /// initialization
+    virtual void Init();
+
     /// run the FIFO test on all chips of the device
     void Go();
     
 private:
     
-    /// write to a given pixel control register
+    /// write to a given DPRAM
     void WriteMem();
     
-    /// read a given pixel control register
+    /// read a given DPRAM
     int  ReadMem();
     
-    /// perform write pattern + readback in a given pixel control register
+    /// perform write pattern + readback in a given DPRAM
     void MemReadback();
     
-    /// perform MemReadback() for all patterns in a given pixel control register
+    /// perform MemReadback() for all patterns in a DPRAM
     bool MemTest();
     
     enum MemoryPattern {

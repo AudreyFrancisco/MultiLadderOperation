@@ -50,8 +50,6 @@ void TDeviceChipVisitor::SetDevice( shared_ptr<TDevice> aDevice )
     fDevice = aDevice;
 }
 
-#pragma mark - Propagate verbosity down to the TDevice
-
 //___________________________________________________________________
 void TDeviceChipVisitor::SetVerboseLevel( const int level )
 {
@@ -67,6 +65,45 @@ void TDeviceChipVisitor::SetVerboseLevel( const int level )
     TVerbosity::SetVerboseLevel( level );
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->SetVerboseLevel( level );
+    }
+}
+
+#pragma mark - initialization
+
+//___________________________________________________________________
+void TDeviceChipVisitor::Init()
+{
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::Init() - can not use a null pointer !" );
+    }
+    if ( fDevice->GetNChips() == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::Init() - no chip found !" );
+    }
+    shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard(0);
+    if ( !myBoard ) {
+        throw runtime_error( "TDeviceChipVisitor::Init() - no readout board found!" );
+    }
+    
+    // -- global reset chips
+
+    myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
+    
+    // TODO: check if this is needed ?
+    // -- pixel matrix reset
+    // (does not affect the PULSE_EN and MASK_EN latches)
+
+    myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
+    
+    // -- init in-pixel registers
+    // (the pixel latches do not provide a reset mechanism,
+    // the value after power-on is unknown)
+
+    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+        fDevice->GetChip(i)->Init();
+        // disable mask
+        fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE, false );
+        // disable pulse
+        fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
     }
 }
 
@@ -125,6 +162,20 @@ void TDeviceChipVisitor::DoConfigureCMU()
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureCMU();
+    }
+}
+
+//___________________________________________________________________
+void TDeviceChipVisitor::DoConfigureDTU_TEST1()
+{
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureDTU_TEST1() - can not use a null pointer !" );
+    }
+    if ( fDevice->GetNChips() == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureDTU_TEST1() - no chip found !" );
+    }
+    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+        fDevice->GetChip(i)->ConfigureDTU_TEST1();
     }
 }
 
@@ -198,11 +249,6 @@ void TDeviceChipVisitor::DoBaseConfig()
     if ( !myBoard ) {
         throw runtime_error( "TDeviceFifoTest::DoConfigureCMU() - no readout board found!" );
     }
-    // global reset chips
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
-
-    // pixel matrix reset
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
 
     // configure chip(s)
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
