@@ -527,6 +527,19 @@ float TAlpide::ReadDACCurrent( AlpideRegister ADac )
 //___________________________________________________________________
 void TAlpide::Init()
 {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::Init() - chip config. not found!" );
+    }
+    
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::Init() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+
     ClearPixSelectBits(true);
 }
 
@@ -546,7 +559,14 @@ void TAlpide::WritePixRegAll( AlpidePixConfigReg reg, const bool data )
     WritePixConfReg( reg, data );
     
     // set all colsel and all rowsel to 1
-    WriteRegister( 0x487, 0xffff ); // see alpide manual, section 3.6.2, page 70
+    
+    uint16_t address =
+        (uint16_t)AlpideRegister::PIXEL_BROADCAST
+        | (uint16_t)AlpideRegister::PIXEL_COLSEL1_BASE
+        | (uint16_t)AlpideRegister::PIXEL_COLSEL2_BASE
+        | (uint16_t)AlpideRegister::PIXEL_ROWSEL_BASE ; // address = 0x487
+    
+    WriteRegister( address, 0xffff ); // see alpide manual, section 3.6.2, page 70
 
     ClearPixSelectBits( false );
 }
@@ -856,19 +876,19 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
         cout << "TAlpide::ConfigureMaskStage() - Warning: bad number of pixels for mask stage (" << nPix << ", using 1 instead" << endl;
         nPix = 1;
     }
-    WritePixRegAll( AlpidePixConfigReg::MASK,   true );
-    WritePixRegAll( AlpidePixConfigReg::SELECT, false );
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,   true );
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
     
     // complete row
     if ( nPix == 32 ) {
-        WritePixRegRow( AlpidePixConfigReg::MASK,   false, iStage );
-        WritePixRegRow( AlpidePixConfigReg::SELECT, true, iStage );
+        WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE,   false, iStage );
+        WritePixRegRow( AlpidePixConfigReg::PULSE_ENABLE, true, iStage );
         return iStage;
     } else {
         int colStep = 32 / nPix;
         for ( int icol = 0; icol < 1024; icol += colStep ) {
-            WritePixRegSingle( AlpidePixConfigReg::MASK,   false, iStage % 512, icol + iStage / 512);
-            WritePixRegSingle( AlpidePixConfigReg::SELECT, true,  iStage % 512, icol + iStage / 512);
+            WritePixRegSingle( AlpidePixConfigReg::MASK_ENABLE,   false, iStage % 512, icol + iStage / 512);
+            WritePixRegSingle( AlpidePixConfigReg::PULSE_ENABLE, true,  iStage % 512, icol + iStage / 512);
         }
         return (iStage % 512);
     }
@@ -1029,8 +1049,8 @@ void TAlpide::BaseConfigMask()
         }
         return;
     }
-    WritePixRegAll( AlpidePixConfigReg::MASK,   true );
-    WritePixRegAll( AlpidePixConfigReg::SELECT, false );
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,   true );
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
 }
 
 //___________________________________________________________________
@@ -1271,12 +1291,19 @@ void TAlpide::SetTheDacMonitor( AlpideRegister ADac, DACMonIref IRef )
 #pragma mark - needed for chip config. operations
 
 //___________________________________________________________________
-void TAlpide::ClearPixSelectBits( const bool clearPulseGating)
+void TAlpide::ClearPixSelectBits( const bool clearPulseGating )
 {
-    if ( clearPulseGating )
-        WriteRegister( 0x48f, 0 );
-    else
-        WriteRegister( 0x487, 0 );
+    uint16_t address =
+        (uint16_t)AlpideRegister::PIXEL_BROADCAST
+        | (uint16_t)AlpideRegister::PIXEL_COLSEL1_BASE
+        | (uint16_t)AlpideRegister::PIXEL_COLSEL2_BASE
+        | (uint16_t)AlpideRegister::PIXEL_ROWSEL_BASE ; // address = 0x487
+
+    if ( clearPulseGating ) {
+        address |= (uint16_t)AlpideRegister::PIXEL_PULSESEL_BASE; // address = 0x48f
+    }
+    
+    WriteRegister( address, 0 );
 }
 
 #pragma mark - other
