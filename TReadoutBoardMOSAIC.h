@@ -18,6 +18,8 @@
 #include <iostream>
 #include <cstdint>
 
+
+#include "TAlpide.h"
 #include "TReadoutBoard.h"
 #include "TBoardConfig.h"
 #include "TBoardConfigMOSAIC.h"
@@ -100,8 +102,11 @@ private:
 	std::uint32_t decodeError();
 
 protected:
-    int WriteChipRegister (std::uint16_t address, std::uint16_t value, std::uint8_t chipId =0);
-    int ReadChipRegister  (std::uint16_t address, std::uint16_t &value, std::uint8_t chipId =0);
+    /// implementation of base class method to write chip registers
+    int WriteChipRegister (std::uint16_t address, std::uint16_t value, std::uint8_t chipId =0, const bool doExecute = true  );
+
+    /// implementation of base class method to read chip registers
+    int ReadChipRegister  (std::uint16_t address, std::uint16_t &value, std::uint8_t chipId =0, const bool doExecute = true );
     
 // Properties
 private:

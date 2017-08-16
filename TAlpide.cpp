@@ -6,9 +6,57 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <array>
 
 using namespace std;
 
+const char* TAlpide::fRegName[] = {
+    ( char* ) "Command Register",
+    ( char* ) "Mode Control register",
+    ( char* ) "Disable of regions 0-15",
+    ( char* ) "Disable of regions 16-31",
+    ( char* ) "FROMU Configuration Register 1",
+    ( char* ) "FROMU Configuration Register 2",
+    ( char* ) "FROMU Configuration Register 3",
+    ( char* ) "FROMU Pulsing Register 1",
+    ( char* ) "FROMU Pulsing Register 2",
+    ( char* ) "FROMU Status Register 1",
+    ( char* ) "FROMU Status Register 2",
+    ( char* ) "FROMU Status Register 3",
+    ( char* ) "FROMU Status Register 4",
+    ( char* ) "FROMU Status Register 5",
+    ( char* ) "DAC settings for DCLK and MCLK I/O buffers",
+    ( char* ) "DAC settings for CMU I/O buffers",
+    ( char* ) "CMU and DMU Configuration Register",
+    ( char* ) "CMU and DMU Status Register",
+    ( char* ) "DMU Data FIFO [15:0]",
+    ( char* ) "DMU Data FIFO [23:16]",
+    ( char* ) "DTU Configuration Register",
+    ( char* ) "DTU DACs Register",
+    ( char* ) "DTU PLL Lock Register 1",
+    ( char* ) "DTU PLL Lock Register 2",
+    ( char* ) "DTU Test Register 1",
+    ( char* ) "DTU Test Register 2",
+    ( char* ) "DTU Test Register 3",
+    ( char* ) "BUSY min width"
+};
+
+const char* TAlpide::fDACsRegName[] = {
+    ( char* ) "VRESETP",
+    ( char* ) "VRESETD",
+    ( char* ) "VCASP",
+    ( char* ) "VCASN",
+    ( char* ) "VPULSEH",
+    ( char* ) "VPULSEL",
+    ( char* ) "VCASN2",
+    ( char* ) "VCLIP",
+    ( char* ) "VTEMP",
+    ( char* ) "IAUX2",
+    ( char* ) "IRESET",
+    ( char* ) "IDB",
+    ( char* ) "IBIAS",
+    ( char* ) "ITHR"
+};
 
 #pragma mark - Constructors/destructor
 
@@ -221,12 +269,43 @@ void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* conf
 
 }
 
+//___________________________________________________________________
+void TAlpide::DumpConfig()
+{
+    array<uint16_t, (uint16_t)AlpideRegister::BUSY_MINWIDTH + 1> regs;
+    regs.fill( 0 );
+    
+    bool doExecute = false;
+    for ( uint16_t i = 0; i < regs.size(); i++ ) {
+        ReadRegister( i, regs.at(i) );
+    }
+    
+    const uint16_t nDACs = 14;
+    array<uint16_t, nDACs> dacregs;
+    regs.fill( 0 );
+    
+    for ( uint16_t i = (uint16_t)AlpideRegister::VRESETP; i < dacregs.size(); i++ ) {
+        if ( i == dacregs.size()-1 ) doExecute = true;
+        ReadRegister( i, dacregs.at(i) );
+    }
+
+    cout << "TAlpide::DumpConfig() - chip id = " << DecomposeChipId()  <<  endl;
+    for ( uint i = 0; i < regs.size(); i++ ) {
+        cout << fRegName[i] << " \t " <<std::hex << regs.at(i) << endl;
+    }
+    for ( uint i = 0; i < dacregs.size(); i++ ) {
+        cout << fDACsRegName[i] << " \t " <<std::hex << dacregs.at(i) << endl;
+    }
+}
+
+
 #pragma mark - basic operations with registers
 
 //___________________________________________________________________
 void TAlpide::ReadRegister( const AlpideRegister address,
-                          uint16_t& value,
-                          const bool skipDisabledChip )
+                           uint16_t& value,
+                           const bool doExecute,
+                           const bool skipDisabledChip )
 {
     if ( fChipId < 0 ) {
         throw domain_error( "TAlpide::ReadRegister() - undefined chip id.");
@@ -250,7 +329,7 @@ void TAlpide::ReadRegister( const AlpideRegister address,
     
     int err = -1;
     try {
-        err = spBoard->ReadChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+        err = spBoard->ReadChipRegister( (uint16_t)address, value, (uint8_t)fChipId, doExecute );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
     }
@@ -264,6 +343,7 @@ void TAlpide::ReadRegister( const AlpideRegister address,
 //___________________________________________________________________
 void TAlpide::ReadRegister( const uint16_t address,
                            uint16_t& value,
+                           const bool doExecute,
                            const bool skipDisabledChip )
 {
     if ( fChipId < 0 ) {
@@ -288,7 +368,7 @@ void TAlpide::ReadRegister( const uint16_t address,
 
     int err = -1;
     try {
-        err = spBoard->ReadChipRegister( address, value, (uint8_t)fChipId );
+        err = spBoard->ReadChipRegister( address, value, (uint8_t)fChipId, doExecute );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
     }
@@ -302,6 +382,7 @@ void TAlpide::ReadRegister( const uint16_t address,
 //___________________________________________________________________
 void TAlpide::WriteRegister( const AlpideRegister address,
                             uint16_t value,
+                            const bool doExecute,
                             const bool verify,
                             const bool skipDisabledChip )
 {
@@ -327,7 +408,7 @@ void TAlpide::WriteRegister( const AlpideRegister address,
 
     int result = -1;
     try {
-        result = spBoard->WriteChipRegister( (uint16_t)address, value, (uint8_t)fChipId );
+        result = spBoard->WriteChipRegister( (uint16_t)address, value, (uint8_t)fChipId, (doExecute || verify) ); // always execute if verify is true
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
     }
@@ -357,6 +438,7 @@ void TAlpide::WriteRegister( const AlpideRegister address,
 //___________________________________________________________________
 void TAlpide::WriteRegister( const uint16_t address,
                             uint16_t value,
+                            const bool doExecute,
                             const bool verify,
                             const bool skipDisabledChip )
 {
@@ -382,7 +464,7 @@ void TAlpide::WriteRegister( const uint16_t address,
     
     int result = -1;
     try {
-        result = spBoard->WriteChipRegister( address, value, (uint8_t)fChipId );
+        result = spBoard->WriteChipRegister( address, value, (uint8_t)fChipId, (doExecute || verify) ); // always execute if verify is true
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
     }

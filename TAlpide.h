@@ -59,6 +59,9 @@ class TAlpide : public TVerbosity {
         Bandgap = 7,
         Temperature = 8
     };
+    
+    static const char* fRegName[];
+    static const char* fDACsRegName[];
 
  public:
     
@@ -85,30 +88,36 @@ class TAlpide : public TVerbosity {
     #pragma mark - dump
     
     void DumpConfig( const char* fileName, const bool writeFile=true, char* config = 0 );
+    
+    void DumpConfig();
 
     #pragma mark - basic operations with registers
     
     void ReadRegister( const AlpideRegister address,
-                     std::uint16_t& value,
-                     const bool skipDisabledChip = true );
+                      std::uint16_t& value,
+                      const bool doExecute = true,
+                      const bool skipDisabledChip = true );
     void ReadRegister( const std::uint16_t address,
-                     std::uint16_t& value,
-                     const bool skipDisabledChip = true );
+                      std::uint16_t& value,
+                      const bool doExecute = true,
+                      const bool skipDisabledChip = true );
 
     void WriteRegister( const AlpideRegister address,
-                      std::uint16_t value,
-                      const bool verify = false,
-                      const bool skipDisabledChip = true );
+                       std::uint16_t value,
+                       const bool doExecute = true,
+                       const bool verify = false,
+                       const bool skipDisabledChip = true );
     void WriteRegister( const std::uint16_t address,
-                      std::uint16_t value,
-                      const bool verify = false,
-                      const bool skipDisabledChip = true );
+                       std::uint16_t value,
+                       const bool doExecute = true,
+                       const bool verify = false,
+                       const bool skipDisabledChip = true );
     
     void ModifyRegisterBits( const AlpideRegister address,
-                           const std::uint8_t lowBit,
-                           const std::uint8_t nBits, std::uint16_t value,
-                           const bool verify = false,
-                           const bool skipDisabledChip = true );
+                            const std::uint8_t lowBit,
+                            const std::uint8_t nBits, std::uint16_t value,
+                            const bool verify = false,
+                            const bool skipDisabledChip = true );
     
 
     #pragma mark - chip configuration operations

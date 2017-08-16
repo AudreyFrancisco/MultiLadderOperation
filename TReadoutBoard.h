@@ -18,23 +18,27 @@ class TReadoutBoard {
     
 protected:
 
-    virtual int WriteChipRegister(std::uint16_t Address, std::uint16_t Value, std::uint8_t chipId = 0)  = 0;
-    virtual int ReadChipRegister(std::uint16_t Address, std::uint16_t &Value, std::uint8_t chipID = 0) = 0;
+    virtual int WriteChipRegister(std::uint16_t Address, std::uint16_t Value, std::uint8_t chipId = 0, const bool doExecute = true )  = 0;
+    virtual int ReadChipRegister(std::uint16_t Address, std::uint16_t &Value, std::uint8_t chipID = 0, const bool doExecute = true ) = 0;
     int GetControlInterface( const std::uint8_t chipId) const;
     int GetChipById( const std::uint8_t chipId) const;
     
     friend void TAlpide::ReadRegister( const AlpideRegister address,
                                       std::uint16_t& value,
+                                      const bool doExecute,
                                       const bool skipDisabledChip );
     friend void TAlpide::ReadRegister( const std::uint16_t address,
                                       std::uint16_t& value,
+                                      const bool doExecute,
                                       const bool skipDisabledChip );
     friend void TAlpide::WriteRegister( const AlpideRegister address,
                                        std::uint16_t value,
+                                       const bool doExecute,
                                        const bool verify,
                                        const bool skipDisabledChip );
     friend void TAlpide::WriteRegister( const std::uint16_t address,
                                        std::uint16_t value,
+                                       const bool doExecute,
                                        const bool verify,
                                        const bool skipDisabledChip );
 public:

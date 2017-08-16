@@ -96,13 +96,15 @@ TReadoutBoardMOSAIC::~TReadoutBoardMOSAIC()
 #pragma mark - public methods
 
 // Read/Write registers
+// Playing with doExecute, one can queue multiple read/write operations before execute()
+
 //___________________________________________________________________
-int TReadoutBoardMOSAIC::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId)
+int TReadoutBoardMOSAIC::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId, const bool doExecute )
 {
     uint_fast16_t Cii = GetControlInterface(chipId);
     try {
         fControlInterface[Cii]->addWriteReg(chipId, address, value);
-        fControlInterface[Cii]->execute();
+        if ( doExecute ) fControlInterface[Cii]->execute();
     } catch ( exception &err ) {
         cerr << err.what() << endl;
         throw err;
@@ -111,12 +113,12 @@ int TReadoutBoardMOSAIC::WriteChipRegister (uint16_t address, uint16_t value, ui
 }
 
 //___________________________________________________________________
-int TReadoutBoardMOSAIC::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId)
+int TReadoutBoardMOSAIC::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId, const bool doExecute )
 {
     uint_fast16_t Cii = GetControlInterface(chipId);
     try {
         fControlInterface[Cii]->addReadReg( chipId,  address,  &value);
-        fControlInterface[Cii]->execute();
+        if ( doExecute ) fControlInterface[Cii]->execute();
     } catch ( exception &err ) {
         cerr << err.what() << endl;
         throw err;

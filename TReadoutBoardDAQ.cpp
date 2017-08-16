@@ -104,9 +104,13 @@ int TReadoutBoardDAQ::WriteRegister (uint16_t address, uint32_t value)
 
 
 
-int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId)
+int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId,
+                                         const bool doExecute )
 {
-  int err;
+    if ( doExecute ) {
+        // nothing special to do for DAQ board
+    }
+    int err;
   uint32_t address32 = (uint32_t) address;
   uint32_t chipId32  = (uint32_t) chipId;
   uint32_t newAddress = (address32 << 16) | (chipId32 << 8) | ((uint32_t)AlpideOpCode::WROP);
@@ -143,9 +147,14 @@ int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8
 }
 
 
-int TReadoutBoardDAQ::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId) 
+int TReadoutBoardDAQ::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId,
+                                        const bool doExecute )
 {
-  int           err; 
+    if ( doExecute ) {
+        // nothing special to do for DAQ board
+    }
+
+  int           err;
   uint32_t      value32; 
   uint32_t      address32  = (uint32_t) address;
   uint32_t      chipId32   = (uint32_t) chipId;

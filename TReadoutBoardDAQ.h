@@ -155,8 +155,8 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
 
  protected: 
 
-    int WriteChipRegister (std::uint16_t address, std::uint16_t value, std::uint8_t chipId = 0);
-    int ReadChipRegister  (std::uint16_t address, std::uint16_t &value, std::uint8_t chipId = 0);
+    int WriteChipRegister (std::uint16_t address, std::uint16_t value, std::uint8_t chipId = 0, const bool doExecute = true);
+    int ReadChipRegister  (std::uint16_t address, std::uint16_t &value, std::uint8_t chipId = 0, const bool doExecute = true);
     
 
  public: 
