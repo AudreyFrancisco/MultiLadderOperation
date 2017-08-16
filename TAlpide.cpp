@@ -1026,7 +1026,7 @@ void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
     
     if ( GetVerboseLevel() > kVERBOSE ) {
         cout << "TAlpide::WriteControlReg() - chip id = "
-        << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        << DecomposeChipId()  << " :" <<  endl;
         cout << "TAlpide::WriteControlReg() - value = " <<  endl;
         cout << "TAlpide::WriteControlReg() - \t (bin) " << std::bitset<16> ( controlreg ) << endl;
         cout << "TAlpide::WriteControlReg() - \t (hex) " << std::hex << controlreg << endl;
@@ -1088,7 +1088,7 @@ void TAlpide::BaseConfigPLL()
     WriteRegister( AlpideRegister::DTU_CONFIG, Value );
     if ( GetVerboseLevel() > kVERBOSE ) {
         cout << "TAlpide::BaseConfigPLL() - chip id = "
-        << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        << DecomposeChipId()  << " : " <<  endl;
         cout << "TAlpide::BaseConfigPLL() - DTU config reg., value = " <<  endl;
         cout << "TAlpide::BaseConfigPLL() - \t (bin) " << std::bitset<16> ( Value ) << endl;
         cout << "TAlpide::BaseConfigPLL() - \t (hex) " << std::hex << Value << endl;
