@@ -52,6 +52,9 @@ int main(int argc, char** argv) {
     theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceChipVisitor.Init();
     theDeviceChipVisitor.DoBaseConfig();
+    if ( mySetup.GetVerboseLevel() ) {
+        theDeviceChipVisitor.DoDumpConfig();
+    }
     
 	//--- Data Tacking
 	int numberOfReadByte; // the bytes of row event
