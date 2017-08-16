@@ -42,17 +42,18 @@ public:
     #pragma mark - initialization
     virtual void Init();
     
-    #pragma mark - forward configure operations to each Alpide in the device
+    #pragma mark - forward operations to each Alpide in the device
     void DoApplyStandardDACSettings( const float backBias );
+    void DoBaseConfigPLL();
+    void DoBaseConfigMask();
+    void DoBaseConfigDACs();
+    void DoBaseConfig();
     void DoConfigureFROMU();
     void DoConfigureBuffers();
     void DoConfigureCMU();
     void DoConfigureDTU_TEST1();
     void DoConfigureMaskStage( int nPix, const int iStage );
-    void DoBaseConfigPLL();
-    void DoBaseConfigMask();
-    void DoBaseConfigDACs();
-    void DoBaseConfig();
+    void DoDumpConfig();
     
 };
 
