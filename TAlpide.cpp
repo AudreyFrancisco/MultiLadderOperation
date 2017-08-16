@@ -11,51 +11,51 @@
 using namespace std;
 
 const char* TAlpide::fRegName[] = {
-    ( char* ) "Command Register",
-    ( char* ) "Mode Control register",
-    ( char* ) "Disable of regions 0-15",
-    ( char* ) "Disable of regions 16-31",
-    ( char* ) "FROMU Configuration Register 1",
-    ( char* ) "FROMU Configuration Register 2",
-    ( char* ) "FROMU Configuration Register 3",
-    ( char* ) "FROMU Pulsing Register 1",
-    ( char* ) "FROMU Pulsing Register 2",
-    ( char* ) "FROMU Status Register 1",
-    ( char* ) "FROMU Status Register 2",
-    ( char* ) "FROMU Status Register 3",
-    ( char* ) "FROMU Status Register 4",
-    ( char* ) "FROMU Status Register 5",
+    ( char* ) "Command Register                          ",
+    ( char* ) "Mode Control register                     ",
+    ( char* ) "Disable of regions 0-15                   ",
+    ( char* ) "Disable of regions 16-31                  ",
+    ( char* ) "FROMU Configuration Register 1            ",
+    ( char* ) "FROMU Configuration Register 2            ",
+    ( char* ) "FROMU Configuration Register 3            ",
+    ( char* ) "FROMU Pulsing Register 1                  ",
+    ( char* ) "FROMU Pulsing Register 2                  ",
+    ( char* ) "FROMU Status Register 1                   ",
+    ( char* ) "FROMU Status Register 2                   ",
+    ( char* ) "FROMU Status Register 3                   ",
+    ( char* ) "FROMU Status Register 4                   ",
+    ( char* ) "FROMU Status Register 5                   ",
     ( char* ) "DAC settings for DCLK and MCLK I/O buffers",
-    ( char* ) "DAC settings for CMU I/O buffers",
-    ( char* ) "CMU and DMU Configuration Register",
-    ( char* ) "CMU and DMU Status Register",
-    ( char* ) "DMU Data FIFO [15:0]",
-    ( char* ) "DMU Data FIFO [23:16]",
-    ( char* ) "DTU Configuration Register",
-    ( char* ) "DTU DACs Register",
-    ( char* ) "DTU PLL Lock Register 1",
-    ( char* ) "DTU PLL Lock Register 2",
-    ( char* ) "DTU Test Register 1",
-    ( char* ) "DTU Test Register 2",
-    ( char* ) "DTU Test Register 3",
-    ( char* ) "BUSY min width"
+    ( char* ) "DAC settings for CMU I/O buffers          ",
+    ( char* ) "CMU and DMU Configuration Register        ",
+    ( char* ) "CMU and DMU Status Register               ",
+    ( char* ) "DMU Data FIFO [15:0]                      ",
+    ( char* ) "DMU Data FIFO [23:16]                     ",
+    ( char* ) "DTU Configuration Register                ",
+    ( char* ) "DTU DACs Register                         ",
+    ( char* ) "DTU PLL Lock Register 1                   ",
+    ( char* ) "DTU PLL Lock Register 2                   ",
+    ( char* ) "DTU Test Register 1                       ",
+    ( char* ) "DTU Test Register 2                       ",
+    ( char* ) "DTU Test Register 3                       ",
+    ( char* ) "BUSY min width                            "
 };
 
 const char* TAlpide::fDACsRegName[] = {
     ( char* ) "VRESETP",
     ( char* ) "VRESETD",
-    ( char* ) "VCASP",
-    ( char* ) "VCASN",
+    ( char* ) "VCASP  ",
+    ( char* ) "VCASN  ",
     ( char* ) "VPULSEH",
     ( char* ) "VPULSEL",
-    ( char* ) "VCASN2",
-    ( char* ) "VCLIP",
-    ( char* ) "VTEMP",
-    ( char* ) "IAUX2",
-    ( char* ) "IRESET",
-    ( char* ) "IDB",
-    ( char* ) "IBIAS",
-    ( char* ) "ITHR"
+    ( char* ) "VCASN2 ",
+    ( char* ) "VCLIP  ",
+    ( char* ) "VTEMP  ",
+    ( char* ) "IAUX2  ",
+    ( char* ) "IRESET ",
+    ( char* ) "IDB    ",
+    ( char* ) "IBIAS  ",
+    ( char* ) "ITHR   "
 };
 
 #pragma mark - Constructors/destructor
@@ -277,24 +277,27 @@ void TAlpide::DumpConfig()
     
     bool doExecute = false;
     for ( uint16_t i = 0; i < regs.size(); i++ ) {
-        ReadRegister( i, regs.at(i) );
+        ReadRegister( i, regs.at(i), doExecute );
     }
     
     const uint16_t nDACs = 14;
     array<uint16_t, nDACs> dacregs;
-    regs.fill( 0 );
+    dacregs.fill( 0 );
     
-    for ( uint16_t i = (uint16_t)AlpideRegister::VRESETP; i < dacregs.size(); i++ ) {
-        if ( i == dacregs.size()-1 ) doExecute = true;
-        ReadRegister( i, dacregs.at(i) );
+    int ii = 0;
+    for ( uint16_t i = (uint16_t)AlpideRegister::VRESETP; i < (uint16_t)AlpideRegister::VRESETP + dacregs.size(); i++ ) {
+        if ( i == (uint16_t)AlpideRegister::VRESETP + dacregs.size()-1 ) doExecute = true;
+        ReadRegister( i, dacregs.at(ii), doExecute );
+        ii++;
     }
 
     cout << "TAlpide::DumpConfig() - chip id = " << DecomposeChipId()  <<  endl;
+    
     for ( uint i = 0; i < regs.size(); i++ ) {
-        cout << fRegName[i] << " \t " <<std::hex << regs.at(i) << endl;
+        cout << fRegName[i] << " \t (hex) " << std::hex << regs.at(i) << endl;
     }
     for ( uint i = 0; i < dacregs.size(); i++ ) {
-        cout << fDACsRegName[i] << " \t " <<std::hex << dacregs.at(i) << endl;
+        cout << fDACsRegName[i] << " \t (dec) " << std::dec << dacregs.at(i) << endl;
     }
 }
 
@@ -778,11 +781,11 @@ void TAlpide::ConfigureCMU()
     cmuconfig |= (spConfig->GetEnableDdr        () ? 1:0) << 6;
     
     if ( GetVerboseLevel() > kVERBOSE ) {
-        cout << "TAlpide::ConfigureBuffers() - chip id = " << DecomposeChipId()  <<  endl;
-        cout << "TAlpide::ConfigureBuffers() - value = " <<  endl;
-        cout << "TAlpide::ConfigureBuffers() - \t (bin) " << std::bitset<16> ( cmuconfig ) << endl;
-        cout << "TAlpide::ConfigureBuffers() - \t (hex) " << std::hex << cmuconfig << endl;
-        cout << "TAlpide::ConfigureBuffers() - \t (dec) " << std::dec << cmuconfig << endl;
+        cout << "TAlpide::ConfigureCMU() - chip id = " << DecomposeChipId()  <<  endl;
+        cout << "TAlpide::ConfigureCMU() - value = " <<  endl;
+        cout << "TAlpide::ConfigureCMU() - \t (bin) " << std::bitset<16> ( cmuconfig ) << endl;
+        cout << "TAlpide::ConfigureCMU() - \t (hex) " << std::hex << cmuconfig << endl;
+        cout << "TAlpide::ConfigureCMU() - \t (dec) " << std::dec << cmuconfig << endl;
     }
     try {
         WriteRegister( AlpideRegister::CMU_DMU_CONFIG, cmuconfig );
@@ -1150,8 +1153,39 @@ void TAlpide::BaseConfigDACs()
         }
         return;
     }
+    
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TAlpide::BaseConfigDACs() - chip id = "
+        << DecomposeChipId() <<  endl;
+    }
  
     try {
+        if ( GetVerboseLevel() > kVERBOSE ) {
+            cout << "TAlpide::BaseConfigDACs() - \t ITHR = "
+                 <<  spConfig->GetParamValue("ITHR") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t IDB = "
+                 <<  spConfig->GetParamValue("IDB") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VCASN = "
+                 <<  spConfig->GetParamValue("VCASN") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VCASN2 = "
+                 <<  spConfig->GetParamValue("VCASN2") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VCLIP = "
+                 <<  spConfig->GetParamValue("VCLIP") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VRESETD = "
+                 <<  spConfig->GetParamValue("VRESETD") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VCASP = "
+                 <<  spConfig->GetParamValue("VCASP") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VPULSEL = "
+                 <<  spConfig->GetParamValue("VPULSEL") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VPULSEH = "
+                 <<  spConfig->GetParamValue("VPULSEH") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t IBIAS = "
+                 <<  spConfig->GetParamValue("IBIAS") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t VRESETP = "
+                 <<  spConfig->GetParamValue("VRESETP") << endl;
+            cout << "TAlpide::BaseConfigDACs() - \t IRESET = "
+                 <<  spConfig->GetParamValue("IRESET") << endl;
+        }
         WriteRegister( AlpideRegister::ITHR,    spConfig->GetParamValue("ITHR"));
         WriteRegister( AlpideRegister::IDB,     spConfig->GetParamValue("IDB"));
         WriteRegister( AlpideRegister::VCASN,   spConfig->GetParamValue("VCASN"));
