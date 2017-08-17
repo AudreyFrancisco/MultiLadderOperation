@@ -72,7 +72,10 @@ int main(int argc, char** argv) {
     TDeviceFifoTest theDeviceTestor( theDevice );
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.Init();
-    theDeviceTestor.DoConfigureCMU();
+    theDeviceTestor.DoBaseConfig();
+    if ( mySetup.GetVerboseLevel() ) {
+        theDeviceTestor.DoDumpConfig();
+    }
     
     theDeviceTestor.Go();
 

@@ -14,7 +14,9 @@
  * error counters per pattern per chip are displayed.
  *
  * \remark
- * It is recommended to disable Manchester encoding in the config file (CMU settings).
+ * It is recommended to disable Manchester encoding in the config file (CMU settings). 
+ * However, this was seen to lead to ControlInterface sync error with MOSAIC board.
+ * Maybe this setting applies only in the case of the DAQ board or OB master chip?
  *
  * \note
  * cmuconfig = 0x60 for FIFO test (OB?)
@@ -31,6 +33,8 @@
  * original code.
  */
 
+#include <unistd.h>
+#include <cstdint>
 #include <memory>
 #include "TDeviceChipVisitor.h"
 
@@ -68,25 +72,19 @@ public:
     /// destructor
     virtual ~TDeviceFifoTest();
     
-    /// initialization
-    virtual void Init();
-
     /// run the FIFO test on all chips of the device
     void Go();
     
 private:
     
-    /// write to a given DPRAM
-    void WriteMem();
+    /// write to all DPRAM of the current chip
+    void WriteMemPerChip();
     
-    /// read a given DPRAM
-    int  ReadMem();
+    /// read all DPRAM of the current chip
+    void ReadMemPerChip();
     
-    /// perform write pattern + readback in a given DPRAM
-    void MemReadback();
-    
-    /// perform MemReadback() for all patterns in a DPRAM
-    bool MemTest();
+    /// perform write pattern + readbackof all DPRAM of the current chip
+    void MemTestPerChip();
     
     enum MemoryPattern {
         kTEST_ALL_ZERO = 0x0,
@@ -94,8 +92,8 @@ private:
         kTEST_ALL_ONE = 0xffffff
     };
     
-    static const int MAX_REGION = 31;
-    static const int MAX_OFFSET = 127;
+    static const int MAX_REGION = 31;  // [0 .. 31] 32 regions
+    static const int MAX_OFFSET = 127; // [0 .. 127] 128 DPRAM per region
 };
 
 

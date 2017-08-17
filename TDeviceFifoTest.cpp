@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <bitset>
+#include <array>
 
 using namespace std;
 
@@ -48,61 +49,40 @@ TDeviceFifoTest::~TDeviceFifoTest()
 }
 
 //___________________________________________________________________
-void TDeviceFifoTest::Init()
-{
-    TDeviceChipVisitor::Init();
-    
-    // write and read the DPRAM memories of the RRU modules can only
-    // be done when the chip is in configuration mode
-    
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
-        fDevice->GetChip(i)->WriteControlReg( AlpideChipMode::CONFIG );
-    }
-}
-
-//___________________________________________________________________
 void TDeviceFifoTest::Go()
 {
+    
     // loop over all chips
     for ( int iChip = 0; iChip < fDevice->GetNChips() ; iChip++ ) {
         
         fCurrentChipIndex = iChip;
-        
+
+        // count error per chip => reset counters for each new chip
+        fErrCount0 = (MAX_REGION+1)*(MAX_OFFSET+1);
+        fErrCount5 = (MAX_REGION+1)*(MAX_OFFSET+1);
+        fErrCountF = (MAX_REGION+1)*(MAX_OFFSET+1);
+
         if ( !((fDevice->GetChipConfig(iChip))->IsEnabled()) ) {
             if ( GetVerboseLevel() > kTERSE ) {
                 cout << "TDeviceFifoTest::Go() - chip # "
-                << fCurrentChipIndex << " : disabled chip, skipped." <<  endl;
+                << std::dec << fCurrentChipIndex << " : disabled chip, skipped." <<  endl;
             }
             return;
         }
         if ( GetVerboseLevel() > kSILENT ) {
             cout << "TDeviceFifoTest::Go() - testing chip # "
-                 << fCurrentChipIndex <<  endl;
+            << std::dec << fCurrentChipIndex <<  endl;
         }
         
-        // loop over all regions
-        for ( int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION ; ireg++ ) {
-            if ( GetVerboseLevel() > kTERSE ) {
-                cout << "\t FIFO scan: region " << ireg ;
-            }
-            fRegion = ireg;
-            
-            // loop over all memories
-            for ( int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET ; iadd++ ) {
-                if ( GetVerboseLevel() > kTERSE ) {
-                    cout << " offset " << iadd << endl;
-                }
-                fOffset = iadd;
-                if( !MemTest() ) {
-                    break;
-                }
-            } // end of loop on addresses
-
-        } // end of the loop on region
+        // write and read the DPRAM memories of the RRU modules can only
+        // be done when the chip is in configuration mode
+        fDevice->GetChip(fCurrentChipIndex)->WriteControlReg( AlpideChipMode::CONFIG );
+        
+        MemTestPerChip();
         
         if ( fErrCount0 + fErrCount5 + fErrCountF > 0 ) {
             cout << "TDeviceFifoTest::Go() - FIFO test finished for chip # "
-            << fCurrentChipIndex << endl;
+            << std::dec << fCurrentChipIndex << endl;
             cout << "TDeviceFifoTest::Go() - error counters : " << endl;
             cout << "\t pattern 0x0:      " << fErrCount0 << endl;
             cout << "\t pattern 0x555555: " << fErrCount5 << endl;
@@ -112,171 +92,282 @@ void TDeviceFifoTest::Go()
             cout << "TDeviceFifoTest::Go() - FIFO test successful for chip # "
             << fCurrentChipIndex << endl;
         }
-
-        // count error per chip => reset counters before switching to next chip
-        fErrCount0 = (MAX_REGION+1)*(MAX_OFFSET+1);
-        fErrCount5 = (MAX_REGION+1)*(MAX_OFFSET+1);
-        fErrCountF = (MAX_REGION+1)*(MAX_OFFSET+1);
-        
     } // end of the loop on chips
 }
 
 //___________________________________________________________________
-void TDeviceFifoTest::WriteMem()
+void TDeviceFifoTest::WriteMemPerChip()
 {
+    
     if ( fCurrentChipIndex >= fDevice->GetNChips() ) {
-        throw domain_error( "TDeviceFifoTest::WriteMem() - invalid chip index !" );
-    }
-    if ( fRegion > TDeviceFifoTest::MAX_REGION ) {
-        throw domain_error( "TDeviceFifoTest::WriteMem() - invalid region !" );
-    }
-    if ( fOffset > TDeviceFifoTest::MAX_OFFSET ) {
-        throw domain_error( "TDeviceFifoTest::ReadMem() - invalid offset !" );
-        return;
+        throw domain_error( "TDeviceFifoTest::WriteMemPerChip() - invalid chip index !" );
     }
     
-    uint16_t LowAdd  = (uint16_t)AlpideRegister::RRU_MEB_LSB_BASE | (fRegion << 11) | fOffset;
-    uint16_t HighAdd = (uint16_t)AlpideRegister::RRU_MEB_MSB_BASE | (fRegion << 11) | fOffset;
-    
-    uint16_t LowVal  = fBitPattern & 0xffff;
-    uint16_t HighVal = (fBitPattern >> 16) & 0xff;
-    
-    try {
-        (fDevice->GetChip(fCurrentChipIndex))->WriteRegister( LowAdd,  LowVal );
-        (fDevice->GetChip(fCurrentChipIndex))->WriteRegister( HighAdd, HighVal );
-    } catch ( exception& err ) {
-        cerr << err.what() << endl;
-        cerr << "TDeviceFifoTest::WriteMem() - chip:region:offset " << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset << endl;
-        throw runtime_error( "TDeviceFifoTest::WriteMem() - failed." );
-    }
-}
-
-//___________________________________________________________________
-int TDeviceFifoTest::ReadMem()
-{
-    if ( fCurrentChipIndex >= fDevice->GetNChips() ) {
-        throw domain_error( "TDeviceFifoTest::ReadMem() - invalid chip index !" );
-    }
-    if ( fRegion > TDeviceFifoTest::MAX_REGION ) {
-        throw domain_error( "TDeviceFifoTest::ReadMem() - invalid region !" );
-    }
-    if ( fOffset > TDeviceFifoTest::MAX_OFFSET ) {
-        throw domain_error( "TDeviceFifoTest::ReadMem() - invalid offset !" );
-    }
-
-    uint16_t LowAdd  = (uint16_t)AlpideRegister::RRU_MEB_LSB_BASE | (fRegion << 11) | fOffset;
-    uint16_t HighAdd = (uint16_t)AlpideRegister::RRU_MEB_MSB_BASE | (fRegion << 11) | fOffset;
-    
-    uint16_t LowVal, HighVal;
-    try {
-        (fDevice->GetChip(fCurrentChipIndex))->ReadRegister( LowAdd, LowVal );
-        (fDevice->GetChip(fCurrentChipIndex))->ReadRegister( HighAdd, HighVal );
-    } catch ( exception& err ) {
-        cerr << err.what() << endl;
-        cerr << "TDeviceFifoTest::ReadMem() - chip:region:offset " << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset << endl;
-        throw runtime_error( "TDeviceFifoTest::ReadMem() - failed." );
-    }
-    
-    // Note to self: if you want to shorten the following lines,
-    // remember that HighVal is 16 bit and (HighVal << 16) will yield 0
-    // :-)
-    int aValue = (HighVal & 0xff);
-    aValue <<= 16;
-    aValue |= LowVal;
-
-    return aValue;
-}
-
-//___________________________________________________________________
-void TDeviceFifoTest::MemReadback()
-{
-    if ( fCurrentChipIndex >= fDevice->GetNChips() ) {
-        throw domain_error( "TDeviceFifoTest::MemReadback() - invalid chip index !" );
-    }
-    if ( fRegion > TDeviceFifoTest::MAX_REGION ) {
-        throw domain_error( "TDeviceFifoTest::MemReadback() - invalid region !" );
-    }
-    if ( fOffset > TDeviceFifoTest::MAX_OFFSET ) {
-        throw domain_error( "TDeviceFifoTest::MemReadback() - invalid offset !" );
-    }
-
-    // MemReadback() test fails completely when one can not properly
-    // write or read the memory location under test
-    
-    try {
-        WriteMem();
-    } catch ( exception& err ) {
-        cerr << err.what() << endl;
-        throw runtime_error( "TDeviceFifoTest::MemReadback() - failed !" );
-    }
-
-    int aValue = 1;
-    try {
-        aValue = ReadMem();
-    } catch ( exception& err ) {
-        cerr << err.what() << endl;
-        throw runtime_error( "TDeviceFifoTest::MemReadback() - failed !" );
-    }
-    
-    // MemReadback() test is working but the memory location just tested
-    // has some malfunction
-    
-    if ( aValue != fBitPattern ) {
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TDeviceFifoTest::MemReadback() - Error in mem "
-            << fRegion
-            << "/0x" << std::hex << fOffset
-            << ": wrote " << fBitPattern
-            << ", read: " << aValue << std::dec << endl;
+    if ( !((fDevice->GetChipConfig(fCurrentChipIndex))->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TDeviceFifoTest::WriteMemPerChip() - chip # "
+            << fCurrentChipIndex << " : disabled chip, skipped." <<  endl;
         }
         return;
     }
-    
-    // everything is working fine, so we can decrease the counter errors
-    
-    if ( fBitPattern == kTEST_ALL_ZERO ) {
-        fErrCount0--;
+    if ( GetVerboseLevel() > kTERSE ) {
+        switch ( fBitPattern ) {
+            case (int)kTEST_ALL_ZERO:
+                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x0, chip # " << fCurrentChipIndex << endl;
+                break;
+            case (int)kTEST_ONE_ZERO:
+                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x555555, chip # " << fCurrentChipIndex << endl;
+                break;
+            case (int)kTEST_ALL_ONE:
+                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0xffffff, chip # " << fCurrentChipIndex << endl;
+                break;
+            default:
+                throw runtime_error( "TDeviceFifoTest::WriteMemPerChip() - wrong bit pattern." );
+                break;
+        }
     }
-    if ( fBitPattern == kTEST_ONE_ZERO ) {
-        fErrCount5--;
-    }
-    if ( fBitPattern == kTEST_ALL_ONE ) {
-        fErrCountF--;
+    
+    // boolean used to queue all write request for the MOSAIC board
+    // (in order to increase the speed of the FIFO test)
+    
+    bool doExecute = false;
+    
+    // loop over all regions
+    
+    for ( int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
+
+        fRegion = ireg;
+        
+        // loop over all memories
+        
+        for ( int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
+
+            fOffset = iadd;
+
+            if ( GetVerboseLevel() > kVERBOSE ) {
+                cout << "\t writing chip:region:offset " << std::dec << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset << endl;
+            }
+            
+            if (  ( fRegion == TDeviceFifoTest::MAX_REGION )
+                && ( fOffset == TDeviceFifoTest::MAX_OFFSET ) ) {
+                // execute all write requests in the queue at once for the MOSAIC board
+                doExecute = true;
+            }
+            
+            uint16_t LowAdd  = (uint16_t)AlpideRegister::RRU_MEB_LSB_BASE | (fRegion << 11) | fOffset;
+            uint16_t HighAdd = (uint16_t)AlpideRegister::RRU_MEB_MSB_BASE | (fRegion << 11) | fOffset;
+            
+            uint16_t LowVal  = fBitPattern & 0xffff;
+            uint16_t HighVal = (fBitPattern >> 16) & 0xff;
+            
+            try {
+                (fDevice->GetChip(fCurrentChipIndex))->WriteRegister( LowAdd,  LowVal, doExecute );
+                (fDevice->GetChip(fCurrentChipIndex))->WriteRegister( HighAdd, HighVal, doExecute );
+            } catch ( exception& err ) {
+                cerr << err.what() << endl;
+                cerr << "TDeviceFifoTest::WriteMemPerChip() - chip:region:offset " << std::dec << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset << endl;
+                throw runtime_error( "TDeviceFifoTest::WriteMemPerChip() - failed." );
+            }
+        }
     }
 }
 
 //___________________________________________________________________
-bool TDeviceFifoTest::MemTest()
+void TDeviceFifoTest::ReadMemPerChip()
 {
+    if ( fCurrentChipIndex >= fDevice->GetNChips() ) {
+        throw domain_error( "TDeviceFifoTest::ReadMemPerChip() - invalid chip index !" );
+    }
+    
+    if ( !((fDevice->GetChipConfig(fCurrentChipIndex))->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TDeviceFifoTest::ReadMemPerChip() - chip # "
+            << std::dec << fCurrentChipIndex << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    if ( GetVerboseLevel() > kTERSE ) {
+        switch ( fBitPattern ) {
+            case (int)kTEST_ALL_ZERO:
+                cout << "TDeviceFifoTest::ReadMemPerChip() - pattern 0x0, chip # " << std::dec << fCurrentChipIndex << endl;
+                break;
+            case (int)kTEST_ONE_ZERO:
+                cout << "TDeviceFifoTest::ReadMemPerChip() - pattern 0x555555, chip # " << std::dec << fCurrentChipIndex << endl;
+                break;
+            case (int)kTEST_ALL_ONE:
+                cout << "TDeviceFifoTest::ReadMemPerChip() - pattern 0xffffff, chip # " << std::dec << fCurrentChipIndex << endl;
+                break;
+            default:
+                throw runtime_error( "TDeviceFifoTest::ReadMemPerChip() - wrong bit pattern." );
+                break;
+        }
+    }
+    
+    // boolean used to queue all read request for the MOSAIC board
+    // (in order to increase the speed of the FIFO test)
+    
+    bool doExecute = false;
+    
+    // arrays used to store what was read in the various memory locations
+    // (needed since we queue the read requests for the MOSAIC board)
+    
+    array<uint16_t, (MAX_REGION+1)*(MAX_OFFSET+1)> LowVal;
+    LowVal.fill(0);
+
+    array<uint16_t, (MAX_REGION+1)*(MAX_OFFSET+1)> HighVal;
+    HighVal.fill(0);
+    
+    // queue read requests and execute them at once
+    
+    int index = 0;
+    // loop over all regions
+    for ( int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
+        
+        fRegion = ireg;
+        
+        // loop over all memories
+        for ( int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
+            
+            fOffset = iadd;
+
+            if ( GetVerboseLevel() > kVERBOSE ) {
+                cout << "\t reading chip:region:offset " << std::dec << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset << endl;
+            }
+            
+            if (  ( fRegion == TDeviceFifoTest::MAX_REGION )
+                && ( fOffset == TDeviceFifoTest::MAX_OFFSET ) ) {
+                // execute all read requests in the queue for the MOSAIC board
+                doExecute = true;
+            }
+
+            uint16_t LowAdd  = (uint16_t)AlpideRegister::RRU_MEB_LSB_BASE | (fRegion << 11) | fOffset;
+            uint16_t HighAdd = (uint16_t)AlpideRegister::RRU_MEB_MSB_BASE | (fRegion << 11) | fOffset;
+            
+            //uint16_t LowVal, HighVal;
+            try {
+                (fDevice->GetChip(fCurrentChipIndex))->ReadRegister( LowAdd, LowVal.at(index), doExecute );
+                (fDevice->GetChip(fCurrentChipIndex))->ReadRegister( HighAdd, HighVal.at(index), doExecute );
+            } catch ( exception& err ) {
+                cerr << err.what() << endl;
+                cerr << "TDeviceFifoTest::ReadMemPerChip() - chip:region:offset " << std::dec << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset << endl;
+                throw runtime_error( "TDeviceFifoTest::ReadMemPerChip() - failed." );
+            }
+            
+            index++;
+        }
+        // end loop over all memories
+    } // end loop over all regions
+    
+    // compare read back values to written values
+    
+    index = 0;
+    for ( int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
+        for ( int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
+            
+            // Note to self: if you want to shorten the following lines,
+            // remember that HighVal is 16 bit and (HighVal << 16) will yield 0
+            // :-)
+            int aValue = (HighVal.at(index) & 0xff);
+            aValue <<= 16;
+            aValue |= LowVal.at(index);
+            
+            // Readback process worked but the tested memory location may had
+            // some malfunction
+            
+            bool success = true;
+            if ( aValue != fBitPattern ) {
+                if ( GetVerboseLevel() > kSILENT ) {
+                    cout << "TDeviceFifoTest::ReadMemPerChip() - Error in mem chip:region:offset "
+                    << std::dec << fCurrentChipIndex << ":" << fRegion << ":" <<  fOffset
+                    << " : wrote " << std::hex << fBitPattern
+                    << " , read " << std::hex << aValue << endl;
+                }
+                success = false;
+            }
+            
+            // everything is working fine, so we can decrease the counter errors
+            // for this chip
+            
+            if ( success ) {
+                switch ( fBitPattern ) {
+                    case (int)kTEST_ALL_ZERO:
+                        fErrCount0--;
+                        break;
+                    case (int)kTEST_ONE_ZERO:
+                        fErrCount5--;
+                        break;
+                    case (int)kTEST_ALL_ONE:
+                        fErrCountF--;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            index++;
+        }// end loop over all memories
+    } // end loop over all regions
+}
+
+//___________________________________________________________________
+void TDeviceFifoTest::MemTestPerChip()
+{
+    
+    if ( fCurrentChipIndex >= fDevice->GetNChips() ) {
+        throw domain_error( "TDeviceFifoTest::MemTestPerChip() - invalid chip index !" );
+    }
+
     // If we can not write or read the memory location under test for
     // the first pattern, then we don't lose time testing the next one.
     
     fBitPattern = kTEST_ALL_ZERO;
+    
     try {
-        MemReadback();
+        WriteMemPerChip();
     } catch ( exception& err ) {
-        cerr << "TDeviceFifoTest::MemTest() - pattern 0x0" << endl;
+        cerr << "TDeviceFifoTest::MemTest() - pattern 0x0 failed" << endl;
         cerr << err.what() << endl;
-        return false;
+        return;
+    }
+    try {
+        ReadMemPerChip();
+    } catch ( exception& err ) {
+        cerr << "TDeviceFifoTest::MemTest() - pattern 0x0 failed" << endl;
+        cerr << err.what() << endl;
+        return;
     }
 
     fBitPattern = kTEST_ONE_ZERO;
+
     try {
-        MemReadback();
+        WriteMemPerChip();
     } catch ( exception& err ) {
-        cerr << "TDeviceFifoTest::MemTest() - pattern 0x555555" << endl;
+        cerr << "TDeviceFifoTest::MemTest() - pattern 0x555555 failed" << endl;
         cerr << err.what() << endl;
-        return false;
+        return;
+    }
+    try {
+        ReadMemPerChip();
+    } catch ( exception& err ) {
+        cerr << "TDeviceFifoTest::MemTest() - pattern 0x555555 failed" << endl;
+        cerr << err.what() << endl;
+        return;
     }
 
     fBitPattern = kTEST_ALL_ONE;
+
     try {
-        MemReadback();
+        WriteMemPerChip();
     } catch ( exception& err ) {
-        cerr << "TDeviceFifoTest::MemTest() - pattern 0xffffff" << endl;
+        cerr << "TDeviceFifoTest::MemTest() - pattern 0xffffff failed" << endl;
         cerr << err.what() << endl;
-        return false;
+        return;
     }
-    return true;
+    try {
+        ReadMemPerChip();
+    } catch ( exception& err ) {
+        cerr << "TDeviceFifoTest::MemTest() - pattern 0xffffff failed" << endl;
+        cerr << err.what() << endl;
+        return;
+    }
 }
 
