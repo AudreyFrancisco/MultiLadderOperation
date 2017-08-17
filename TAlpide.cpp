@@ -294,7 +294,8 @@ void TAlpide::DumpConfig()
     cout << "TAlpide::DumpConfig() - chip id = " << DecomposeChipId()  <<  endl;
     
     for ( uint i = 0; i < regs.size(); i++ ) {
-        cout << fRegName[i] << " \t (hex) " << std::hex << regs.at(i) << endl;
+        cout << fRegName[i] << " \t (hex) " << std::hex << regs.at(i) << " (bin) "
+            << std::bitset<16> ( regs.at(i) ) << endl;
     }
     for ( uint i = 0; i < dacregs.size(); i++ ) {
         cout << fDACsRegName[i] << " \t (dec) " << std::dec << dacregs.at(i) << endl;
