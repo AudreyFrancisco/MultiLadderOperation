@@ -14,11 +14,12 @@
 #include "TDevice.h"
 #include "AlpideDictionary.h"
 #include "TDeviceChipVisitor.h"
+#include "TVerbosity.h"
 
 using namespace std;
 
 // Example of usage :
-// ./test_mosaic -v 1 -c ConfigSingleChipMOSAIC.cfg
+// ./test_mosaic -v 1 -c ConfigMFTladderMOSAIC.cfg
 //
 
 int main(int argc, char** argv) {
@@ -61,7 +62,6 @@ int main(int argc, char** argv) {
 	unsigned char *theBuffer; // the buffer containing the event
 
     // variables that define the trigger/pulse
-	//int enablePulse = -1, enableTrigger = -1, triggerDelay = -1, pulseDelay = -1, nTriggers = -1; // AR: original settings
     bool enablePulse = true, enableTrigger = true;
     int triggerDelay = 160, pulseDelay = 1000, nTriggers = -1; // AR: using nTriggers > 0 only slows down the rate at which pulses are produced
 
@@ -87,8 +87,14 @@ int main(int argc, char** argv) {
         }
 		returnCode = theBoard->ReadEventData( numberOfReadByte, theBuffer );
 		if( returnCode != 0 ) { // we have some thing
-			std::cout << "Read an event !  Dimension :" << numberOfReadByte << std::endl;   // Consume the buffer ...
-            if( numberOfReadByte == 0 ) isDataTakingEnd = true; // AR: some unreliable chip can provide 0 dimension for ages !
+            cout << "Received Event " << nEvents << " with length " << numberOfReadByte << endl;
+            if ( mySetup.GetVerboseLevel() > TVerbosity::kVERBOSE ) {
+                for ( int iByte = 0; iByte < numberOfReadByte; ++iByte ) {
+                    printf ("%02x ", (int) theBuffer[iByte]);
+                }
+                cout << endl;
+            }
+            if( numberOfReadByte == 0 ) isDataTakingEnd = true;
             nEvents++;
 			usleep(20000); // wait
 		} else { // read nothing is finished ?
@@ -98,5 +104,5 @@ int main(int argc, char** argv) {
 	}
 
 	(dynamic_pointer_cast<TReadoutBoardMOSAIC>(theBoard))->StopRun(); // Stop run
-    return 1;
+    return 0;
 }
