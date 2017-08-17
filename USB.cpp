@@ -285,6 +285,10 @@ void TUSBEndpoint::DumpEndpointInfo () {
 
 
 int TUSBEndpoint::TransferData     (unsigned char *data_buf, int packetSize, int* error /*=0x0*/) {
+    if ( data_buf || packetSize || error ) {
+        // nothing to do
+        // (this block is only intended to remove annoying warning at compilation
+    }
     std::cout << "Transfer Data not yet implemented for this type of endpoint " << std::endl;
     return -1;
 }

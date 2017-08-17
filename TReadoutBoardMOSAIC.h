@@ -51,7 +51,13 @@ public:
 	DummyReceiver() {} ;
 	~DummyReceiver() {} ;
 
-	long parse(int numClosed) { return(dataBufferUsed); };
+	long parse(int numClosed) {
+        if ( numClosed ) {
+            // nothing to do
+            // (this block is only intended to remove annoying warning at compilation
+        }
+        return(dataBufferUsed);
+    };
 };
 
 // -----------------------------------------------------
