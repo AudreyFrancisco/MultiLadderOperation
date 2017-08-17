@@ -28,9 +28,9 @@
  *
  * \note 
  * Most of the code was moved from the original main_fifo.cpp written by ITS team.
- * More safety checks, better initialization, improved code readability and 
- * reset of error counters for each new chip were added in this new class w.r.t. the 
- * original code.
+ * More safety checks, better initialization, improved code readability,
+ * reset of error counters for each new chip and a significant speed up of the 
+ * FIFO scan for the MOSAIC board were added in this new class w.r.t. the original code.
  */
 
 #include <unistd.h>
@@ -86,13 +86,17 @@ private:
     /// perform write pattern + readbackof all DPRAM of the current chip
     void MemTestPerChip();
     
+    /// the various bit patterns to be used for the memory test
     enum MemoryPattern {
         kTEST_ALL_ZERO = 0x0,
         kTEST_ONE_ZERO = 0x555555,
         kTEST_ALL_ONE = 0xffffff
     };
     
+    /// id of the last region of the chip
     static const int MAX_REGION = 31;  // [0 .. 31] 32 regions
+    
+    /// id of the last DPRAM of a given region of the chip
     static const int MAX_OFFSET = 127; // [0 .. 127] 128 DPRAM per region
 };
 
