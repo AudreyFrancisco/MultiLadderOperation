@@ -934,6 +934,10 @@ bool TReadoutBoardDAQ::ReadLDOStatus(int &AOverflow)
 
   if (! (reg0 & reg1 & reg2)) 
     std::cout << "GetLDOStatus, LDO status = " << reg0 << ", " << reg1 << ", " << reg2 << std::endl;
+    if ( err ) {
+        // nothing to do
+        // (this block is only intended to remove annoying warning at compilation
+    }
 
   return ( reg0 & reg1 & reg2);
 }
@@ -1136,6 +1140,10 @@ void TReadoutBoardDAQ::WriteTriggerModuleConfigRegisters()
   config3 |= (spBoardConfigDAQ->GetBusyOverride()?1:0);
   //std::cout << "config3: " << std::hex << config3 << std::dec << std::endl;
   WriteRegister ((MODULE_TRIGGER << DAQBOARD_REG_ADDR_SIZE) + TRIG_BUSY_OVERRIDE, config3);
+    if ( err ) {
+        // nothing to do
+        // (this block is only intended to remove annoying warning at compilation
+    }
 
 }
 
