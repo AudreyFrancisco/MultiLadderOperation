@@ -25,6 +25,7 @@ class TDeviceChipVisitor : public TVerbosity {
 protected:
 
     std::shared_ptr<TDevice> fDevice;
+    bool fIsInitDone;
     
 public:
     

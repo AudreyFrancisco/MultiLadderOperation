@@ -84,6 +84,7 @@ class TAlpide : public TVerbosity {
     std::weak_ptr<TChipConfig> GetConfig() { return fConfig; }
     std::weak_ptr<TReadoutBoard> GetReadoutBoard() { return fReadoutBoard; }
     int GetADCBias() const { return fADCBias; }
+    int GetChipId() const { return fChipId; }
 
     #pragma mark - dump
     

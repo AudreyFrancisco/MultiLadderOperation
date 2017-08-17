@@ -16,14 +16,16 @@ using namespace std;
 
 //___________________________________________________________________
 TDeviceChipVisitor::TDeviceChipVisitor() : TVerbosity(),
-    fDevice( nullptr )
+    fDevice( nullptr ),
+    fIsInitDone( false )
 {
     
 }
 
 //___________________________________________________________________
 TDeviceChipVisitor::TDeviceChipVisitor( shared_ptr<TDevice> aDevice ) : TVerbosity(),
-    fDevice( nullptr )
+    fDevice( nullptr ),
+    fIsInitDone( false )
 {
     try {
         SetDevice( aDevice );
@@ -81,7 +83,11 @@ void TDeviceChipVisitor::Init()
     }
     shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard(0);
     if ( !myBoard ) {
-        throw runtime_error( "TDeviceChipVisitor::Init() - no readout board found!" );
+        throw runtime_error( "TDeviceChipVisitor::Init() - no readout board found !" );
+    }
+    if ( fIsInitDone ) {
+        cerr << "TDeviceChipVisitor::Init() - already initialized ! Doing nothing." << endl;
+        return;
     }
     
     // -- global reset chips
@@ -105,6 +111,7 @@ void TDeviceChipVisitor::Init()
         // disable pulse
         fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
     }
+    fIsInitDone = true;
 }
 
 #pragma mark - forward configure operations to each Alpide in the device
@@ -112,11 +119,8 @@ void TDeviceChipVisitor::Init()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoApplyStandardDACSettings( const float backBias )
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoApplyStandardDACSettings() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoApplyStandardDACSettings() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoApplyStandardDACSettings() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ApplyStandardDACSettings( backBias );
@@ -126,11 +130,8 @@ void TDeviceChipVisitor::DoApplyStandardDACSettings( const float backBias )
 //___________________________________________________________________
 void TDeviceChipVisitor::DoBaseConfigPLL()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigPLL() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigPLL() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigPLL() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->BaseConfigPLL();
@@ -140,11 +141,8 @@ void TDeviceChipVisitor::DoBaseConfigPLL()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoBaseConfigMask()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigMask() - can not use a null pointer !" );
-    }
-   if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigMask() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigMask() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->BaseConfigMask();
@@ -155,11 +153,8 @@ void TDeviceChipVisitor::DoBaseConfigMask()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoBaseConfigDACs()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigDACs() - can not use a null pointer !" );
-    }
-   if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigDACs() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfigDACs() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->BaseConfigDACs();
@@ -169,15 +164,12 @@ void TDeviceChipVisitor::DoBaseConfigDACs()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoBaseConfig()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfig() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoBaseConfig() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBaseConfig() - not initialized ! Please use Init() first." );
     }
     shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard(0);
     if ( !myBoard ) {
-        throw runtime_error( "TDeviceFifoTest::DoConfigureCMU() - no readout board found!" );
+        throw runtime_error( "TDeviceFifoTest::DoBaseConfig() - no readout board found!" );
     }
 
     // configure chip(s)
@@ -192,11 +184,8 @@ void TDeviceChipVisitor::DoBaseConfig()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoConfigureFROMU()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureFROMU() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureFROMU() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureFROMU() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureFROMU();
@@ -206,11 +195,8 @@ void TDeviceChipVisitor::DoConfigureFROMU()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoConfigureBuffers()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureBuffers() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureBuffers() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureBuffers() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureBuffers();
@@ -220,11 +206,8 @@ void TDeviceChipVisitor::DoConfigureBuffers()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoConfigureCMU()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureCMU() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureCMU() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureCMU() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureCMU();
@@ -234,11 +217,8 @@ void TDeviceChipVisitor::DoConfigureCMU()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoConfigureDTU_TEST1()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureDTU_TEST1() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureDTU_TEST1() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureDTU_TEST1() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureDTU_TEST1();
@@ -248,11 +228,8 @@ void TDeviceChipVisitor::DoConfigureDTU_TEST1()
 //___________________________________________________________________
 void TDeviceChipVisitor::DoConfigureMaskStage( int nPix, const int iStage )
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureMaskStage( nPix, iStage );
@@ -262,11 +239,8 @@ void TDeviceChipVisitor::DoConfigureMaskStage( int nPix, const int iStage )
 //___________________________________________________________________
 void TDeviceChipVisitor::DoDumpConfig()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - can not use a null pointer !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - no chip found !" );
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoDumpConfig() - not initialized ! Please use Init() first." );
     }
     for (int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->DumpConfig();
