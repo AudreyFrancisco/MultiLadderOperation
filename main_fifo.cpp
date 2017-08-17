@@ -2,9 +2,11 @@
  * \brief This executable runs the FIFO test for all enabled chips in the device.
  * 
  * \remark
- * It is recommended to disable Manchester encoding in the Config.cfg file (CMU settings).
+ * It is recommended to disable Manchester encoding in the config file (CMU settings).
+ * However, this was seen to lead to ControlInterface sync error with MOSAIC board.
+ * Maybe this setting applies only in the case of the DAQ board or OB master chip?
  * See the class TDeviceFifoTest. See below for more details on the CMU settings
- * that are appropriate for FIFO test.
+ * that were recommended for FIFO test (disabling Manchester encoding).
  *
  * \note
  * cmuconfig = 0x60 for FIFO test (OB?)
@@ -23,13 +25,7 @@
  */
 
 #include <iostream>
-#include <unistd.h>
-#include <cstdint>
-#include <memory>
 #include "AlpideDictionary.h"
-#include "TReadoutBoard.h"
-#include "TReadoutBoardDAQ.h"
-#include "TReadoutBoardMOSAIC.h"
 #include "TSetup.h"
 #include "TDevice.h"
 #include "TDeviceFifoTest.h"
@@ -37,7 +33,7 @@
 using namespace std;
 
 // Example of usage :
-// ./test_fifo -v 1 -c ConfigSingleChipMOSAIC_FIFOtest.cfg
+// ./test_fifo -v 1 -c ConfigMFTladder_FIFOtest.cfg
 //
 // If you want to see the available options, do :
 // ./test_fifo -h
@@ -65,9 +61,6 @@ int main(int argc, char** argv) {
         cout << "No working chip found, exit!" << endl;
         return 0;
     }
-
-    shared_ptr<TReadoutBoard> theBoard = theDevice->GetBoard( 0 );
-    shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(theBoard);
   
     TDeviceFifoTest theDeviceTestor( theDevice );
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
@@ -79,8 +72,5 @@ int main(int argc, char** argv) {
     
     theDeviceTestor.Go();
 
-    if ( myDAQBoard ) {
-        myDAQBoard->PowerOff();
-    }
-    return 1;
+    return 0;
 }
