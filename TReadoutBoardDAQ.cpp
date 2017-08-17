@@ -932,8 +932,9 @@ bool TReadoutBoardDAQ::ReadLDOStatus(int &AOverflow)
   err = ReadRegister((MODULE_ADC << DAQBOARD_REG_ADDR_SIZE) + ADC_OVERFLOW, ReadValue);
   AOverflow = (int) ReadValue;
 
-  if (! (reg0 & reg1 & reg2)) 
+    if (! (reg0 & reg1 & reg2)) {
     std::cout << "GetLDOStatus, LDO status = " << reg0 << ", " << reg1 << ", " << reg2 << std::endl;
+    }
     if ( err ) {
         // nothing to do
         // (this block is only intended to remove annoying warning at compilation
