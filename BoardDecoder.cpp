@@ -11,7 +11,7 @@ bool BoardDecoder::DecodeEvent(TBoardType boardType, unsigned char *data, int nB
         // nothing to do
         // (this block is only intended to remove annoying warning at compilation
     }
-    std::cout << "TBoardDecoder::DecodeEvent() - firmware version = " << firmwareVersion << std::endl;
+    //std::cout << "TBoardDecoder::DecodeEvent() - firmware version = " << firmwareVersion << std::endl;
     if (boardType == TBoardType::kBOARD_DAQ) {
     return DecodeEventDAQ(data, nBytes, nBytesHeader, nBytesTrailer, boardInfo);
   }
