@@ -20,18 +20,19 @@ using namespace std;
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan() :
 TDeviceChipVisitor(),
+fHitData( nullptr ),
 fScanConfig( nullptr )
 {
-    ClearHitData();
+    
 }
 
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan( shared_ptr<TDevice> aDevice,
                                        shared_ptr<TScanConfig> aScanConfig ) :
 TDeviceChipVisitor( aDevice ),
+fHitData( nullptr ),
 fScanConfig( nullptr )
 {
-    ClearHitData();
     try {
         SetScanConfig( aScanConfig );
     } catch ( std::runtime_error &err ) {
@@ -44,6 +45,10 @@ fScanConfig( nullptr )
 TDeviceDigitalScan::~TDeviceDigitalScan()
 {
     if ( fScanConfig ) fScanConfig.reset();
+    if ( fHitData ) {
+        delete[] fHitData;
+    }
+    fHits.clear();
 }
 
 //___________________________________________________________________
@@ -56,8 +61,34 @@ void TDeviceDigitalScan::SetScanConfig( shared_ptr<TScanConfig> aScanConfig )
 }
 
 //___________________________________________________________________
+void TDeviceDigitalScan::Init()
+{
+    if ( !fScanConfig ) {
+        throw runtime_error( "TDeviceDigitalScan::Init() - can not use a null pointer for the scan config !" );
+    }
+    try {
+        TDeviceChipVisitor::Init();
+    } catch ( std::exception &err ) {
+        cerr << err.what() << endl;
+        exit(0);
+    }
+    
+    // allocate memory for array of hit pixels
+    
+    fHitData = new int[ fDevice->GetNChips() * NPRIORITY_ENCODERS * NADDRESSES ];
+    
+    // fill with zeroes
+    
+    ClearHitData();
+}
+
+//___________________________________________________________________
 void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
 {
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - not initialized ! Please use Init() first." );
+    }
+
     char  fNameChip[100];
     FILE *fp;
     
@@ -66,27 +97,44 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
     strtok( fNameTemp, "." );
     
     for ( int ichip = 0; ichip < fDevice->GetNChips(); ichip ++ ) {
-        cout << "TDeviceDigitalScan::WriteDataToFile() - ichip = "<< ichip << endl;
+        
+        if ( !((fDevice->GetChipConfig(ichip))->IsEnabled()) ) {
+            if ( GetVerboseLevel() > kTERSE ) {
+                cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID "
+                << fDevice->GetChipId(ichip) << " : disabled chip, skipped." <<  endl;
+            }
+            continue;
+        }
         int chipId = fDevice->GetChipId(ichip) & 0xf;
         int ctrInt = fDevice->GetChipConfig(ichip)->GetControlInterface();
-        
-        if ( !HasData(chipId) ) continue;  // write files only for chips with data
+        if ( !HasData(ichip) ) {
+            if ( GetVerboseLevel() > kTERSE ) {
+                cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID "
+                << fDevice->GetChipId(ichip) << " : no data, skipped." <<  endl;
+            }
+            continue;  // write files only for chips with data
+        }
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID = "<< fDevice->GetChipId(ichip) << endl;
+        }
         if ( fDevice->GetNChips() > 1 ) {
-            sprintf( fNameChip, "%s_Chip%d_%d.dat", fNameTemp, chipId, ctrInt );
+            sprintf( fNameChip, "%s_chip%d_%d.dat", fNameTemp, chipId, ctrInt );
         } else {
             sprintf( fNameChip, "%s.dat", fNameTemp );
         }
-        cout << "TDeviceDigitalScan::WriteDataToFile() - Writing data to file "<< fNameChip << endl;
-        
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TDeviceDigitalScan::WriteDataToFile() - Writing data to file "<< fNameChip << endl;
+        }
         if ( Recreate ) fp = fopen(fNameChip, "w");
         else            fp = fopen(fNameChip, "a");
-        for ( int icol = 0; icol < TDeviceDigitalScan::NPRIORITY_ENCODERS; icol ++) {
-            for (int iaddr = 0; iaddr < TDeviceDigitalScan::NADDRESSES; iaddr ++) {
-                if ( fHitData[chipId][icol][iaddr] > 0 ) {
+        for ( int icol = 0; icol < NPRIORITY_ENCODERS; icol ++) {
+            for (int iaddr = 0; iaddr < NADDRESSES; iaddr ++) {
+                int index = GetHitDataIndex( ichip, icol, iaddr );
+                if ( fHitData[index] > 0 ) {
                     fprintf( fp, "%d %d %d\n",
                             icol,
                             iaddr,
-                            fHitData[chipId][icol][iaddr] );
+                            fHitData[index] );
                 }
             }
         }
@@ -97,6 +145,10 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
 //___________________________________________________________________
 void TDeviceDigitalScan::Go()
 {
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceDigitalScan::Go() - not initialized ! Please use Init() first." );
+    }
+
     const int myNTriggers = fScanConfig->GetNInj();
     const int myMaskStages = fScanConfig->GetNMaskStages();
     const int myPixPerRegion = fScanConfig->GetPixPerRegion();
@@ -108,6 +160,8 @@ void TDeviceDigitalScan::Go()
     TBoardHeader boardInfo;
     
     shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( 0 ));
+
+    shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( 0 ));
 
     if ( myMOSAIC ) {
         myMOSAIC->StartRun();
@@ -153,14 +207,17 @@ void TDeviceDigitalScan::Go()
                 continue;
                 
             } else {
-                //cout << "TDeviceDigitalScan::Go() - received Event" << itrg << " with length " << n_bytes_data << endl;
-                //for (int iByte=0; iByte<n_bytes_data; ++iByte) {
-                //  printf ("%02x ", (int) buffer[iByte]);
-                //}
-                //cout << endl;
+                if ( GetVerboseLevel() > kVERBOSE ) {
+                    cout << "TDeviceDigitalScan::Go() - received Event " << itrg << " with length " << n_bytes_data << endl;
+                    for ( int iByte = 0; iByte < n_bytes_data; ++iByte ) {
+                        printf ("%02x ", (int) buffer[iByte]);
+                    }
+                    cout << endl;
+                }
+
 
                 // decode readout board event
-                shared_ptr<TBoardConfig> boardConfig = (fDevice->GetBoard( 0 ))->GetConfig().lock();
+                shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( 0 );
                 TBoardType boardType = boardConfig->GetBoardType();
                 BoardDecoder::DecodeEvent( boardType, buffer, n_bytes_data, n_bytes_header, n_bytes_trailer, boardInfo );
                 //cout << "Closed data counter: " <<  boardInfo.eoeCount << endl;
@@ -185,16 +242,14 @@ void TDeviceDigitalScan::Go()
                     }
                     fclose( fDebug );
                 }
-                //cout << "TDeviceDigitalScan::Go() - total number of hits found: " << fHits.size() << std::endl;
+                if ( GetVerboseLevel() > kVERBOSE ) {
+                    cout << "TDeviceDigitalScan::Go() - total number of hits found: "
+                         << fHits.size() << endl;
+                }
                 itrg+= nClosedEvents;
             }
         }
-        
-        //cout << "TDeviceDigitalScan::Go() - Hit pixels: " << endl;
-        //for ( int i=0; i < fHits.size(); i++ ) {
-        //  cout << i << ":\t region: " << fHits.at(i)->GetRegion() << "\tdcol: " << fHits.at(i)->GetDoubleColumn() << "\taddres: " << fHits.at(i)->GetAddress() << endl;
-        //}
-        CopyHitData();
+        MoveHitData();
     }
     
     cout << endl;
@@ -202,48 +257,93 @@ void TDeviceDigitalScan::Go()
         myMOSAIC->StopRun();
         cout << "TDeviceDigitalScan::Go() - Total number of 8b10b decoder errors: " << errors8b10b << endl;
     }
+    if ( myDAQBoard ) {
+        myDAQBoard->PowerOff();
+    }
     cout << "TDeviceDigitalScan::Go() - Number of corrupt events:             " << nBad       << endl;
     cout << "TDeviceDigitalScan::Go() - Number of skipped points:             " << nSkipped   << endl;
+
+    
 }
 
 //___________________________________________________________________
 void TDeviceDigitalScan::ClearHitData()
 {
-    for ( int ichip = 0; ichip < TDeviceDigitalScan::MAX_NCHIPS; ichip ++ ) {
-        for ( int icol = 0; icol < TDeviceDigitalScan::NPRIORITY_ENCODERS; icol ++ ) {
-            for ( int iaddr = 0; iaddr < TDeviceDigitalScan::NADDRESSES; iaddr ++ ) {
-                fHitData[ichip][icol][iaddr] = 0;
+    if ( !fHitData ) {
+        throw runtime_error( "TDeviceDigitalScan::ClearHitData() - no array of hit pixels defined !" );
+    }
+    for ( int ichip = 0; ichip < fDevice->GetNChips(); ichip ++ ) {
+        for ( int icol = 0; icol < NPRIORITY_ENCODERS; icol ++ ) {
+            for ( int iaddr = 0; iaddr < NADDRESSES; iaddr ++ ) {
+                int index = GetHitDataIndex( ichip, icol, iaddr );
+                fHitData[index] = 0;
             }
         }
     }
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::CopyHitData()
+void TDeviceDigitalScan::MoveHitData()
 {
+    if ( !fHitData ) {
+        throw runtime_error( "TDeviceDigitalScan::MoveHitData() - no array of hit pixels defined !" );
+    }
+
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TDeviceDigitalScan::MoveHitData() - hit pixels : " << endl;
+    }
     for ( unsigned int ihit = 0; ihit < fHits.size(); ihit ++ ) {
         int chipId  = (fHits.at(ihit))->GetChipId();
         int dcol    = (fHits.at(ihit))->GetDoubleColumn();
         int region  = (fHits.at(ihit))->GetRegion();
         int address = (fHits.at(ihit))->GetAddress();
-        if ((chipId < 0) || (dcol < 0) || (region < 0) || (address < 0)) {
-            cout << "TDeviceDigitalScan::CopyHitData() - Bad pixel coordinates ( <0), skipping hit" << endl;
-        } else {
-            fHitData[chipId][dcol + region * 16][address] ++;
+        if ( GetVerboseLevel() > kVERBOSE ) {
+            cout << "\t chip:dcol:region:address "
+                << chipId << ":" << dcol << ":" << region << ":" << address << endl;
         }
+        if ((chipId < 0) || (dcol < 0) || (region < 0) || (address < 0)) {
+            cout << "TDeviceDigitalScan::MoveHitData() - Bad pixel coordinates ( <0), skipping hit" << endl;
+        } else {
+            int ichip = fDevice->GetChipIndexById( chipId );
+            int index = GetHitDataIndex( ichip, dcol + region * 16, address );
+            fHitData[index] ++;
+        }
+    }
+    if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << "TDeviceDigitalScan::MoveHitData() --------------------- done" << endl;
     }
     fHits.clear();
 }
 
 //___________________________________________________________________
-bool TDeviceDigitalScan::HasData( const int chipId )
+bool TDeviceDigitalScan::HasData( const int ichip )
 {
-    for ( int icol = 0; icol < TDeviceDigitalScan::NPRIORITY_ENCODERS; icol ++ ) {
-        for (int iaddr = 0; iaddr < TDeviceDigitalScan::NADDRESSES; iaddr ++) {
-            if (fHitData[chipId][icol][iaddr] > 0) return true;
+    for ( int icol = 0; icol < NPRIORITY_ENCODERS; icol ++ ) {
+        for (int iaddr = 0; iaddr < NADDRESSES; iaddr ++) {
+            int index = GetHitDataIndex( ichip, icol, iaddr );
+            if ( fHitData[index] > 0 ) return true;
         }
     }
     return false;
 }
 
-
+//___________________________________________________________________
+int TDeviceDigitalScan::GetHitDataIndex( const int ichip,
+                                         const int icol,
+                                         const int iadd )
+{
+    if ( !fHitData ) {
+        throw runtime_error( "TDeviceDigitalScan::GetHitDataIndex() - no array of hit pixels defined !" );
+    }
+    if ( ichip >= fDevice->GetNChips() ) {
+        throw domain_error( "TDeviceDigitalScan::GetHitDataIndex() - Invalid chip index !" );
+    }
+    if ( icol >= NPRIORITY_ENCODERS ) {
+        throw domain_error( "TDeviceDigitalScan::GetHitDataIndex() - Invalid double-column index !" );
+    }
+    if ( iadd >= NADDRESSES ) {
+        throw domain_error( "TDeviceDigitalScan::GetHitDataIndex() - Invalid address index !" );
+    }
+    int index = ichip*NPRIORITY_ENCODERS*NADDRESSES + icol*NADDRESSES + iadd;
+    return index;
+}

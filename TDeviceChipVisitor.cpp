@@ -76,7 +76,7 @@ void TDeviceChipVisitor::SetVerboseLevel( const int level )
 void TDeviceChipVisitor::Init()
 {
     if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::Init() - can not use a null pointer !" );
+        throw runtime_error( "TDeviceChipVisitor::Init() - can not use a null pointer for the device !" );
     }
     if ( fDevice->GetNChips() == 0 ) {
         throw runtime_error( "TDeviceChipVisitor::Init() - no chip found !" );
