@@ -1,9 +1,7 @@
 CC=g++
 INCLUDE=/usr/local/include
-LIBPATH=/usr/local/lib
 CFLAGS= -O2 -pipe -fPIC -g -std=c++0x -mcmodel=large -I $(INCLUDE)
-LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
-#LINKFLAGS=
+LINKFLAGS = -L/usr/local/lib -L/usr/lib64 -lusb-1.0 -lpthread
 OBJECT= runTest
 LIBRARY=libalpide.so
 CLASS= TReadoutBoard.cpp TAlpide.cpp AlpideConfig.cpp AlpideDecoder.cpp USB.cpp USBHelpers.cpp TReadoutBoardDAQ.cpp \

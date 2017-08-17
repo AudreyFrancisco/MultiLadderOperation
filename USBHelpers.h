@@ -1,8 +1,9 @@
-#ifndef _USBHELPERS_H_ 
+#ifndef _USBHELPERS_H_
 #define _USBHELPERS_H_
 
 #include <libusb-1.0/libusb.h>
-#include <vector> 
+// #include <usb.h>
+#include <vector>
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoard.h"
 

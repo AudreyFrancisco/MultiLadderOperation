@@ -9,8 +9,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-//#include "libusb.h"
 #include <libusb-1.0/libusb.h>
+// #include <usb.h>
 
 const int DAQ_BOARD_VENDOR_ID  = 0x4b4;
 const int DAQ_BOARD_PRODUCT_ID = 0xf1;
