@@ -238,6 +238,8 @@ private:
     
     #pragma mark - other
     
+    void EnableDoubleColumns();
+    
     std::string DecomposeChipId();
 
 };

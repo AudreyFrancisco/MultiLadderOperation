@@ -55,6 +55,13 @@ const bool TChipConfig::INITIAL_TOKEN      = true; // outer barrel scenario
 const bool TChipConfig::DISABLE_MANCHESTER = false;
 const bool TChipConfig::ENABLE_DDR         = true;
 
+const int  TChipConfig::DTU_CFG_PLL_PHASE  = 8;
+const int  TChipConfig::DTU_CFG_PLL_STAGES = 1;
+
+const int  TChipConfig::DTU_DACS_PLL_CHARGE_PUMP    = 8;
+const int  TChipConfig::DTU_DACS_HIGH_SPEED_DRIVER  = 15;
+const int  TChipConfig::DTU_DACS_PREEMP_DRIVER      = 15;
+
 const bool TChipConfig::DTU_TEST1_TEST_ENABLE = false;
 const bool TChipConfig::DTU_TEST1_PRBS_ENABLE = false;
 const bool TChipConfig::DTU_TEST1_SINGLE_MODE = false;
@@ -119,6 +126,13 @@ TChipConfig::TChipConfig()
     fInitialToken        = INITIAL_TOKEN;
     fDisableManchester   = DISABLE_MANCHESTER;
     fEnableDdr           = ENABLE_DDR;
+    
+    fDtuConfReg_PllPhase    = DTU_CFG_PLL_PHASE;
+    fDtuConfReg_PllStages   = DTU_CFG_PLL_STAGES;
+
+    fDtuDacs_PllChargePump      = DTU_DACS_PLL_CHARGE_PUMP;
+    fDtuDacs_HighSpeedDriver    = DTU_DACS_HIGH_SPEED_DRIVER;
+    fDtuDacs_PreEmpDriver       = DTU_DACS_PREEMP_DRIVER;
     
     fDtuTest1_TestEnable        = DTU_TEST1_TEST_ENABLE;
     fDtuTest1_PrbsEnable        = DTU_TEST1_PRBS_ENABLE;
@@ -186,6 +200,13 @@ TChipConfig::TChipConfig( const int chipId )
     fDisableManchester   = DISABLE_MANCHESTER;
     fEnableDdr           = ENABLE_DDR;
     
+    fDtuConfReg_PllPhase    = DTU_CFG_PLL_PHASE;
+    fDtuConfReg_PllStages   = DTU_CFG_PLL_STAGES;
+    
+    fDtuDacs_PllChargePump      = DTU_DACS_PLL_CHARGE_PUMP;
+    fDtuDacs_HighSpeedDriver    = DTU_DACS_HIGH_SPEED_DRIVER;
+    fDtuDacs_PreEmpDriver       = DTU_DACS_PREEMP_DRIVER;
+    
     fDtuTest1_TestEnable        = DTU_TEST1_TEST_ENABLE;
     fDtuTest1_PrbsEnable        = DTU_TEST1_PRBS_ENABLE;
     fDtuTest1_TestSingleMode    = DTU_TEST1_SINGLE_MODE;
@@ -252,6 +273,13 @@ TChipConfig::TChipConfig( const int chipId, const int ci, const int rc )
     fDisableManchester   = DISABLE_MANCHESTER;
     fEnableDdr           = ENABLE_DDR;
     
+    fDtuConfReg_PllPhase    = DTU_CFG_PLL_PHASE;
+    fDtuConfReg_PllStages   = DTU_CFG_PLL_STAGES;
+    
+    fDtuDacs_PllChargePump      = DTU_DACS_PLL_CHARGE_PUMP;
+    fDtuDacs_HighSpeedDriver    = DTU_DACS_HIGH_SPEED_DRIVER;
+    fDtuDacs_PreEmpDriver       = DTU_DACS_PREEMP_DRIVER;
+    
     fDtuTest1_TestEnable        = DTU_TEST1_TEST_ENABLE;
     fDtuTest1_PrbsEnable        = DTU_TEST1_PRBS_ENABLE;
     fDtuTest1_TestSingleMode    = DTU_TEST1_SINGLE_MODE;
@@ -317,12 +345,19 @@ void TChipConfig::InitParamMap()
     
     fSettings["DISABLEMANCHESTER"]      = (int*)&fDisableManchester;
     fSettings["ENABLEDDR"]              = (int*)&fEnableDdr;
+   
+    fSettings["DTUCFGPLLPHASE"]      = &fDtuConfReg_PllPhase;
+    fSettings["DTUCFGPLLSTAGES"]     = &fDtuConfReg_PllStages;
     
-    fSettings["DTU_TEST1_TEST_ENABLE"]  = (int*)&fDtuTest1_TestEnable;
-    fSettings["DTU_TEST1_PRBS_ENABLE"]  = (int*)&fDtuTest1_PrbsEnable;
-    fSettings["DTU_TEST1_SINGLE_MODE"]  = (int*)&fDtuTest1_TestSingleMode;
-    fSettings["DTU_TEST1_PRBS_RATE"]    = &fDtuTest1_PrbsRate;
-    fSettings["DTU_TEST1_BYPASS_8B10B"] = (int*)&fDtuTest1_Bypass8b10b;
+    fSettings["DTUDACSPLLCHARGEPUMP"]      = &fDtuDacs_PllChargePump;
+    fSettings["DTUDACSHSDRIVER"]           = &fDtuDacs_HighSpeedDriver;
+    fSettings["DTUDACSPREEMPDRIVER"]       = &fDtuDacs_PreEmpDriver;
+
+    fSettings["DTUTEST1TESTENABLE"]  = (int*)&fDtuTest1_TestEnable;
+    fSettings["DTUTEST1PRBSENABLE"]  = (int*)&fDtuTest1_PrbsEnable;
+    fSettings["DTUTEST1SINGLEMODE"]  = (int*)&fDtuTest1_TestSingleMode;
+    fSettings["DTUTEST1PRBSRATE"]    = &fDtuTest1_PrbsRate;
+    fSettings["DTUTEST1BYPASS8B10B"] = (int*)&fDtuTest1_Bypass8b10b;
 
 }
 

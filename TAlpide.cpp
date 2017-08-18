@@ -4,6 +4,7 @@
 #include "TReadoutBoard.h"
 #include <bitset>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <array>
@@ -293,10 +294,13 @@ void TAlpide::DumpConfig()
 
     cout << "TAlpide::DumpConfig() - chip id = " << DecomposeChipId()  <<  endl;
     
+    cout << setfill('0');
     for ( uint i = 0; i < regs.size(); i++ ) {
-        cout << fRegName[i] << " \t (hex) " << std::hex << regs.at(i) << " (bin) "
-            << std::bitset<16> ( regs.at(i) ) << endl;
+        cout << setw(42) << left << fRegName[i] ;
+        cout << setw(9) << " (hex) 0x" << internal << setw(4) << std::hex << regs.at(i);
+        cout << " (bin) " << std::bitset<16> ( regs.at(i) ) << endl;
     }
+    cout << setfill(' ');
     for ( uint i = 0; i < dacregs.size(); i++ ) {
         cout << fDACsRegName[i] << " \t (dec) " << std::dec << dacregs.at(i) << endl;
     }
@@ -956,6 +960,8 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
         }
         return iStage;
     }
+    
+    EnableDoubleColumns();
 
     // check that nPix is one of (1, 2, 4, 8, 16, 32)
     if ((nPix <= 0) || (nPix & (nPix - 1)) || (nPix > 32)) {
@@ -1081,11 +1087,11 @@ void TAlpide::BaseConfigPLL()
 
     // Write to DTU config register and DTU DACs register
     
-    const uint16_t Phase      = 8; // 4bit Value, default 8
-    const uint16_t Stages     = 1; // 0 -> 3 stages, 1 -> 4,  3 -> 5 (typical 4 stages)
-    const uint16_t ChargePump = 8; // charge pump current (4bit value, default 8)
-    const uint16_t Driver     = 15; // line driver current
-    const uint16_t Preemp     = 15; // pre-emphasis driver
+    const uint16_t Phase      = spConfig->GetParamValue("DTUCFGPLLPHASE");
+    const uint16_t Stages     = spConfig->GetParamValue("DTUCFGPLLSTAGES");
+    const uint16_t ChargePump = spConfig->GetParamValue("DTUDACSPLLCHARGEPUMP");
+    const uint16_t Driver     = spConfig->GetParamValue("DTUDACSHSDRIVER");
+    const uint16_t Preemp     = spConfig->GetParamValue("DTUDACSPREEMPDRIVER");
     uint16_t Value;
     
     Value = (Stages & 0x3) | 0x4 | 0x8 | ((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x8: PLL off
@@ -1135,8 +1141,10 @@ void TAlpide::BaseConfigMask()
         }
         return;
     }
-    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,   true );
-    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
+    // disable mask
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,  false );
+    // enable pulse
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, true );
 }
 
 //___________________________________________________________________
@@ -1424,6 +1432,16 @@ void TAlpide::ClearPixSelectBits( const bool clearPulseGating )
 }
 
 #pragma mark - other
+
+//___________________________________________________________________
+void TAlpide::EnableDoubleColumns()
+{
+    for ( int ireg = 0; ireg < 32; ireg ++ ) {
+        uint16_t Register = ((uint16_t)AlpideRegister::DCOL_DISABLE_BASE) | (ireg < 11);
+        WriteRegister( Register, 0x0 );
+    }
+}
+
 //___________________________________________________________________
 string TAlpide::DecomposeChipId()
 {

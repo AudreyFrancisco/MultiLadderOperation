@@ -107,6 +107,25 @@ private:
     bool fDisableManchester;
     bool fEnableDdr;
 
+#pragma mark - DTU Configuration Register settings
+
+    /// Serializer phase (bits 7:4), default 8
+    int fDtuConfReg_PllPhase;
+    
+    /// PLL VCO delay stages control (bits 1:0), 0->3 stages, 1->4 (default),  3->5
+    int fDtuConfReg_PllStages;
+
+#pragma mark - DTU DACs Register settings
+
+    /// PLL charge pump current setting (bits 3:0), default 8
+    int fDtuDacs_PllChargePump;
+    
+    /// High speed line driver current setting (bits 7:4), default 15
+    int fDtuDacs_HighSpeedDriver;
+    
+    /// Pre-emphasis driver current setting (bits 11:8), default 15
+    int fDtuDacs_PreEmpDriver;
+    
 #pragma mark - DTU Test Register 1 settings
     
     bool fDtuTest1_TestEnable;
@@ -238,6 +257,13 @@ private:
     static const bool DISABLE_MANCHESTER;
     static const bool ENABLE_DDR;
     
+    static const int  DTU_CFG_PLL_PHASE;
+    static const int  DTU_CFG_PLL_STAGES;
+    
+    static const int  DTU_DACS_PLL_CHARGE_PUMP;
+    static const int  DTU_DACS_HIGH_SPEED_DRIVER;
+    static const int  DTU_DACS_PREEMP_DRIVER;
+
     static const bool DTU_TEST1_TEST_ENABLE;
     static const bool DTU_TEST1_PRBS_ENABLE;
     static const bool DTU_TEST1_SINGLE_MODE;
