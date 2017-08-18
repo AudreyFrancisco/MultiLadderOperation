@@ -12,6 +12,7 @@
 #include "TAlpide.h"
 #include "TSetup.h"
 #include "TDevice.h"
+#include "TScanConfig.h"
 #include "AlpideDictionary.h"
 #include "TDeviceChipVisitor.h"
 #include "TVerbosity.h"
@@ -33,26 +34,38 @@ int main(int argc, char** argv) {
     const int nBoards = theDevice->GetNBoards( false );
     if ( !nBoards ) {
         cout << "No board found, exit!" << endl;
-        return 0;
+        return 1;
     }
     if ( nBoards != 1 ) {
         cout << "More than one board found, exit!" << endl;
-        return 0;
+        return 1;
     }
-
     const int nWorkingChips = theDevice->GetNWorkingChips();
     if ( !nWorkingChips ) {
         cout << "No working chip found, exit!" << endl;
-        return 0;
+        return 1;
+    }
+
+    shared_ptr<TScanConfig> theScanConfig = (mySetup.GetScanConfig()).lock();
+
+    if ( !theScanConfig ) {
+        cout << "No scan config found, exit!" << endl;
+        return 1;
     }
     
-    shared_ptr<TReadoutBoard> theBoard = theDevice->GetBoard( 0 );
+    shared_ptr<TReadoutBoardMOSAIC> theBoard = dynamic_pointer_cast<TReadoutBoardMOSAIC>(theDevice->GetBoard( 0 ));
+
+    if ( !theBoard ) {
+        cout << "No MOSAIC board found, exit!" << endl;
+        return 1;
+    }
     
     // configure chip(s)
     TDeviceChipVisitor theDeviceChipVisitor( theDevice );
     theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceChipVisitor.Init();
     theDeviceChipVisitor.DoBaseConfig();
+    theDeviceChipVisitor.DoConfigureMaskStage( theScanConfig->GetPixPerRegion(), theScanConfig->GetNMaskStages() );
     if ( mySetup.GetVerboseLevel() ) {
         theDeviceChipVisitor.DoDumpConfig();
     }
@@ -63,8 +76,10 @@ int main(int argc, char** argv) {
 
     // variables that define the trigger/pulse
     bool enablePulse = true, enableTrigger = true;
-    int triggerDelay = 160, pulseDelay = 1000, nTriggers = -1; // AR: using nTriggers > 0 only slows down the rate at which pulses are produced
-
+    const int triggerDelay = theDevice->GetBoardConfig(0)->GetParamValue("STROBEDELAYBOARD"); // original value 160
+    const int pulseDelay = theDevice->GetBoardConfig(0)->GetParamValue("PULSEDELAY"); // original value 1000
+    const int nTriggers = theScanConfig->GetNInj(); // original value -1
+    
 	theBuffer = (unsigned char*) malloc(200 * 1024); // allocates 200 kilobytes ...
 
 	bool isDataTakingEnd = false; // break the execution of read polling
@@ -75,7 +90,7 @@ int main(int argc, char** argv) {
 	theBoard->SetTriggerConfig( enablePulse, enableTrigger, triggerDelay, pulseDelay );
 	theBoard->SetTriggerSource( TTriggerSource::kTRIG_INT );
 
-	(dynamic_pointer_cast<TReadoutBoardMOSAIC>(theBoard))->StartRun(); // Activate the data taking ...
+	theBoard->StartRun(); // Activate the data taking ...
 
 	theBoard->Trigger( nTriggers ); // Preset and start the trigger
 
@@ -96,13 +111,14 @@ int main(int argc, char** argv) {
             }
             if( numberOfReadByte == 0 ) isDataTakingEnd = true;
             nEvents++;
-			usleep(20000); // wait
+			usleep(200); // wait
 		} else { // read nothing is finished ?
 			if(timeoutLimit-- == 0) isDataTakingEnd = true;
 			sleep(1);
 		}
 	}
 
-	(dynamic_pointer_cast<TReadoutBoardMOSAIC>(theBoard))->StopRun(); // Stop run
+	theBoard->StopRun(); // Stop run
+
     return 0;
 }
