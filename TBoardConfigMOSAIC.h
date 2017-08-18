@@ -13,7 +13,7 @@
 /// \details ver.0.1 3/8/2016
 
 namespace BoardConfigMOSAIC {
-    const int MAX_MOSAICCTRLINT = 2;
+    const int MAX_MOSAICCTRLINT = 2; // max number of control interfaces
     const int MAX_MOSAICTRANRECV = 10;
     const int MOSAIC_HEADER_LENGTH = 64;
     
