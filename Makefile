@@ -120,5 +120,5 @@ test_temperature:   $(OBJS) main_temperature.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -rf *.o $(OBJECT)
+	rm -rf *.o $(OBJECT) test_mosaic test_fifo test_digital test_noiseocc test_threshold test_dacscan test_pulselength test_source test_poweron test_noiseocc_ext test_scantest test_temperature
 	rm -rf MosaicSrc/*.o
