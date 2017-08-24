@@ -97,10 +97,12 @@ void TDeviceFifoTest::Go()
         }
     } // end of the loop on chips
     
-    shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( 0 ));
-
-    if ( myDAQBoard ) {
-        myDAQBoard->PowerOff();
+    if ( fDevice->GetDeviceType() == TDeviceType::kCHIP_DAQ ) {
+        shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( 0 ));
+        
+        if ( myDAQBoard ) {
+            myDAQBoard->PowerOff();
+        }
     }
 }
 
