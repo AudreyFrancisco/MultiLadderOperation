@@ -327,7 +327,7 @@ void TScanHisto::Clear()
 }
 
 
-//TODO (for all) check index for validity
+// TODO: (for all) check index for validity
 //___________________________________________________________________
 void TScanHisto::Incr( TChipIndex index, unsigned int i, unsigned int j )
 {
@@ -336,7 +336,7 @@ void TScanHisto::Incr( TChipIndex index, unsigned int i, unsigned int j )
 }
 
 
-//TODO clean up, write missing operator (1-d)
+// TODO: clean up, write missing operator (1-d)
 //___________________________________________________________________
 double TScanHisto::operator() (TChipIndex index, unsigned int i, unsigned int j) const
 {

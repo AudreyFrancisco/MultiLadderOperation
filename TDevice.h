@@ -1,17 +1,22 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
-/// \class TDevice
-/// \brief Container of configs (for chips and boards), of chips and boards.
-///
-/// This class owns the chips instances, their associated boards
-/// instances, and their respective configurations instances. It isolates the code for
-/// the representation of the device under test. The code for construction is in the
-/// TDeviceBuilder class. This design pattern has been adopted since TDevice has
-/// a complex internal structure. The builder class will handle the construction with
-/// great care, with steps depending on the TDevice type that is wanted.
-/// Hence, chips, boards, and their configurations are all instantiated by
-/// the classes inherited from TDeviceBuilder base class.
+/** 
+ * \class TDevice
+ *
+ * \brief Container of configs (for chips and boards), of chips and boards.
+ *
+ * \author Andry Rakotozafindrabe
+ *
+ * This class owns the chips instances, their associated boards
+ * instances, and their respective configurations instances. It isolates the code for
+ * the representation of the device under test. The code for construction is in the
+ * TDeviceBuilder class. This design pattern has been adopted since TDevice has
+ * a complex internal structure. The builder class will handle the construction with
+ * great care, with steps depending on the TDevice type that is wanted.
+ * Hence, chips, boards, and their configurations are all instantiated by
+ * the classes inherited from TDeviceBuilder base class.
+ */
 
 #include <vector>
 #include <memory>
