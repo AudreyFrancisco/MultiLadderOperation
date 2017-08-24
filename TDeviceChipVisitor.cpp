@@ -90,15 +90,20 @@ void TDeviceChipVisitor::Init()
         return;
     }
     
-    // -- global reset chips
+    for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
 
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
-    
-    // TODO: check if this is needed ?
-    // -- pixel matrix reset
-    // (does not affect the PULSE_EN and MASK_EN latches)
+        myBoard = fDevice->GetBoard( iboard );
 
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
+        // -- global reset chips
+        
+        myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
+        
+        // TODO: check if this is needed ?
+        // -- pixel matrix reset
+        // (does not affect the PULSE_EN and MASK_EN latches)
+        
+        myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
+    }
     
     // -- init in-pixel registers
     // (the pixel latches do not provide a reset mechanism,
