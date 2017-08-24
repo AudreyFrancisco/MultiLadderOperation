@@ -167,6 +167,8 @@ void TDeviceDigitalScan::Go()
         myMOSAIC->StartRun();
     }
     
+    TBoardDecoder boardDecoder;
+
     for ( int istage = 0; istage < myMaskStages; istage ++ ) {
         
         if ( GetVerboseLevel() > kSILENT ) {
@@ -218,7 +220,6 @@ void TDeviceDigitalScan::Go()
 
                 // decode readout board event
                 shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( 0 );
-                TBoardDecoder boardDecoder;
                 boardDecoder.SetBoardType( boardConfig->GetBoardType() );
                 boardDecoder.DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
                 //cout << "Closed data counter: " <<  boardDecoder.GetMosaicEoeCount() << endl;
