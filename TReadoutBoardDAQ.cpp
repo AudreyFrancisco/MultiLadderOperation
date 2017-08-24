@@ -7,6 +7,7 @@
 #include "AlpideDictionary.h"
 #include "TAlpide.h"
 #include "TReadoutBoardDAQ.h"
+#include "TBoardDecoder.h"
 
 #pragma mark - constructor/destructor
 
@@ -374,11 +375,11 @@ void TReadoutBoardDAQ::DAQReadData() {
         fStatusReadData = -1;
         return;
       }
-      else if (evt_length < (BoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+BoardDecoder::GetDAQEventTrailerLength()+4)) {
+      else if (evt_length < (DAQBoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+DAQBoardDecoder::GetDAQEventTrailerLength()+4)) {
         std::cout << std::endl;
         std::cout << "WARNING, received too small event: " << evt_length 
                   << " instead of expected >= " 
-                  << (BoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+BoardDecoder::GetDAQEventTrailerLength()+4)
+                  << (DAQBoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+DAQBoardDecoder::GetDAQEventTrailerLength()+4)
                   << std::endl;
         std::cout << std::endl;
       }
@@ -542,7 +543,7 @@ void TReadoutBoardDAQ::DAQReadData() {
         fStatusReadData = -1;
         return;
       }
-      else if (evt_length < (BoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+BoardDecoder::GetDAQEventTrailerLength()+4)) {
+      else if (evt_length < (DAQBoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+DAQBoardDecoder::GetDAQEventTrailerLength()+4)) {
         std::cout << std::endl;
         std::cout << "WARNING, received too small event: " << evt_length << std::endl;
         std::cout << std::endl;

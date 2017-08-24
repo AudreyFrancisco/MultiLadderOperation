@@ -3,6 +3,12 @@
 
 #include "TReadoutBoard.h"
 
+/* Obsolete struct and class, not used any more, kept to track modificiations
+ * from original repository.
+ * Replaced by TBoardDecoder.h
+ */
+
+
 enum class TBoardType;
 const uint32_t DAQ_TRAILER_WORD = 0xbfbfbfbf; // 
 

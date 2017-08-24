@@ -10,9 +10,9 @@ LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
 OBJECT= runTest
 LIBRARY=libalpide.so
 CLASS= AlpideDecoder.cpp \
-           BoardDecoder.cpp \
            USB.cpp \
            TAlpide.cpp \
+           TBoardDecoder.cpp \
            TBoardConfig.cpp \
            TBoardConfigDAQ.cpp \
            TBoardConfigMOSAIC.cpp \
@@ -33,6 +33,7 @@ CLASS= AlpideDecoder.cpp \
            TDeviceFifoTest.cpp \
            TDeviceDigitalScan.cpp \
            THisto.cpp \
+           TPixHit.cpp \
            TReadoutBoard.cpp \
            TReadoutBoardDAQ.cpp \
            TReadoutBoardMOSAIC.cpp  \

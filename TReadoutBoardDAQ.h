@@ -18,7 +18,6 @@
 #include "TReadoutBoard.h"
 #include "TAlpide.h"
 #include "TBoardConfigDAQ.h"
-#include "BoardDecoder.h"
 
 const int MAX_DIFF_TRIG_EVT_CNT   =  10;    // maximum allowed difference between number triggers and events read; MAX_DIFF_TRIG_EVT_CNT is default
 const std::uint32_t MAX_EVT_BUFFSIZE   = 1e3;    // max number of events in fEventBuffer  TODO: maximum queue size ~1 Gb?
