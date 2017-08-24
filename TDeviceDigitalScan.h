@@ -2,7 +2,7 @@
 #define DEVICE_DIGITAL_SCAN_H
 
 /**
- * \class TDeviceFifoTest
+ * \class TDeviceDigitalScan
  *
  * \brief This class runs the digital scan over all enabled chips in the device.
  *
@@ -27,16 +27,16 @@ class AlpideDecoder;
 class TDeviceDigitalScan : public TDeviceChipVisitor {
     
     /// number of priority encoders (double columns) in the pixel matrix
-    static const int NPRIORITY_ENCODERS = 512;
+    static const unsigned int NPRIORITY_ENCODERS = 512;
     
     /// number of addresses in the pixel matrix
-    static const int NADDRESSES = 1024;
+    static const unsigned int NADDRESSES = 1024;
     
     /// max number of trials ending with timeout for each injection for each chip
-    static const int MAXTRIALS = 3;
+    static const unsigned int MAXTRIALS = 3;
 
     /// max number of bad chip events per chip for each injection
-    static const int MAXNBAD = 10;
+    static const unsigned int MAXNBAD = 10;
 
     /// array of hit pixels [ichip][icol][iaddr]
     int* fHitData;
@@ -84,10 +84,10 @@ private:
     void MoveHitData();
     
     /// check if there is any hit for the requested chip index
-    bool HasData( const int ichip );
+    bool HasData( const unsigned int ichip );
     
     /// return the index in the array of hit pixels for a given (ichip, icol, iadd)
-    int GetHitDataIndex( const int ichip, const int icol, const int iadd );
+    int GetHitDataIndex( const unsigned int ichip, const unsigned int icol, const unsigned int iadd );
     
 };
 

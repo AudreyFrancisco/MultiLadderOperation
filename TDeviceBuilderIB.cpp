@@ -57,7 +57,7 @@ void TDeviceBuilderIB::CreateDeviceConfig()
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fCurrentDevice->AddBoardConfig( newBoardConfig );
     
-    for (int ichip = 0; ichip < fCurrentDevice->GetNChips(); ichip ++) {
+    for (unsigned int ichip = 0; ichip < fCurrentDevice->GetNChips(); ichip ++) {
         int chipID = ichip;
         auto newChipConfig = make_shared<TChipConfig>( chipID );
         fCurrentDevice->AddChipConfig( newChipConfig );
@@ -124,7 +124,7 @@ void TDeviceBuilderIB::InitSetup()
     auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
     fCurrentDevice->AddBoard( newBoard );
     
-    for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         
         shared_ptr<TChipConfig> chipConfig = fCurrentDevice->GetChipConfig(i);
         int control  = chipConfig->GetParamValue("CONTROLINTERFACE");

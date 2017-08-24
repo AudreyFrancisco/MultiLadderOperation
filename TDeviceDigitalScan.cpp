@@ -96,7 +96,7 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
     sprintf( fNameTemp,"%s", fName);
     strtok( fNameTemp, "." );
     
-    for ( int ichip = 0; ichip < fDevice->GetNChips(); ichip ++ ) {
+    for ( unsigned int ichip = 0; ichip < fDevice->GetNChips(); ichip ++ ) {
         
         if ( !((fDevice->GetChipConfig(ichip))->IsEnabled()) ) {
             if ( GetVerboseLevel() > kTERSE ) {
@@ -127,9 +127,9 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
         }
         if ( Recreate ) fp = fopen(fNameChip, "w");
         else            fp = fopen(fNameChip, "a");
-        for ( int icol = 0; icol < NPRIORITY_ENCODERS; icol ++) {
-            for (int iaddr = 0; iaddr < NADDRESSES; iaddr ++) {
-                int index = GetHitDataIndex( ichip, icol, iaddr );
+        for ( unsigned int icol = 0; icol < NPRIORITY_ENCODERS; icol ++ ) {
+            for ( unsigned int iaddr = 0; iaddr < NADDRESSES; iaddr ++ ) {
+                unsigned int index = GetHitDataIndex( ichip, icol, iaddr );
                 if ( fHitData[index] > 0 ) {
                     fprintf( fp, "%d %d %d\n",
                             icol,
@@ -155,8 +155,8 @@ void TDeviceDigitalScan::Go()
 
     unsigned char buffer[1024*4000];
     int n_bytes_data, n_bytes_header, n_bytes_trailer, errors8b10b = 0, nClosedEvents = 0;
-    int nBad       = 0;
-    int nSkipped   = 0;
+    unsigned int nBad       = 0;
+    unsigned int nSkipped   = 0;
     TBoardHeader boardInfo;
     
     shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( 0 ));
@@ -186,8 +186,8 @@ void TDeviceDigitalScan::Go()
         //(fDevice->GetBoard( 0 ))->SendOpCode( (uint16_t)Alpide::OPCODE_DEBUG );
         //(fDevice->GetChip(0))->PrintDebugStream();
         
-        int itrg = 0;
-        int nTrials = 0;
+        unsigned int itrg = 0;
+        unsigned int nTrials = 0;
         
         while( itrg < myNTriggers * fDevice->GetNWorkingChips() ) {
 
@@ -272,10 +272,10 @@ void TDeviceDigitalScan::ClearHitData()
     if ( !fHitData ) {
         throw runtime_error( "TDeviceDigitalScan::ClearHitData() - no array of hit pixels defined !" );
     }
-    for ( int ichip = 0; ichip < fDevice->GetNChips(); ichip ++ ) {
-        for ( int icol = 0; icol < NPRIORITY_ENCODERS; icol ++ ) {
-            for ( int iaddr = 0; iaddr < NADDRESSES; iaddr ++ ) {
-                int index = GetHitDataIndex( ichip, icol, iaddr );
+    for ( unsigned int ichip = 0; ichip < fDevice->GetNChips(); ichip ++ ) {
+        for ( unsigned int icol = 0; icol < NPRIORITY_ENCODERS; icol ++ ) {
+            for ( unsigned int iaddr = 0; iaddr < NADDRESSES; iaddr ++ ) {
+                unsigned int index = GetHitDataIndex( ichip, icol, iaddr );
                 fHitData[index] = 0;
             }
         }
@@ -316,11 +316,11 @@ void TDeviceDigitalScan::MoveHitData()
 }
 
 //___________________________________________________________________
-bool TDeviceDigitalScan::HasData( const int ichip )
+bool TDeviceDigitalScan::HasData( const unsigned int ichip )
 {
-    for ( int icol = 0; icol < NPRIORITY_ENCODERS; icol ++ ) {
-        for (int iaddr = 0; iaddr < NADDRESSES; iaddr ++) {
-            int index = GetHitDataIndex( ichip, icol, iaddr );
+    for ( unsigned int icol = 0; icol < NPRIORITY_ENCODERS; icol ++ ) {
+        for (unsigned int iaddr = 0; iaddr < NADDRESSES; iaddr ++) {
+            unsigned int index = GetHitDataIndex( ichip, icol, iaddr );
             if ( fHitData[index] > 0 ) return true;
         }
     }
@@ -328,9 +328,9 @@ bool TDeviceDigitalScan::HasData( const int ichip )
 }
 
 //___________________________________________________________________
-int TDeviceDigitalScan::GetHitDataIndex( const int ichip,
-                                         const int icol,
-                                         const int iadd )
+int TDeviceDigitalScan::GetHitDataIndex( const unsigned int ichip,
+                                         const unsigned int icol,
+                                         const unsigned int iadd )
 {
     if ( !fHitData ) {
         throw runtime_error( "TDeviceDigitalScan::GetHitDataIndex() - no array of hit pixels defined !" );

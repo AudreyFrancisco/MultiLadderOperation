@@ -55,7 +55,7 @@ void TDeviceBuilderWithSlaveChips::MakeDaisyChain()
     }
     
     // find the first and last enabled chip in each row
-    for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         if (!(fCurrentDevice->GetChipConfig(i))->IsEnabled()) continue;
         int chipId   = (fCurrentDevice->GetChipConfig(i))->GetChipId();
         int modId    = (chipId & 0x70) >> 4;
@@ -67,7 +67,7 @@ void TDeviceBuilderWithSlaveChips::MakeDaisyChain()
         if (!(chipId & 0x8) && (chipId > lastLow  [modId])) lastLow  [modId] = chipId;
     }
     
-    for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         if (!(fCurrentDevice->GetChipConfig(i))->IsEnabled()) continue;
         int chipId   = (fCurrentDevice->GetChipConfig(i))->GetChipId();
         int modId    = (chipId & 0x70) >> 4;

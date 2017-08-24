@@ -49,16 +49,17 @@ class TDevice : public TVerbosity {
     
     bool fCreatedConfig;
     bool fInitialisedSetup;
-    int fNWorkingChips;
-    int fNChips;
-    int fNModules;
-    int fStartChipId;
+    unsigned int fNWorkingChips;
+    unsigned int fNChips;
+    unsigned int fNModules;
+    unsigned int fStartChipId;
     TBoardType fBoardType;
     TDeviceType fDeviceType;
     std::vector<std::shared_ptr<TReadoutBoard>> fBoards;
     std::vector<std::shared_ptr<TAlpide>> fChips;
     std::vector<std::shared_ptr<TBoardConfig>> fBoardConfigs;
     std::vector<std::shared_ptr<TChipConfig>> fChipConfigs;
+    std::vector<unsigned int> fNWorkingChipsPerBoard;
     
 public:
     #pragma mark - Constructors/destructor
@@ -66,9 +67,9 @@ public:
     virtual ~TDevice();
 
     #pragma mark - setters
-    void SetNChips( const int number );
-    void SetNModules( const int number );
-    void SetStartChipId( const int Id );
+    void SetNChips( const unsigned int number );
+    void SetNModules( const unsigned int number );
+    void SetStartChipId( const unsigned int Id );
     void SetBoardType( const TBoardType bt );
     void SetDeviceType( const TDeviceType dt );
 
@@ -82,29 +83,31 @@ public:
     void AddChip( std::shared_ptr<TAlpide> newChip );
     void AddChipConfig( std::shared_ptr<TChipConfig> newChipConfig );
     void IncrementWorkingChipCounter();
+    void AddNWorkingChipCounterPerBoard( const unsigned int nChips );
 
     #pragma mark - getters
-    std::shared_ptr<TReadoutBoard>  GetBoard(const int iBoard);
-    std::shared_ptr<TBoardConfig>   GetBoardConfig(const int iBoard);
-    std::shared_ptr<TReadoutBoard>  GetBoardByChip(const int iChip);
-    std::shared_ptr<TBoardConfig>   GetBoardConfigByChip(const int iChip);
-    std::shared_ptr<TAlpide>        GetChip(const int iChip);
-    std::shared_ptr<TAlpide>        GetChipById(const int chipId);
-    int                             GetChipId(const int iChip) const;
-    int                             GetChipIndexById(const int chipId) const;
-    std::shared_ptr<TChipConfig>    GetChipConfig(const int iChip);
-    std::shared_ptr<TChipConfig>    GetChipConfigById(const int chipId);
+    std::shared_ptr<TReadoutBoard>  GetBoard( const unsigned int iBoard );
+    std::shared_ptr<TBoardConfig>   GetBoardConfig( const unsigned int iBoard );
+    std::shared_ptr<TReadoutBoard>  GetBoardByChip( const unsigned int iChip );
+    std::shared_ptr<TBoardConfig>   GetBoardConfigByChip( const unsigned int iChip );
+    std::shared_ptr<TAlpide>        GetChip( const unsigned int iChip );
+    std::shared_ptr<TAlpide>        GetChipById( const unsigned int chipId );
+    unsigned int                    GetChipId( const unsigned int iChip ) const;
+    unsigned int                    GetChipIndexById( const unsigned int chipId ) const;
+    std::shared_ptr<TChipConfig>    GetChipConfig( const unsigned int iChip );
+    std::shared_ptr<TChipConfig>    GetChipConfigById( const unsigned int chipId );
     inline TBoardType               GetBoardType() const { return fBoardType; }
     inline TDeviceType              GetDeviceType() const { return fDeviceType; }
-    int                             GetNChips() const;
-    int                             GetChipConfigsVectorSize() const;
-    int                             GetNBoards( const bool useBoardConfigVector = true ) const;
-    int                             GetNModules() const { return fNModules; }
-    inline int                      GetNWorkingChips() const { return fNWorkingChips; }
-    int                             GetStartChipId();
+    unsigned int                    GetNChips() const;
+    unsigned int                    GetChipConfigsVectorSize() const;
+    unsigned int                    GetNBoards( const bool useBoardConfigVector = true ) const;
+    unsigned int                    GetNModules() const { return fNModules; }
+    inline unsigned int             GetNWorkingChips() const { return fNWorkingChips; }
+    unsigned int                    GetStartChipId();
     bool                            IsMFTLadder() const;
     inline bool                     IsConfigFrozen() const { return fCreatedConfig; }
     inline bool                     IsSetupFrozen() const { return fInitialisedSetup; }
+    unsigned int                    GetNWorkingChipsPerBoard( const unsigned int iBoard ) const;
 
 };
 

@@ -65,7 +65,7 @@ void TDeviceChipVisitor::SetVerboseLevel( const int level )
         cout << "TDeviceChipVisitor::SetVerboseLevel() - " << level << endl;
     }
     TVerbosity::SetVerboseLevel( level );
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->SetVerboseLevel( level );
     }
 }
@@ -104,7 +104,7 @@ void TDeviceChipVisitor::Init()
     // (the pixel latches do not provide a reset mechanism,
     // the value after power-on is unknown)
 
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->Init();
         // disable mask
         fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE, false );
@@ -122,7 +122,7 @@ void TDeviceChipVisitor::DoApplyStandardDACSettings( const float backBias )
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoApplyStandardDACSettings() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ApplyStandardDACSettings( backBias );
     }
 }
@@ -133,7 +133,7 @@ void TDeviceChipVisitor::DoBaseConfigPLL()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoBaseConfigPLL() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->BaseConfigPLL();
     }
 }
@@ -144,7 +144,7 @@ void TDeviceChipVisitor::DoBaseConfigMask()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoBaseConfigMask() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->BaseConfigMask();
     }
 }
@@ -156,7 +156,7 @@ void TDeviceChipVisitor::DoBaseConfigDACs()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoBaseConfigDACs() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->BaseConfigDACs();
     }
 }
@@ -173,7 +173,7 @@ void TDeviceChipVisitor::DoBaseConfig()
     }
 
     // configure chip(s)
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
             fDevice->GetChip(i)->BaseConfig();
     }
 
@@ -187,7 +187,7 @@ void TDeviceChipVisitor::DoConfigureFROMU()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoConfigureFROMU() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureFROMU();
     }
 }
@@ -198,7 +198,7 @@ void TDeviceChipVisitor::DoConfigureBuffers()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoConfigureBuffers() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureBuffers();
     }
 }
@@ -209,7 +209,7 @@ void TDeviceChipVisitor::DoConfigureCMU()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoConfigureCMU() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureCMU();
     }
 }
@@ -220,7 +220,7 @@ void TDeviceChipVisitor::DoConfigureDTU_TEST1()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoConfigureDTU_TEST1() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureDTU_TEST1();
     }
 }
@@ -231,7 +231,7 @@ void TDeviceChipVisitor::DoConfigureMaskStage( int nPix, const int iStage )
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoConfigureMaskStage() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ConfigureMaskStage( nPix, iStage );
     }
 }
@@ -242,7 +242,7 @@ void TDeviceChipVisitor::DoDumpConfig()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoDumpConfig() - not initialized ! Please use Init() first." );
     }
-    for (int i = 0; i < fDevice->GetNChips(); i ++) {
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->DumpConfig();
     }
 }

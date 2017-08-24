@@ -59,7 +59,7 @@ void TDeviceBuilderHalfStave::CreateDeviceConfig()
         auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
         fCurrentDevice->AddBoardConfig( newBoardConfig );
     }
-    for (int imod = 0; imod < fCurrentDevice->GetNModules(); imod++) {
+    for (unsigned int imod = 0; imod < fCurrentDevice->GetNModules(); imod++) {
         int moduleId = imod + 1;
         for (int i = 0; i < 15; i++) {
             if (i == 7) continue;
@@ -103,7 +103,7 @@ void TDeviceBuilderHalfStave::InitSetup()
     if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderHalfStave::InitSetup() - start" << endl;
     }
-    for (int i = 0; i < fCurrentDevice->GetNBoards(true); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNBoards(true); i++) {
         shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(fCurrentDevice->GetBoardConfig(i)));
         boardConfig->SetInvertedData(false);  //already inverted in the adapter plug ?
         boardConfig->SetSpeedMode(Mosaic::RCV_RATE_400);
@@ -111,7 +111,7 @@ void TDeviceBuilderHalfStave::InitSetup()
         fCurrentDevice->AddBoard( newBoard );
     }
     
-    for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         shared_ptr<TChipConfig> chipConfig = fCurrentDevice->GetChipConfig(i);
         int          chipId     = chipConfig->GetChipId();
 
@@ -127,7 +127,7 @@ void TDeviceBuilderHalfStave::InitSetup()
         (fCurrentDevice->GetChip(i))->SetReadoutBoard(fCurrentDevice->GetBoard(mosaic));
         (fCurrentDevice->GetBoard(mosaic))->AddChipConfig(chipConfig);
     }
-    for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         EnableSlave( i );
     }
     try {

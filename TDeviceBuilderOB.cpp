@@ -54,7 +54,7 @@ void TDeviceBuilderOB::CreateDeviceConfig()
     auto newBoardConfig = make_shared<TBoardConfigMOSAIC>();
     fCurrentDevice->AddBoardConfig( newBoardConfig );
     
-    for (int ichip = 0; ichip < fCurrentDevice->GetNChips(); ichip ++) {
+    for (unsigned int ichip = 0; ichip < fCurrentDevice->GetNChips(); ichip ++) {
         if (ichip == 7) continue;
         int chipId = ichip + ((DEFAULT_MODULE_ID & 0x7) << 4);
         if ( ichip == 0 ) {
@@ -110,7 +110,7 @@ void TDeviceBuilderOB::InitSetup()
     auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
     fCurrentDevice->AddBoard( newBoard );
     
-    for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         
         shared_ptr<TChipConfig> chipConfig = fCurrentDevice->GetChipConfig(i);
         int chipId = chipConfig->GetChipId();
@@ -143,7 +143,7 @@ void TDeviceBuilderOB::InitSetup()
         fCurrentDevice->AddChip( alpide );
         (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     }
-    for (int i = 0; i < fCurrentDevice->GetNChips(); i++) {
+    for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         EnableSlave( i );
     }
     try {

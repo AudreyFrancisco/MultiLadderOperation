@@ -27,7 +27,7 @@ TThresholdScan::TThresholdScan( shared_ptr<TScanConfig> config,
                                deque<TScanHisto> *histoQue )
 : TMaskScan( config, aDevice, histoQue )
 {
-    shared_ptr<TScanConfig> currentScanConfig = fConfig.lock();
+    shared_ptr<TScanConfig> currentScanConfig = fScanConfig.lock();
     fStart[0]  = currentScanConfig->GetChargeStart();
     fStop [0]  = currentScanConfig->GetChargeStop ();
     fStep [0]  = currentScanConfig->GetChargeStep ();
@@ -90,19 +90,19 @@ void TThresholdScan::Init()
     CountEnabledChips();
     shared_ptr<TDevice> currentDevice = fDevice.lock();
 
-    for ( int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
+    for ( unsigned int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
         cout << "Board " << i << ", found " << fEnabled[i] << " enabled chips" << endl;
         ConfigureBoard(i);
         (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::GRST );
         (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::PRST );
     }
     
-    for ( int i = 0; i < currentDevice->GetNChips(); i++ ) {
+    for ( unsigned int i = 0; i < currentDevice->GetNChips(); i++ ) {
         if (! ((currentDevice->GetChipConfig( i ))->IsEnabled())) continue;
         ConfigureChip(i);
     }
     
-    for ( int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
+    for ( unsigned int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
         (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::RORST );
         shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(currentDevice->GetBoard( i ));
         if ( myMOSAIC ) {
@@ -118,14 +118,14 @@ void TThresholdScan::PrepareStep( const int loopIndex )
     
     switch ( loopIndex ) {
         case 0:    // innermost loop: change VPULSEL
-            for ( int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
+            for ( unsigned int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
                 if (! ((currentDevice->GetChipConfig( ichip ))->IsEnabled()) ) continue;
                 fVPULSEH = (currentDevice->GetChipConfig( ichip ))->GetParamValue("VPULSEH"); // Replace default value with the one from config file
                 (currentDevice->GetChip( ichip ))->WriteRegister( AlpideRegister::VPULSEL, fVPULSEH - fValue[0] ); // Automatically matches max pulse = VPULSEH in config
             }
             break;
         case 1:    // 2nd loop: mask staging
-            for ( int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
+            for ( unsigned int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
                 if (! ((currentDevice->GetChipConfig( ichip ))->IsEnabled()) ) continue;
                 ConfigureMaskStage( ichip, fValue[1]);
             }
@@ -145,11 +145,11 @@ void TThresholdScan::Execute()
     
     shared_ptr<TDevice> currentDevice = fDevice.lock();
 
-    for ( int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
+    for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
         (currentDevice->GetBoard( iboard ))->Trigger( fNTriggers );
     }
     
-    for ( int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
+    for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
         int itrg = 0;
         int trials = 0;
         while ( itrg < fNTriggers * fEnabled[iboard] ) {
@@ -237,7 +237,7 @@ void TThresholdScan::Terminate()
     shared_ptr<TDevice> currentDevice = fDevice.lock();
 
     // write Data;
-    for ( int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard ++ ) {
+    for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard ++ ) {
         shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(currentDevice->GetBoard( iboard ));
         if (myMOSAIC) {
             myMOSAIC->StopRun();

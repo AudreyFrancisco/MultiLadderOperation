@@ -31,6 +31,7 @@ protected:
     
 protected:
     void CheckControlInterface();
+    void CountEnabledChipsPerBoard();
 
 public:
     #pragma mark - Constructors/destructor

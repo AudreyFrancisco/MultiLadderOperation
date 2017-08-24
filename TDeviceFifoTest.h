@@ -41,22 +41,22 @@
 class TDeviceFifoTest : public TDeviceChipVisitor {
     
     /// index of the current chip being tested
-    int fCurrentChipIndex;
+    unsigned int fCurrentChipIndex;
     
     /// counter to keep tracks of the failure for the FIFO test pattern 0x0 per chip
-    int fErrCount0;
+    unsigned int fErrCount0;
 
     /// counter to keep tracks of the failure for the FIFO test pattern 0x555555 per chip
-    int fErrCount5;
+    unsigned int fErrCount5;
     
     /// counter to keep tracks of the failure for the FIFO test pattern 0xffffff per chip
-    int fErrCountF;
+    unsigned int fErrCountF;
     
     /// index of the current region of the chip whose DPRAM memories are being tested
-    int fRegion;
+    unsigned int fRegion;
     
     /// index of the current DPRAM memory location being tested
-    int fOffset;
+    unsigned int fOffset;
     
     /// bit pattern currently used for the memory test
     int fBitPattern;
@@ -83,7 +83,7 @@ private:
     /// read all DPRAM of the current chip
     void ReadMemPerChip();
     
-    /// perform write pattern + readbackof all DPRAM of the current chip
+    /// perform write pattern + readback of all DPRAM of the current chip
     void MemTestPerChip();
     
     /// the various bit patterns to be used for the memory test
@@ -94,10 +94,10 @@ private:
     };
     
     /// id of the last region of the chip
-    static const int MAX_REGION = 31;  // [0 .. 31] 32 regions
+    static const unsigned int MAX_REGION = 31;  // [0 .. 31] 32 regions
     
     /// id of the last DPRAM of a given region of the chip
-    static const int MAX_OFFSET = 127; // [0 .. 127] 128 DPRAM per region
+    static const unsigned int MAX_OFFSET = 127; // [0 .. 127] 128 DPRAM per region
 };
 
 

@@ -9,8 +9,6 @@ class TScanConfig;
 class TScanHisto;
 class THisto;
 
-extern bool fScanAbort;
-
 class TScan {
     
 private:
@@ -18,7 +16,7 @@ private:
     static const int MAXBOARDS    = 2;
     
 protected:
-    std::weak_ptr<TScanConfig> fConfig;
+    std::weak_ptr<TScanConfig> fScanConfig;
     std::weak_ptr<TDevice> fDevice;
     std::unique_ptr<TScanHisto> fHisto;
     std::deque<TScanHisto> *fHistoQue;
@@ -26,9 +24,7 @@ protected:
     int fStop[MAXLOOPLEVEL];
     int fStep[MAXLOOPLEVEL];
     int fValue[MAXLOOPLEVEL];
-    int fEnabled[MAXBOARDS];  // number of enabled chips per readout board
     
-    void    CountEnabledChips();
     virtual std::shared_ptr<THisto> CreateHisto() = 0;
     
 public:

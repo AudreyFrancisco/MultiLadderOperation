@@ -56,7 +56,7 @@ void TDeviceFifoTest::Go()
     }
 
     // loop over all chips
-    for ( int iChip = 0; iChip < fDevice->GetNChips() ; iChip++ ) {
+    for ( unsigned int iChip = 0; iChip < fDevice->GetNChips() ; iChip++ ) {
         
         fCurrentChipIndex = iChip;
 
@@ -143,13 +143,13 @@ void TDeviceFifoTest::WriteMemPerChip()
     
     // loop over all regions
     
-    for ( int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
+    for ( unsigned int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
 
         fRegion = ireg;
         
         // loop over all memories
         
-        for ( int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
+        for ( unsigned int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
 
             fOffset = iadd;
 
@@ -228,14 +228,14 @@ void TDeviceFifoTest::ReadMemPerChip()
     
     // queue read requests and execute them at once
     
-    int index = 0;
+    unsigned int index = 0;
     // loop over all regions
-    for ( int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
+    for ( unsigned int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
         
         fRegion = ireg;
         
         // loop over all memories
-        for ( int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
+        for ( unsigned int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
             
             fOffset = iadd;
 
@@ -270,8 +270,8 @@ void TDeviceFifoTest::ReadMemPerChip()
     // compare read back values to written values
     
     index = 0;
-    for ( int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
-        for ( int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
+    for ( unsigned int ireg = 0 ; ireg < TDeviceFifoTest::MAX_REGION+1 ; ireg++ ) {
+        for ( unsigned int iadd = 0; iadd < TDeviceFifoTest::MAX_OFFSET+1 ; iadd++ ) {
             
             // Note to self: if you want to shorten the following lines,
             // remember that HighVal is 16 bit and (HighVal << 16) will yield 0
