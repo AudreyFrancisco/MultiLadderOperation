@@ -1,10 +1,11 @@
 #include "AlpideDecoder.h"
 #include "AlpideDictionary.h"
-#include "BoardDecoder.h"
+#include "TBoardDecoder.h"
 #include "TAlpide.h"
 #include "TChipConfig.h"
 #include "TDevice.h"
 #include "TDeviceDigitalScan.h"
+#include "TPixHit.h"
 #include "TReadoutBoard.h"
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
@@ -157,7 +158,6 @@ void TDeviceDigitalScan::Go()
     int n_bytes_data, n_bytes_header, n_bytes_trailer, errors8b10b = 0, nClosedEvents = 0;
     unsigned int nBad       = 0;
     unsigned int nSkipped   = 0;
-    TBoardHeader boardInfo;
     
     shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( 0 ));
 
@@ -218,15 +218,16 @@ void TDeviceDigitalScan::Go()
 
                 // decode readout board event
                 shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( 0 );
-                TBoardType boardType = boardConfig->GetBoardType();
-                BoardDecoder::DecodeEvent( boardType, buffer, n_bytes_data, n_bytes_header, n_bytes_trailer, boardInfo );
-                //cout << "Closed data counter: " <<  boardInfo.eoeCount << endl;
-                if ( boardInfo.eoeCount) {
-                    nClosedEvents = boardInfo.eoeCount;
+                TBoardDecoder boardDecoder;
+                boardDecoder.SetBoardType( boardConfig->GetBoardType() );
+                boardDecoder.DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
+                //cout << "Closed data counter: " <<  boardDecoder.GetMosaicEoeCount() << endl;
+                if ( boardDecoder.GetMosaicEoeCount() ) {
+                    nClosedEvents = boardDecoder.GetMosaicEoeCount();
                 } else {
                     nClosedEvents = 1;
                 }
-                if ( boardInfo.decoder10b8bError ) errors8b10b++;
+                if ( boardDecoder.GetMosaicDecoder10b8bError() ) errors8b10b++;
 
                 // decode Chip event
                 int n_bytes_chipevent = n_bytes_data-n_bytes_header - n_bytes_trailer;
