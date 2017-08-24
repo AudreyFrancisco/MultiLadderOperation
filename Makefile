@@ -1,75 +1,69 @@
-### for Linux, use g++
-#CC=g++
+#### for Unix/Linux, uncomment and use the next two lines
+# CC=g++
+# CFLAGS= -O2 -pipe -fPIC -Wno-unknown-pragmas -pthread -g -Wall -W -Woverloaded-virtual -std=c++14 -m64 -mcmodel=large -I/usr/local/include
 ### for MacOsX, you can use clang instead
 CC=clang++
-#
-INCLUDE=/usr/local/include
+CFLAGS= -O2 -pipe -fPIC -Wno-unknown-pragmas -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++14 -m64 -I/usr/local/include
+###
 LIBPATH=/usr/local/lib
-#
-### for Linux, use option "-mcmodel=large" and do not use clang option "-stdlib=libc++"
-#CFLAGS= -O2 -pipe -fPIC -Wno-unknown-pragmas -pthread -g -Wall -W -Woverloaded-virtual -std=c++14 -m64 -mcmodel=large -I $(INCLUDE)
-### for MacOsX, remove option "-mcmodel=large" as it lead to non-usable executables
-### after a clumsy linking (see for e.g. the warning below)
-###ld: warning: PIE disabled. Absolute addressing (perhaps -mdynamic-no-pic) not allowed in code signed PIE, but used in __ZN5TChipC2Eiii from TChip.o. To fix this warning, don't compile with -mdynamic-no-pic or link with -Wl,-no_pie
-CFLAGS= -O2 -pipe -fPIC -Wno-unknown-pragmas -pthread -g -Wall -W -Woverloaded-virtual -stdlib=libc++ -std=c++14 -m64 -I $(INCLUDE)
 LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
 OBJECT= runTest
 LIBRARY=libalpide.so
 CLASS= AlpideDecoder.cpp \
- BoardDecoder.cpp \
- USB.cpp \
- TAlpide.cpp \
- TBoardConfig.cpp \
- TBoardConfigDAQ.cpp \
- TBoardConfigMOSAIC.cpp \
- TChipConfig.cpp \
- TDevice.cpp \
- TDeviceBuilder.cpp \
- TDeviceBuilderWithSlaveChips.cpp \
- TDeviceBuilderWithDAQBoards.cpp \
- TDeviceBuilderHalfStave.cpp \
- TDeviceBuilderIB.cpp \
- TDeviceBuilderIBSingleMosaic.cpp \
- TDeviceBuilderMFTLadder.cpp \
- TDeviceBuilderOB.cpp \
- TDeviceBuilderOBSingleDAQ.cpp \
- TDeviceBuilderOBSingleMosaic.cpp \
- TDeviceBuilderTelescopeDAQ.cpp \
- TDeviceChipVisitor.cpp \
- TDeviceFifoTest.cpp \
- TDeviceDigitalScan.cpp \
- THisto.cpp \
- TReadoutBoard.cpp \
- TReadoutBoardDAQ.cpp \
- TReadoutBoardMOSAIC.cpp  \
- TScan.cpp \
- TScanAnalysis.cpp \
- TScanConfig.cpp \
- TSetup.cpp \
- TThresholdScan.cpp \
- TVerbosity.cpp \
- MosaicSrc/alpidercv.cpp \
- MosaicSrc/controlinterface.cpp \
- MosaicSrc/i2cbus.cpp \
- MosaicSrc/i2cslave.cpp \
- MosaicSrc/i2csyspll.cpp \
- MosaicSrc/ipbus.cpp \
- MosaicSrc/ipbusudp.cpp \
- MosaicSrc/mdatagenerator.cpp \
- MosaicSrc/mdatareceiver.cpp \
- MosaicSrc/mdatasave.cpp \
- MosaicSrc/mexception.cpp \
- MosaicSrc/mruncontrol.cpp \
- MosaicSrc/mtriggercontrol.cpp \
- MosaicSrc/mwbbslave.cpp \
- MosaicSrc/pexception.cpp \
- MosaicSrc/pulser.cpp \
- MosaicSrc/mboard.cpp \
- MosaicSrc/TAlpideDataParser.cpp
+           BoardDecoder.cpp \
+           USB.cpp \
+           TAlpide.cpp \
+           TBoardConfig.cpp \
+           TBoardConfigDAQ.cpp \
+           TBoardConfigMOSAIC.cpp \
+           TChipConfig.cpp \
+           TDevice.cpp \
+           TDeviceBuilder.cpp \
+           TDeviceBuilderWithSlaveChips.cpp \
+           TDeviceBuilderWithDAQBoards.cpp \
+           TDeviceBuilderHalfStave.cpp \
+           TDeviceBuilderIB.cpp \
+           TDeviceBuilderIBSingleMosaic.cpp \
+           TDeviceBuilderMFTLadder.cpp \
+           TDeviceBuilderOB.cpp \
+           TDeviceBuilderOBSingleDAQ.cpp \
+           TDeviceBuilderOBSingleMosaic.cpp \
+           TDeviceBuilderTelescopeDAQ.cpp \
+           TDeviceChipVisitor.cpp \
+           TDeviceFifoTest.cpp \
+           TDeviceDigitalScan.cpp \
+           THisto.cpp \
+           TReadoutBoard.cpp \
+           TReadoutBoardDAQ.cpp \
+           TReadoutBoardMOSAIC.cpp  \
+           TScan.cpp \
+           TScanAnalysis.cpp \
+           TScanConfig.cpp \
+           TSetup.cpp \
+           TThresholdScan.cpp \
+           TVerbosity.cpp \
+           MosaicSrc/alpidercv.cpp \
+           MosaicSrc/controlinterface.cpp \
+           MosaicSrc/i2cbus.cpp \
+           MosaicSrc/i2cslave.cpp \
+           MosaicSrc/i2csyspll.cpp \
+           MosaicSrc/ipbus.cpp \
+           MosaicSrc/ipbusudp.cpp \
+           MosaicSrc/mdatagenerator.cpp \
+           MosaicSrc/mdatareceiver.cpp \
+           MosaicSrc/mdatasave.cpp \
+           MosaicSrc/mexception.cpp \
+           MosaicSrc/mruncontrol.cpp \
+           MosaicSrc/mtriggercontrol.cpp \
+           MosaicSrc/mwbbslave.cpp \
+           MosaicSrc/pexception.cpp \
+           MosaicSrc/pulser.cpp \
+           MosaicSrc/mboard.cpp \
+           MosaicSrc/TAlpideDataParser.cpp
 OBJS = $(CLASS:.cpp=.o)
 $(info OBJS="$(OBJS)")
 
-all:    test_mosaic test_fifo test_digital test_noiseocc test_threshold test_dacscan test_pulselength test_source test_poweron test_noiseocc_ext test_scantest test_temperature
+all:    test_mosaic test_fifo test_digital test_threshold test_noiseocc test_dacscan test_pulselength test_source test_poweron test_noiseocc_ext test_scantest test_temperature
 
 $(OBJECT):   $(OBJS) main.cpp
 	$(CC) -o $(OBJECT) $(OBJS) $(CFLAGS) main.cpp $(LINKFLAGS)
