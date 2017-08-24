@@ -1,70 +1,19 @@
 #include "AlpideDecoder.h"
+#include "TPixHit.h"
 #include <stdint.h>
 #include <iostream>
 #include <bitset>
 
 using namespace std;
 
-//___________________________________________________________________
-TPixHit::TPixHit() :
-fChipId( -1 ),
-fRegion( -1 ),
-fDcol( -1 ),
-fAddress( -1 )
-{
-    
-}
-
-//___________________________________________________________________
-TPixHit::~TPixHit()
-{
-    
-}
-
-//___________________________________________________________________
-void TPixHit::SetChipId( const int value )
-{
-    if ( value < 0 ) {
-        cerr << "TPixHit::SetChipId() - Warning, chip id < 0" << endl;
-    }
-    fChipId = value;
-}
-
-//___________________________________________________________________
-void TPixHit::SetRegion( const int value )
-{
-    if ( value < 0 ) {
-        cerr << "TPixHit::SetRegion() - Warning, region < 0" << endl;
-    }
-    if ( value > 31  ) {
-        cerr << "TPixHit::SetRegion() - Warning, region > 31" << endl;
-    }
-    fRegion = value;
-}
-
-//___________________________________________________________________
-void TPixHit::SetDoubleColumn( const int value )
-{
-    if ( value < 0 ) {
-        cerr << "TPixHit::SetDoubleColumn() - Warning, double column < 0" << endl;
-    }
-    fDcol = value;
-}
-
-//___________________________________________________________________
-void TPixHit::SetAddress( const int value )
-{
-    if ( value < 0 ) {
-        cerr << "TPixHit::SetAddress() - Warning, address < 0" << endl;
-    }
-    fDcol = value;
-}
-
 bool AlpideDecoder::fNewEvent = false;
 
 //___________________________________________________________________
 TDataType AlpideDecoder::GetDataType( unsigned char dataWord )
 {
+    cout << "AlpideDecoder::GetDataType() - dataWord = " << endl;
+    printf ("%02x ", (int)dataWord);
+    cout << endl;
     if      ( dataWord == 0xff )          return TDataType::kIDLE;
     else if ( dataWord == 0xf1 )          return TDataType::kBUSYON;
     else if ( dataWord == 0xf0 )          return TDataType::kBUSYOFF;
@@ -124,6 +73,7 @@ bool AlpideDecoder::DecodeEvent( unsigned char* data,
             case TDataType::kEMPTYFRAME:
                 started = true;
                 DecodeEmptyFrame( data + byte, chip, BunchCounterTmp );
+                cout << "AlpideDecoder::DecodeEvent() - empty frame" << endl;
                 byte += 2;
                 finished = true;
                 break;
@@ -131,6 +81,7 @@ bool AlpideDecoder::DecodeEvent( unsigned char* data,
                 started = true;
                 finished = false;
                 DecodeChipHeader( data + byte, chip, BunchCounterTmp );
+                cout << "AlpideDecoder::DecodeEvent() - chip header" << endl;
                 byte += 2;
                 break;
             case TDataType::kCHIPTRAILER:
@@ -142,6 +93,7 @@ bool AlpideDecoder::DecodeEvent( unsigned char* data,
                     cerr << "AlpideDecoder::DecodeEvent() - Error, chip trailer found after event was finished" << endl;
                     return false;
                 }
+                cout << "AlpideDecoder::DecodeEvent() - chip trailer" << endl;
                 DecodeChipTrailer( data + byte, flags );
                 finished = true;
                 chip = -1;
@@ -152,6 +104,7 @@ bool AlpideDecoder::DecodeEvent( unsigned char* data,
                     cerr << "AlpideDecoder::DecodeEvent() - Error, region header found before chip header or after chip trailer" << endl;
                     return false;
                 }
+                cout << "AlpideDecoder::DecodeEvent() - region header" << endl;
                 DecodeRegionHeader( data + byte, region );
                 byte +=1;
                 break;
@@ -257,9 +210,12 @@ void AlpideDecoder::DecodeDataWord( unsigned char* data,
                                    vector<shared_ptr<TPixHit>> hits,
                                    bool datalong )
 {
+    cout << "AlpideDecoder::DecodeDataWord() - start" << endl;
+
     auto hit = make_shared<TPixHit>();
     
-    int address, hitmap_length;
+    unsigned int address;
+    int hitmap_length;
 
     int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
@@ -296,11 +252,14 @@ void AlpideDecoder::DecodeDataWord( unsigned char* data,
     for ( int i = -1; i < hitmap_length; i ++ ) {
         if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;
         hit->SetAddress( address + (i + 1) );
+        /*
         if ( hit->GetChipId() == -1 ) {
             cout << "AlpideDecoder::DecodeDataWord() - Warning, found chip id -1"
                  << endl;
         }
+         */
         hits.push_back( move(hit) );
+        cout << "AlpideDecoder::DecodeDataWord() - hit added." << endl;
     }
     fNewEvent = false;
 }

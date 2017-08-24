@@ -6,26 +6,7 @@
 
 enum class TDataType { kIDLE, kCHIPHEADER, kCHIPTRAILER, kEMPTYFRAME, kREGIONHEADER, kDATASHORT, kDATALONG, kBUSYON, kBUSYOFF, kUNKNOWN };
 
-class TPixHit {
-    
-    int fChipId;
-    int fRegion;
-    int fDcol;
-    int fAddress;
-
-public:
-
-    TPixHit();
-    virtual ~TPixHit();
-    void SetChipId( const int value );
-    void SetRegion( const int value );
-    void SetDoubleColumn( const int value );
-    void SetAddress( const int value );
-    inline int GetChipId() const { return fChipId; }
-    inline int GetRegion() const { return fRegion; }
-    inline int GetDoubleColumn() const { return fDcol; }
-    inline int GetAddress() const { return fAddress; }
-};
+class TPixHit;
 
 class AlpideDecoder {
     
