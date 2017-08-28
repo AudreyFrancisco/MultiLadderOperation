@@ -9,12 +9,8 @@
  * that were recommended for FIFO test (disabling Manchester encoding).
  *
  * \note
- * cmuconfig = 0x60 for FIFO test (OB?)
- * i.e.
- * const int fPreviousId = 0x10;
- * const bool fInitialToken = false;
- * const bool fDisableManchester = true;
- * const bool fEnableDdr = true;
+ * The default configuration file for this test for a MFT ladder is
+ * ConfigMFTladder_FIFOtest.cfg
  *
  * \warning
  * The current code can not correctly handle a number N > 1 of readout boards
