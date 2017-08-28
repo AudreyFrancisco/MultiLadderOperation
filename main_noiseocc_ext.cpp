@@ -21,10 +21,9 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "USBHelpers.h"
-#include "TConfig.h"
 #include "AlpideDecoder.h"
 #include "BoardDecoder.h"
-#include "SetupHelpers.h"
+#include "TSetup.h"
 
 
 //== GLOBAL VARIABLES == TO BE REMOVED ===
@@ -228,12 +227,12 @@ int main(int argc, char** argv) {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_RORST);
 
     // put your test here...
-    if (fBoards.at(0)->GetConfig()->GetBoardType() == boardMOSAIC) {
+    if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_MOSAIC) {
       return -1;
     }
-    else if (fBoards.at(0)->GetConfig()->GetBoardType() == boardDAQ) {
+    else if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_DAQ) {
       fBoards.at(0)->SetTriggerConfig (true, false, myStrobeDelay, myPulseDelay);
-      fBoards.at(0)->SetTriggerSource (trigExt);
+      fBoards.at(0)->SetTriggerSource (kTRIG_EXT);
       TBoardConfigDAQ* cnf = (TBoardConfigDAQ*)(fBoards.at(0)->GetConfig());
       cnf->SetStrobePulseSeq(0);
       cnf->SetPktBasedROEnable(true);

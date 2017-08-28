@@ -4,11 +4,25 @@
 #include <thread>
 
 #include "USB.h"
+#include "AlpideDictionary.h"
 #include "TAlpide.h"
 #include "TReadoutBoardDAQ.h"
+#include "TBoardDecoder.h"
+
+#pragma mark - constructor/destructor
+
+using namespace std;
+
+//___________________________________________________________________
+TReadoutBoardDAQ::TReadoutBoardDAQ()
+{ }
 
 // constructor
-TReadoutBoardDAQ::TReadoutBoardDAQ (libusb_device *ADevice, TBoardConfigDAQ *config) : TUSBBoard (ADevice), TReadoutBoard(config),
+//___________________________________________________________________
+TReadoutBoardDAQ::TReadoutBoardDAQ (libusb_device *ADevice,
+                                    shared_ptr<TBoardConfigDAQ> config ) :
+    TUSBBoard (ADevice),
+    fBoardConfigDAQ( config ),
     fIsTriggerThreadRunning( false ),
     fTrigCnt( 0 ),
     fIsReadDataThreadRunning( false ),
@@ -18,8 +32,6 @@ TReadoutBoardDAQ::TReadoutBoardDAQ (libusb_device *ADevice, TBoardConfigDAQ *con
     fNTriggersTotal( 0 ),
     fMaxNTriggersTrain( MAX_NTRIG_TRAIN )
 {
-  fBoardConfigDAQ = config;
-
   //WriteDelays();
 
   // write default config to all registers
@@ -34,9 +46,8 @@ TReadoutBoardDAQ::TReadoutBoardDAQ (libusb_device *ADevice, TBoardConfigDAQ *con
 
 }
 
-
-
 // destructor
+//___________________________________________________________________
 TReadoutBoardDAQ::~TReadoutBoardDAQ ()
 {
   // join threads
@@ -50,13 +61,9 @@ TReadoutBoardDAQ::~TReadoutBoardDAQ ()
 
 }
 
+#pragma mark - general methods of TReadoutBoard
 
-
-//---------------------------------------------------------
-// general methods of TReadoutBoard
-//---------------------------------------------------------
-
-
+//___________________________________________________________________
 int TReadoutBoardDAQ::ReadRegister (uint16_t address, uint32_t &value)
 {
   unsigned char data_buf[DAQBOARD_WORD_SIZE * 2];
@@ -98,12 +105,16 @@ int TReadoutBoardDAQ::WriteRegister (uint16_t address, uint32_t value)
 
 
 
-int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId)
+int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId,
+                                         const bool doExecute )
 {
-  int err;
+    if ( doExecute ) {
+        // nothing special to do for DAQ board
+    }
+    int err;
   uint32_t address32 = (uint32_t) address;
-  uint32_t chipId32  = (uint32_t) chipId; 
-  uint32_t newAddress = (address32 << 16) | (chipId32 << 8) | Alpide::OPCODE_WROP;
+  uint32_t chipId32  = (uint32_t) chipId;
+  uint32_t newAddress = (address32 << 16) | (chipId32 << 8) | ((uint32_t)AlpideOpCode::WROP);
 
   //std::cout << "[CHIP] ADDRESS: " << std::hex <<  newAddress << " VALUE " << value << std::dec << std::endl; 
 
@@ -137,13 +148,18 @@ int TReadoutBoardDAQ::WriteChipRegister (uint16_t address, uint16_t value, uint8
 }
 
 
-int TReadoutBoardDAQ::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId) 
+int TReadoutBoardDAQ::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId,
+                                        const bool doExecute )
 {
-  int           err; 
+    if ( doExecute ) {
+        // nothing special to do for DAQ board
+    }
+
+  int           err;
   uint32_t      value32; 
   uint32_t      address32  = (uint32_t) address;
   uint32_t      chipId32   = (uint32_t) chipId;
-  uint32_t      newAddress = (address32 << 16) | (chipId32 << 8) | Alpide::OPCODE_RDOP;
+  uint32_t      newAddress = (address32 << 16) | (chipId32 << 8) | ((uint32_t)AlpideOpCode::RDOP);
 
 
   err = WriteRegister(CMU_INSTR + (MODULE_CMU << DAQBOARD_REG_ADDR_SIZE), newAddress);
@@ -175,14 +191,15 @@ int TReadoutBoardDAQ::SendOpCode (uint16_t  OpCode)
 
 int TReadoutBoardDAQ::SetTriggerConfig  (bool enablePulse, bool enableTrigger, int triggerDelay, int pulseDelay)
 {
-  fBoardConfigDAQ->SetTriggerEnable(enableTrigger); // enableTrigger? DAQboard trigger disabled only if fBoardConfigDAQ.TriggerMode==0..
-  fBoardConfigDAQ->SetPulseEnable(enablePulse); // enablePulse on DAQboard??  
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+  spBoardConfigDAQ->SetTriggerEnable(enableTrigger); // enableTrigger? DAQboard trigger disabled only if fBoardConfigDAQ.TriggerMode==0..
+  spBoardConfigDAQ->SetPulseEnable(enablePulse); // enablePulse on DAQboard??
 
-  fBoardConfigDAQ->SetTriggerDelay((int32_t)triggerDelay);
-  fBoardConfigDAQ->SetStrobeDelay((int32_t)triggerDelay); // equivalent to trigger delay on DAQboard..
+  spBoardConfigDAQ->SetTriggerDelay((int32_t)triggerDelay);
+  spBoardConfigDAQ->SetStrobeDelay((int32_t)triggerDelay); // equivalent to trigger delay on DAQboard..
   WriteTriggerModuleConfigRegisters();
 
-  fBoardConfigDAQ->SetPulseDelay(pulseDelay); // delay between pulse and strobe/trigger; if fStrobePulseSeq is set correctly (to 2)
+  spBoardConfigDAQ->SetPulseDelay(pulseDelay); // delay between pulse and strobe/trigger; if fStrobePulseSeq is set correctly (to 2)
   WriteResetModuleConfigRegisters();
 
   return 0;
@@ -191,12 +208,13 @@ int TReadoutBoardDAQ::SetTriggerConfig  (bool enablePulse, bool enableTrigger, i
 
 void TReadoutBoardDAQ::SetTriggerSource (TTriggerSource triggerSource)
 {
-  if (triggerSource == trigInt) {
-    fBoardConfigDAQ->SetTriggerMode(1);
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+    if (triggerSource == TTriggerSource::kTRIG_INT) {
+    spBoardConfigDAQ->SetTriggerMode(1);
     WriteTriggerModuleConfigRegisters();
   }
-  else if (triggerSource == trigExt) {
-    fBoardConfigDAQ->SetTriggerMode(2);
+    else if (triggerSource == TTriggerSource::kTRIG_EXT) {
+    spBoardConfigDAQ->SetTriggerMode(2);
     WriteTriggerModuleConfigRegisters();
   }
   else {
@@ -211,18 +229,18 @@ void TReadoutBoardDAQ::DAQTrigger() {
   fMtx.lock();
   fIsTriggerThreadRunning = true;
   fMtx.unlock();
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
 
   fStatusTrigger = 0;
   unsigned int evtbuffer_size = 0;
-
-  if (fBoardConfig->GetTriggerEnable() && !fBoardConfigDAQ->GetPulseEnable()) { // TRIGGERING
+  if (spBoardConfigDAQ->GetTriggerEnable() && !spBoardConfigDAQ->GetPulseEnable()) { // TRIGGERING
     std::cout << "Number of triggers: " << fNTriggersTotal << std::endl;
     int nTriggerTrains = fNTriggersTotal/fMaxNTriggersTrain;
     std::cout << " --> " << nTriggerTrains << " trigger trains with " << fMaxNTriggersTrain << " triggers going to be launched" << std::endl;
     int nTriggersLeft  = fNTriggersTotal%fMaxNTriggersTrain; // TODO: nicer solution?
     std::cout << " --> then " << nTriggersLeft << " triggers left to be launched" << std::endl;
 
-    fBoardConfigDAQ->SetNTriggers(fMaxNTriggersTrain);
+    spBoardConfigDAQ->SetNTriggers(fMaxNTriggersTrain);
     WriteTriggerModuleConfigRegisters();
 
     for (int itrain=0; itrain<nTriggerTrains; itrain++) {
@@ -234,8 +252,8 @@ void TReadoutBoardDAQ::DAQTrigger() {
         
         StartTrigger(); // start trigger train; 
         // sleep for enough time so that stoptrigger sent after last trigger..
-        //int sleep_time = fBoardConfigDAQ->GetStrobeDelay()*0.25+375; // TODO: check why this is not working.. but longer a wait time is needed..
-        int sleep_time = fBoardConfigDAQ->GetStrobeDelay(); 
+        //int sleep_time = spBoardConfigDAQ->GetStrobeDelay()*0.25+375; // TODO: check why this is not working.. but longer a wait time is needed..
+        int sleep_time = spBoardConfigDAQ->GetStrobeDelay();
         usleep(sleep_time);
         StopTrigger();
 
@@ -254,13 +272,13 @@ void TReadoutBoardDAQ::DAQTrigger() {
       evtbuffer_size = fEventBuffer.size();
       fMtx.unlock();
       if (evtbuffer_size < fMaxEventBufferSize) {
-        fBoardConfigDAQ->SetNTriggers(nTriggersLeft); 
+        spBoardConfigDAQ->SetNTriggers(nTriggersLeft);
         WriteTriggerModuleConfigRegisters();
 
         StartTrigger(); // start trigger train; 
         // sleep for enough time so that stoptrigger sent after last trigger..
-        //int sleep_time = fBoardConfigDAQ->GetStrobeDelay()*0.025+375; // TODO: check why this is not working.. but longer a wait time is needed..
-        int sleep_time = fBoardConfigDAQ->GetStrobeDelay();
+        //int sleep_time = spBoardConfigDAQ->GetStrobeDelay()*0.025+375; // TODO: check why this is not working.. but longer a wait time is needed..
+        int sleep_time = spBoardConfigDAQ->GetStrobeDelay();
         usleep(sleep_time);
         StopTrigger();
         
@@ -274,8 +292,8 @@ void TReadoutBoardDAQ::DAQTrigger() {
       }
     }
   }
-  else if (!fBoardConfig->GetTriggerEnable() && fBoardConfigDAQ->GetPulseEnable()) { // just PULSING
-    //fBoardConfigDAQ->SetNTriggers(100); // TODO: number of triggers to be launched with StartTrigger command? if set trigger src to external not trigger sent at all? 
+  else if (!spBoardConfigDAQ->GetTriggerEnable() && spBoardConfigDAQ->GetPulseEnable()) { // just PULSING
+    //spBoardConfigDAQ->SetNTriggers(100); // TODO: number of triggers to be launched with StartTrigger command? if set trigger src to external not trigger sent at all?
     //WriteTriggerModuleConfigRegisters();
 
     //StartTrigger(); // TODO: needed so that DAQboard reads events? but does it also send trigger?
@@ -335,7 +353,9 @@ void TReadoutBoardDAQ::DAQReadData() {
   std::vector <unsigned char> data_evt (max_length_buf);
   //std::copy(my_deque.begin(), my_deque.end(), std::back_inserter(my_vector));
 
-  if (fBoardConfigDAQ->GetPktBasedROEnable() == false) { // event based
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+
+  if (spBoardConfigDAQ->GetPktBasedROEnable() == false) { // event based
     //std::cout << " --> event based readout" << std::endl;
     while (fEvtCnt<fNTriggersTotal) { // no stop-trigger marker with event-based readout
       data_evt.clear();
@@ -355,11 +375,11 @@ void TReadoutBoardDAQ::DAQReadData() {
         fStatusReadData = -1;
         return;
       }
-      else if (evt_length < (BoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, fBoardConfigDAQ->GetHeaderType())+BoardDecoder::GetDAQEventTrailerLength()+4)) {
+      else if (evt_length < (DAQBoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+DAQBoardDecoder::GetDAQEventTrailerLength()+4)) {
         std::cout << std::endl;
         std::cout << "WARNING, received too small event: " << evt_length 
                   << " instead of expected >= " 
-                  << (BoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, fBoardConfigDAQ->GetHeaderType())+BoardDecoder::GetDAQEventTrailerLength()+4) 
+                  << (DAQBoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+DAQBoardDecoder::GetDAQEventTrailerLength()+4)
                   << std::endl;
         std::cout << std::endl;
       }
@@ -387,7 +407,7 @@ void TReadoutBoardDAQ::DAQReadData() {
     }
     
   }
-  else if (fBoardConfigDAQ->GetPktBasedROEnable() == true) { // packet based
+  else if (spBoardConfigDAQ->GetPktBasedROEnable() == true) { // packet based
     //std::cout << " --> packet based readout" << std::endl;
     // each packet may contain more or less than one event. the following code split raw data into events and writes it into fEventBuffer
     evt_length = 0; // no data read so far
@@ -523,7 +543,7 @@ void TReadoutBoardDAQ::DAQReadData() {
         fStatusReadData = -1;
         return;
       }
-      else if (evt_length < (BoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, fBoardConfigDAQ->GetHeaderType())+BoardDecoder::GetDAQEventTrailerLength()+4)) {
+      else if (evt_length < (DAQBoardDecoder::GetDAQEventHeaderLength(fFirmwareVersion, spBoardConfigDAQ->GetHeaderType())+DAQBoardDecoder::GetDAQEventTrailerLength()+4)) {
         std::cout << std::endl;
         std::cout << "WARNING, received too small event: " << evt_length << std::endl;
         std::cout << std::endl;
@@ -770,20 +790,21 @@ bool TReadoutBoardDAQ::PowerOn (int &AOverflow)
 
 void TReadoutBoardDAQ::PowerOff () 
 {
-  // registers set in sequence similar to old software.. 
+    // registers set in sequence similar to old software..
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
 
-  fBoardConfigDAQ->SetDataPortSelect(0); // select no dataport
+  spBoardConfigDAQ->SetDataPortSelect(0); // select no dataport
   WriteReadoutModuleConfigRegisters();
 
-  fBoardConfigDAQ->SetDrstTime(0);          // TODO necessary? 
-  fBoardConfigDAQ->SetClockEnableTime(0);   // TODO necessary? 
-  fBoardConfigDAQ->SetSignalEnableTime(0);  // TODO necessary? 
-  fBoardConfigDAQ->SetAutoShutdownTime(1);  // TODO necessary? 
+  spBoardConfigDAQ->SetDrstTime(0);          // TODO necessary?
+  spBoardConfigDAQ->SetClockEnableTime(0);   // TODO necessary?
+  spBoardConfigDAQ->SetSignalEnableTime(0);  // TODO necessary?
+  spBoardConfigDAQ->SetAutoShutdownTime(1);  // TODO necessary?
   //WriteDelays();
   WriteResetModuleConfigRegisters();
 
-  fBoardConfigDAQ->SetAutoShutdownEnable(1);
-  fBoardConfigDAQ->SetLDOEnable(0);
+  spBoardConfigDAQ->SetAutoShutdownEnable(1);
+  spBoardConfigDAQ->SetLDOEnable(0);
   WriteADCModuleConfigRegisters();
 
 }
@@ -805,17 +826,18 @@ void TReadoutBoardDAQ::ReadAllRegisters() {
 
 void TReadoutBoardDAQ::DumpConfig(const char *fName, bool writeFile, char *config) {
   config[0] = '\0';
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
   if (writeFile) {
     FILE *fp = fopen(fName, "w");
     fprintf(fp, "FIRMWARE  %i\n", ReadFirmwareVersion());
-    fprintf(fp, "TRIGGERDELAY  %i\n", GetBoardConfig()->GetTriggerDelay()); // same as StrobeDelay on DAQboard
-    fprintf(fp, "PULSEDELAY  %i\n", GetBoardConfig()->GetPulseDelay());
+    fprintf(fp, "TRIGGERDELAY  %i\n", spBoardConfigDAQ->GetTriggerDelay()); // same as StrobeDelay on DAQboard
+    fprintf(fp, "PULSEDELAY  %i\n", spBoardConfigDAQ->GetPulseDelay());
     fclose(fp);
   }
   
   sprintf(config, "FIRMWARE  0x%x\n", ReadFirmwareVersion());
-  sprintf(config, "%sTRIGGERDELAY  %i\n", config, GetBoardConfig()->GetTriggerDelay());
-  sprintf(config, "%sPULSEDELAY  %i\n", config, GetBoardConfig()->GetPulseDelay());
+  sprintf(config, "%sTRIGGERDELAY  %i\n", config, spBoardConfigDAQ->GetTriggerDelay());
+  sprintf(config, "%sPULSEDELAY  %i\n", config, spBoardConfigDAQ->GetPulseDelay());
 }
 
 
@@ -843,20 +865,21 @@ int TReadoutBoardDAQ::GetEventBufferLength() {
 
 void TReadoutBoardDAQ::WriteADCModuleConfigRegisters() 
 {
-  int limitDigital = CurrentToADC (fBoardConfigDAQ->GetCurrentLimitDigital());
-  int limitIo      = CurrentToADC (fBoardConfigDAQ->GetCurrentLimitIo());
-  int limitAnalogue= CurrentToADC (fBoardConfigDAQ->GetCurrentLimitAnalogue());
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+    int limitDigital = CurrentToADC (spBoardConfigDAQ->GetCurrentLimitDigital());
+  int limitIo      = CurrentToADC (spBoardConfigDAQ->GetCurrentLimitIo());
+  int limitAnalogue= CurrentToADC (spBoardConfigDAQ->GetCurrentLimitAnalogue());
 
   // ADC config reg 0
   uint32_t config0 = 0;
   config0 |= ( limitDigital                              & 0xfff);
   config0 |= ((limitIo                                   & 0xfff) << 12);
-  config0 |= ((fBoardConfigDAQ->GetAutoShutdownEnable() ?1:0)     << 24);
-  config0 |= ((fBoardConfigDAQ->GetLDOEnable()          ?1:0)     << 25);   
-  config0 |= ((fBoardConfigDAQ->GetADCEnable()          ?1:0)     << 26);   
-  config0 |= ((fBoardConfigDAQ->GetADCSelfStop()        ?1:0)     << 27);   
-  config0 |= ((fBoardConfigDAQ->GetDisableTstmpReset()  ?1:0)     << 28);   
-  config0 |= ((fBoardConfigDAQ->GetPktBasedROEnableADC()?1:0)     << 29);   
+  config0 |= ((spBoardConfigDAQ->GetAutoShutdownEnable() ?1:0)     << 24);
+  config0 |= ((spBoardConfigDAQ->GetLDOEnable()          ?1:0)     << 25);
+  config0 |= ((spBoardConfigDAQ->GetADCEnable()          ?1:0)     << 26);
+  config0 |= ((spBoardConfigDAQ->GetADCSelfStop()        ?1:0)     << 27);
+  config0 |= ((spBoardConfigDAQ->GetDisableTstmpReset()  ?1:0)     << 28);
+  config0 |= ((spBoardConfigDAQ->GetPktBasedROEnableADC()?1:0)     << 29);
   WriteRegister ((MODULE_ADC << DAQBOARD_REG_ADDR_SIZE) + ADC_CONFIG0, config0);
 
   // ADC config reg 1
@@ -866,8 +889,8 @@ void TReadoutBoardDAQ::WriteADCModuleConfigRegisters()
 
   // ADC config reg 2
   uint32_t config2 = 0;
-  config2 |= ( fBoardConfigDAQ->GetAutoShutOffDelay()     & 0xfffff);
-  config2 |= ( fBoardConfigDAQ->GetADCDownSamplingFact()  & 0xfff  << 20);
+  config2 |= ( spBoardConfigDAQ->GetAutoShutOffDelay()     & 0xfffff);
+  config2 |= ( spBoardConfigDAQ->GetADCDownSamplingFact()  & 0xfff  << 20);
   WriteRegister ((MODULE_ADC << DAQBOARD_REG_ADDR_SIZE) + ADC_CONFIG2, config2);
 
 }
@@ -875,12 +898,14 @@ void TReadoutBoardDAQ::WriteADCModuleConfigRegisters()
 
 void TReadoutBoardDAQ::WriteCurrentLimits (bool ALDOEnable, bool AAutoshutdown) 
 {
-  //int limitDigital = CurrentToADC (fBoardConfigDAQ->GetCurrentLimitDigital());
-  //int limitIo      = CurrentToADC (fBoardConfigDAQ->GetCurrentLimitIo());
-  //int limitAnalog  = CurrentToADC (fBoardConfigDAQ->GetCurrentLimitAnalogue());
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
 
-  fBoardConfigDAQ->SetAutoShutdownEnable(AAutoshutdown);  // keep track of settings in BoardConfig..
-  fBoardConfigDAQ->SetLDOEnable(ALDOEnable);              // keep track of settings in BoardConfig..
+  //int limitDigital = CurrentToADC (spBoardConfigDAQ->GetCurrentLimitDigital());
+  //int limitIo      = CurrentToADC (spBoardConfigDAQ->GetCurrentLimitIo());
+  //int limitAnalog  = CurrentToADC (spBoardConfigDAQ->GetCurrentLimitAnalogue());
+
+  spBoardConfigDAQ->SetAutoShutdownEnable(AAutoshutdown);  // keep track of settings in BoardConfig..
+  spBoardConfigDAQ->SetLDOEnable(ALDOEnable);              // keep track of settings in BoardConfig..
 
   //uint32_t config0 = (((int) limitDigital) & 0xfff) | ((((int) limitIo) & 0xfff) << 12);
   //config0 |= ((AAutoshutdown?1:0) << 24);
@@ -908,8 +933,13 @@ bool TReadoutBoardDAQ::ReadLDOStatus(int &AOverflow)
   err = ReadRegister((MODULE_ADC << DAQBOARD_REG_ADDR_SIZE) + ADC_OVERFLOW, ReadValue);
   AOverflow = (int) ReadValue;
 
-  if (! (reg0 & reg1 & reg2)) 
+    if (! (reg0 & reg1 & reg2)) {
     std::cout << "GetLDOStatus, LDO status = " << reg0 << ", " << reg1 << ", " << reg2 << std::endl;
+    }
+    if ( err ) {
+        // nothing to do
+        // (this block is only intended to remove annoying warning at compilation
+    }
 
   return ( reg0 & reg1 & reg2);
 }
@@ -1048,19 +1078,20 @@ bool TReadoutBoardDAQ::ReadMonitorTriggerRegister(){
 
 void TReadoutBoardDAQ::WriteReadoutModuleConfigRegisters() 
 {
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
 
   // Event builder config reg 0
   uint32_t config = 0;
-  config |= ( fBoardConfigDAQ->GetMaxDiffTriggers()       & 0xf);
-  config |= ((fBoardConfigDAQ->GetSamplingEdgeSelect()?1:0)         <<  4);
-  config |= ((fBoardConfigDAQ->GetPktBasedROEnable()?  1:0)         <<  5);
-  config |= ((fBoardConfigDAQ->GetDDREnable()?         1:0)         <<  6);
-  config |= ((fBoardConfigDAQ->GetDataPortSelect()           & 0x3) <<  7);
-  config |= ((fBoardConfigDAQ->GetFPGAEmulationMode()        & 0x3) <<  9);
-  config |= ((fBoardConfigDAQ->GetHeaderType()?        1:0)         << 11);
-  config |= ((fBoardConfigDAQ->GetParamValue("BOARDVERSION") & 0x1) << 12);
+  config |= ( spBoardConfigDAQ->GetMaxDiffTriggers()       & 0xf);
+  config |= ((spBoardConfigDAQ->GetSamplingEdgeSelect()?1:0)         <<  4);
+  config |= ((spBoardConfigDAQ->GetPktBasedROEnable()?  1:0)         <<  5);
+  config |= ((spBoardConfigDAQ->GetDDREnable()?         1:0)         <<  6);
+  config |= ((spBoardConfigDAQ->GetDataPortSelect()           & 0x3) <<  7);
+  config |= ((spBoardConfigDAQ->GetFPGAEmulationMode()        & 0x3) <<  9);
+  config |= ((spBoardConfigDAQ->GetHeaderType()?        1:0)         << 11);
+  config |= ((spBoardConfigDAQ->GetParamValue("BOARDVERSION") & 0x1) << 12);
 
-  //std::cout << "FPGAEmulationMode: " << fBoardConfigDAQ->GetFPGAEmulationMode() << std::endl;
+  //std::cout << "FPGAEmulationMode: " << spBoardConfigDAQ->GetFPGAEmulationMode() << std::endl;
 
   WriteRegister ((MODULE_READOUT << DAQBOARD_REG_ADDR_SIZE) + READOUT_EVENTBUILDER_CONFIG, config);
 
@@ -1083,33 +1114,38 @@ bool TReadoutBoardDAQ::WriteSlaveDataEmulatorReg(uint32_t AWord) {
 void TReadoutBoardDAQ::WriteTriggerModuleConfigRegisters() 
 {
   bool err;
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
 
-  //  busy config reg
+    //  busy config reg
   uint32_t config0 = 0;
-  config0 |= fBoardConfigDAQ->GetBusyDuration();
+  config0 |= spBoardConfigDAQ->GetBusyDuration();
   WriteRegister ((MODULE_TRIGGER << DAQBOARD_REG_ADDR_SIZE) + TRIG_BUSY_DURATION, config0);
 
   // trigger conif reg
   uint32_t config1 = 0;
-  config1 |= ( fBoardConfigDAQ->GetNTriggers()          & 0xffff);
-  config1 |= ((fBoardConfigDAQ->GetTriggerMode()        &  0x7)  << 16);
-  config1 |= ((fBoardConfigDAQ->GetStrobeDuration()     & 0xff)  << 19);
-  config1 |= ((fBoardConfigDAQ->GetBusyConfig()         &  0x7)  << 27);
+  config1 |= ( spBoardConfigDAQ->GetNTriggers()          & 0xffff);
+  config1 |= ((spBoardConfigDAQ->GetTriggerMode()        &  0x7)  << 16);
+  config1 |= ((spBoardConfigDAQ->GetStrobeDuration()     & 0xff)  << 19);
+  config1 |= ((spBoardConfigDAQ->GetBusyConfig()         &  0x7)  << 27);
   //std::cout << "config1: " << std::hex << config1 << std::dec << std::endl;
   WriteRegister ((MODULE_TRIGGER << DAQBOARD_REG_ADDR_SIZE) + TRIG_TRIGGER_CONFIG, config1);
 
   //  strobe delay config reg
-  //std::cout << fBoardConfigDAQ->GetStrobeDelay() << std::endl;
+  //std::cout << spBoardConfigDAQ->GetStrobeDelay() << std::endl;
   uint32_t config2 = 0;
-  config2 |= fBoardConfigDAQ->GetStrobeDelay();
+  config2 |= spBoardConfigDAQ->GetStrobeDelay();
   //std::cout << "config2: " << std::hex << config2 << std::dec << std::endl;
   err = WriteRegister ((MODULE_TRIGGER << DAQBOARD_REG_ADDR_SIZE) + TRIG_DELAY, config2);
   //std::cout << err << std::endl;
   //  busy override config reg
   uint32_t config3 = 0;
-  config3 |= (fBoardConfigDAQ->GetBusyOverride()?1:0);
+  config3 |= (spBoardConfigDAQ->GetBusyOverride()?1:0);
   //std::cout << "config3: " << std::hex << config3 << std::dec << std::endl;
   WriteRegister ((MODULE_TRIGGER << DAQBOARD_REG_ADDR_SIZE) + TRIG_BUSY_OVERRIDE, config3);
+    if ( err ) {
+        // nothing to do
+        // (this block is only intended to remove annoying warning at compilation
+    }
 
 }
 
@@ -1129,7 +1165,8 @@ bool TReadoutBoardDAQ::StopTrigger ()
 
 bool TReadoutBoardDAQ::WriteBusyOverrideReg(bool ABusyOverride)
 {
-  fBoardConfigDAQ->SetBusyOverride(ABusyOverride);
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+    spBoardConfigDAQ->SetBusyOverride(ABusyOverride);
   bool err;
   err = WriteRegister((MODULE_TRIGGER << DAQBOARD_REG_ADDR_SIZE) + TRIG_BUSY_OVERRIDE, ABusyOverride);
   if (!err) return false;
@@ -1144,13 +1181,14 @@ bool TReadoutBoardDAQ::WriteBusyOverrideReg(bool ABusyOverride)
 
 void TReadoutBoardDAQ::WriteCMUModuleConfigRegisters () 
 {
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
 
-  //  CMU config reg
+    //  CMU config reg
   uint32_t config = 0;
-  config |= ( fBoardConfigDAQ->GetManchesterDisable()     ?1:0);
-  config |= ((fBoardConfigDAQ->GetSamplingEdgeSelectCMU() ?1:0)       << 1);
-  config |= ((fBoardConfigDAQ->GetInvertCMUBus()          ?1:0)       << 2);
-  config |= ((fBoardConfigDAQ->GetChipMaster()            ?1:0)       << 3);
+  config |= ( spBoardConfigDAQ->GetManchesterDisable()     ?1:0);
+  config |= ((spBoardConfigDAQ->GetSamplingEdgeSelectCMU() ?1:0)       << 1);
+  config |= ((spBoardConfigDAQ->GetInvertCMUBus()          ?1:0)       << 2);
+  config |= ((spBoardConfigDAQ->GetChipMaster()            ?1:0)       << 3);
   WriteRegister ((MODULE_CMU << DAQBOARD_REG_ADDR_SIZE) + CMU_CONFIG, config);
 }
 
@@ -1161,40 +1199,43 @@ void TReadoutBoardDAQ::WriteCMUModuleConfigRegisters ()
 
 void TReadoutBoardDAQ::WriteResetModuleConfigRegisters () 
 {
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
   //  PULSE DRST PRST duration reg
   uint32_t config0 = 0;
-  config0 |= ( fBoardConfigDAQ->GetPRSTDuration()        & 0xff );
-  config0 |= ((fBoardConfigDAQ->GetDRSTDuration()        & 0xff)       << 8);
-  config0 |= ((fBoardConfigDAQ->GetPULSEDuration()       & 0xffff)     << 16);
+  config0 |= ( spBoardConfigDAQ->GetPRSTDuration()        & 0xff );
+  config0 |= ((spBoardConfigDAQ->GetDRSTDuration()        & 0xff)       << 8);
+  config0 |= ((spBoardConfigDAQ->GetPULSEDuration()       & 0xffff)     << 16);
   WriteRegister ((MODULE_RESET << DAQBOARD_REG_ADDR_SIZE) + RESET_DURATION, config0);
 
   // power up sequencer delay register
-  uint32_t config1 = ((fBoardConfigDAQ->GetDrstTime()        & 0xff) << 24) 
-    | ((fBoardConfigDAQ->GetSignalEnableTime() & 0xff) << 16) 
-    | ((fBoardConfigDAQ->GetClockEnableTime()  & 0xff) << 8) 
-    | ( fBoardConfigDAQ->GetAutoShutdownTime() & 0xff);
+  uint32_t config1 = ((spBoardConfigDAQ->GetDrstTime()        & 0xff) << 24)
+    | ((spBoardConfigDAQ->GetSignalEnableTime() & 0xff) << 16)
+    | ((spBoardConfigDAQ->GetClockEnableTime()  & 0xff) << 8)
+    | ( spBoardConfigDAQ->GetAutoShutdownTime() & 0xff);
   WriteRegister ((MODULE_RESET << DAQBOARD_REG_ADDR_SIZE) + RESET_DELAYS, config1);  
 
   // PULSE STROBE delay sequence reg
   uint32_t config2 = 0;
-  //std::cout << "PulseDelay: " << fBoardConfigDAQ->GetPulseDelay() << std::endl;
-  config2 |= ( fBoardConfigDAQ->GetPulseDelay()          & 0xffff );
-  config2 |= ((fBoardConfigDAQ->GetStrobePulseSeq()      & 0x3)     << 16);
+  //std::cout << "PulseDelay: " << spBoardConfigDAQ->GetPulseDelay() << std::endl;
+  config2 |= ( spBoardConfigDAQ->GetPulseDelay()          & 0xffff );
+  config2 |= ((spBoardConfigDAQ->GetStrobePulseSeq()      & 0x3)     << 16);
   WriteRegister ((MODULE_RESET << DAQBOARD_REG_ADDR_SIZE) + RESET_PULSE_DELAY, config2);
 
   // Power On Reset disable reg
   uint32_t config3 = 0;
-  config3 |= ( fBoardConfigDAQ->GetPORDisable()     ?1:0);
+  config3 |= ( spBoardConfigDAQ->GetPORDisable()     ?1:0);
   WriteRegister ((MODULE_RESET << DAQBOARD_REG_ADDR_SIZE) + RESET_POR_DISABLE, config3);
 }
 
 
 void TReadoutBoardDAQ::WriteDelays () 
 {
-  uint32_t delays = ((fBoardConfigDAQ->GetDrstTime()         & 0xff) << 24) 
-    | ((fBoardConfigDAQ->GetSignalEnableTime() & 0xff) << 16) 
-    | ((fBoardConfigDAQ->GetClockEnableTime()  & 0xff) << 8) 
-    | ( fBoardConfigDAQ->GetAutoShutdownTime() & 0xff);
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+
+  uint32_t delays = ((spBoardConfigDAQ->GetDrstTime()         & 0xff) << 24)
+    | ((spBoardConfigDAQ->GetSignalEnableTime() & 0xff) << 16)
+    | ((spBoardConfigDAQ->GetClockEnableTime()  & 0xff) << 8)
+    | ( spBoardConfigDAQ->GetAutoShutdownTime() & 0xff);
   WriteRegister ((MODULE_RESET << DAQBOARD_REG_ADDR_SIZE) + RESET_DELAYS, delays);  
 }
 
@@ -1246,9 +1287,11 @@ int TReadoutBoardDAQ::ReadFirmwareChipVersion()
 //----------------------------------------------------------------------------
 void TReadoutBoardDAQ::WriteSoftResetModuleConfigRegisters () 
 {
-  //  PULSE DRST PRST duration reg
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+
+    //  PULSE DRST PRST duration reg
   uint32_t config = 0;
-  config |= ( fBoardConfigDAQ->GetSoftResetDuration()        & 0xff );
+  config |= ( spBoardConfigDAQ->GetSoftResetDuration()        & 0xff );
   WriteRegister ((MODULE_SOFTRESET << DAQBOARD_REG_ADDR_SIZE) + SOFTRESET_DURATION, config);
 
 }
@@ -1256,7 +1299,9 @@ void TReadoutBoardDAQ::WriteSoftResetModuleConfigRegisters ()
 
 bool TReadoutBoardDAQ::ResetBoardFPGA (int ADuration)
 {
-  fBoardConfigDAQ->SetSoftResetDuration(ADuration); // keep track of latest config in TBoardConfigDAQ
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+
+  spBoardConfigDAQ->SetSoftResetDuration(ADuration); // keep track of latest config in TBoardConfigDAQ
   bool err;
   err = WriteRegister((MODULE_SOFTRESET << DAQBOARD_REG_ADDR_SIZE) + SOFTRESET_DURATION, ADuration);
   if (!err) return false;
@@ -1266,7 +1311,9 @@ bool TReadoutBoardDAQ::ResetBoardFPGA (int ADuration)
 
 bool TReadoutBoardDAQ::ResetBoardFX3 (int ADuration)
 {
-  fBoardConfigDAQ->SetSoftResetDuration(ADuration); // keep track of latest config in TBoardConfigDAQ
+    shared_ptr<TBoardConfigDAQ> spBoardConfigDAQ = fBoardConfigDAQ.lock();
+
+  spBoardConfigDAQ->SetSoftResetDuration(ADuration); // keep track of latest config in TBoardConfigDAQ
   bool err;
   err = WriteRegister((MODULE_SOFTRESET << DAQBOARD_REG_ADDR_SIZE) + SOFTRESET_DURATION, ADuration);
   if (!err) return false;

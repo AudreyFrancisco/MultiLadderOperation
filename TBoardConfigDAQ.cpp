@@ -1,11 +1,43 @@
 #include "TBoardConfigDAQ.h"
 
+using namespace std;
+
+// default values for config parameters; less important ones are set in the TBoardConfig constructor
+
+//---- ADC module
+const int TBoardConfigDAQ::LIMIT_DIGITAL   = 300;
+const int TBoardConfigDAQ::LIMIT_IO        =  50;
+const int TBoardConfigDAQ::LIMIT_ANALOGUE  = 300;
+
+//---- READOUT module
+const bool TBoardConfigDAQ::DATA_SAMPLING_EDGE = true;
+const bool TBoardConfigDAQ::DATA_PKTBASED_EN   = false;
+const bool TBoardConfigDAQ::DATA_DDR_EN        = false;
+const int  TBoardConfigDAQ::DATA_PORT          = 2;
+const bool TBoardConfigDAQ::HEADER_TYPE        = true;
+const int  TBoardConfigDAQ::BOARD_VERSION      = 1;
+
+//---- TRIGGER module
+const int TBoardConfigDAQ::TRIGGER_MODE        = 2;
+const uint32_t TBoardConfigDAQ::STROBE_DELAY   = 10;
+const bool TBoardConfigDAQ::BUSY_CONFIG        = false;
+const bool TBoardConfigDAQ::BUSY_OVERRIDE      = true;
+
+//---- RESET module
+const int TBoardConfigDAQ::AUTOSHTDWN_TIME    = 10;
+const int TBoardConfigDAQ::CLOCK_ENABLE_TIME  = 12;
+const int TBoardConfigDAQ::SIGNAL_ENABLE_TIME = 12;
+const int TBoardConfigDAQ::DRST_TIME          = 13;
+
+const int TBoardConfigDAQ::PULSE_STROBE_DELAY  = 10;
+const int TBoardConfigDAQ::STROBE_PULSE_SEQ    =  2;
+
+//___________________________________________________________________
 TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
 {
-  // fill default value from header file
-  ////---- ADC module
+    //---- ADC module
 
-  fBoardType = boardDAQ;
+    fBoardType = TBoardType::kBOARD_DAQ;
   // ADC config reg 0 !! values as found in old TDaqBoard::PowerOn()
   fCurrentLimitDigital = LIMIT_DIGITAL; 
   fCurrentLimitIo      = LIMIT_IO;      
@@ -21,7 +53,7 @@ TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
   fAutoShutOffDelay    = 0; 
   fADCDownSamplingFact = 0;  
 
-  ////---- READOUT module
+  //---- READOUT module
   
   // Event builder config reg
   fMaxDiffTriggers      = 1;        // TODO: check if any influence
@@ -33,7 +65,7 @@ TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
   fHeaderType           = HEADER_TYPE;
   fBoardVersion         = BOARD_VERSION;
   
-  ////---- TRIGGER module
+  //---- TRIGGER module
   
   // Busy configuration register
   //uint32_t fBusyDuration = 4;
@@ -48,7 +80,7 @@ TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
   fBusyOverride = BUSY_OVERRIDE;  
 
 
-  ////---- CMU module
+  //---- CMU module
  
   // CMU config register 
   fManchesterDisable      = true;           // 0: enable manchester encoding; 1: disable
@@ -57,7 +89,7 @@ TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
   fChipMaster             = false;          // 0: chip is master; 1: chip is slave
 
   
-  ////---- RESET module
+  //---- RESET module
 
   // PULSE DRST PRST duration reg
   fPRSTDuration     = 10;                    // depreciated
@@ -74,10 +106,10 @@ TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
   // PowerOnReset disable reg
   fPORDisable       = true;                 //     0; 0: enable POR; 1: disable
 
-  ////---- ID module
+  //---- ID module
 
 
-  ////---- SOFTRESET module
+  //---- SOFTRESET module
   
   // Software reset duration register
   fSoftResetDuration = 10;  
@@ -85,7 +117,7 @@ TBoardConfigDAQ::TBoardConfigDAQ() : TBoardConfig()
   InitParamMap();
 }
 
-
+//___________________________________________________________________
 void TBoardConfigDAQ::InitParamMap()
 {
   TBoardConfig::InitParamMap();

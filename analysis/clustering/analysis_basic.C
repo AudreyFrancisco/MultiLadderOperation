@@ -10,6 +10,8 @@
 #include "../classes/helpers.cpp"
 #include "../classes/BinaryEvent.hpp"
 
+using namespace std;
+
 Bool_t analysis_basic(
     const TString filepath_tree,  // input tree path
     const TString dirpath_plots,  // output plots path

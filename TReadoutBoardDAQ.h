@@ -11,19 +11,16 @@
 #include <thread>
 #include <vector>
 #include <iostream>
+#include <memory>
+#include <cstdint>
 
 #include "USB.h"
 #include "TReadoutBoard.h"
 #include "TAlpide.h"
-#include "TConfig.h"
 #include "TBoardConfigDAQ.h"
-#include "BoardDecoder.h"
-
-
-//enum TTriggerSource {TRIG_INT, TRIG_EXT};
 
 const int MAX_DIFF_TRIG_EVT_CNT   =  10;    // maximum allowed difference between number triggers and events read; MAX_DIFF_TRIG_EVT_CNT is default
-const uint32_t MAX_EVT_BUFFSIZE   = 1e3;    // max number of events in fEventBuffer  TODO: maximum queue size ~1 Gb?
+const std::uint32_t MAX_EVT_BUFFSIZE   = 1e3;    // max number of events in fEventBuffer  TODO: maximum queue size ~1 Gb?
 const int MAX_NTRIG_TRAIN         = 10;    // fNTriggers will be subdivided into trigger trains with fMaxNTriggersAtOnce, MAX_NTRIG_ATONCE is default
 
 //************************************************************
@@ -120,16 +117,12 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
   
   //--------------------------------------
 
-  uint32_t fFirmwareVersion;    
+  std::uint32_t fFirmwareVersion;    
 
-  TBoardConfigDAQ *fBoardConfigDAQ;
+    std::weak_ptr<TBoardConfigDAQ> fBoardConfigDAQ;
 
-  int SendWord          (uint32_t value);
+  int SendWord          (std::uint32_t value);
   int ReadAcknowledge   ();
-
-  int WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId = 0);
-  int ReadChipRegister  (uint16_t address, uint16_t &value, uint8_t chipId = 0);
-
 
   // members and methods related to data readout
   void  DAQTrigger       ();      // function for triggering fNTrigger events, to be ran in thread
@@ -150,7 +143,7 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
   int fEvtCnt;                    // counter of events read/in queue
   //int fDiffTrigEvtCnt;            // difference between number triggers and events read
   //int fMaxDiffTrigEvtCnt;         // maximum allowed difference between number triggers and events read
-  uint32_t fMaxEventBufferSize;   // maximum number of events in fEventBuffer; TODO: maximum queue size ~1 Gb?
+  std::uint32_t fMaxEventBufferSize;   // maximum number of events in fEventBuffer; TODO: maximum queue size ~1 Gb?
   int fNTriggersTotal;            // total number of triggers to be launched
   int fMaxNTriggersTrain;         // fNTriggersTotal will be subdivided into trigger trains with fMaxNTriggersAtOnce
   std::mutex fMtx;                //  mutex for read/write acces to fEventBuffer
@@ -161,9 +154,15 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
 
  protected: 
 
+    int WriteChipRegister (std::uint16_t address, std::uint16_t value, std::uint8_t chipId = 0, const bool doExecute = true);
+    int ReadChipRegister  (std::uint16_t address, std::uint16_t &value, std::uint8_t chipId = 0, const bool doExecute = true);
+    
+
  public: 
-  TReadoutBoardDAQ(libusb_device *ADevice, TBoardConfigDAQ *config);
-  
+    TReadoutBoardDAQ();
+    TReadoutBoardDAQ(libusb_device *ADevice, std::shared_ptr<TBoardConfigDAQ> config);
+    std::weak_ptr<TBoardConfig> GetConfig() {return fBoardConfigDAQ;}
+
   virtual ~TReadoutBoardDAQ ();
 
   void DumpConfig(const char *fName, bool writeFile=true, char *config=0);
@@ -172,12 +171,12 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
   //// general methods of TReadoutBoard
   //---------------------------------------------------------
 
-  int  ReadRegister      (uint16_t address, uint32_t &value);
-  int  WriteRegister     (uint16_t address, uint32_t value);
+  int  ReadRegister      (std::uint16_t address, std::uint32_t &value);
+  int  WriteRegister     (std::uint16_t address, std::uint32_t value);
 
   // DAQ board has only one control interface -> both methods are identical
-  int  SendOpCode        (uint16_t  OpCode) ;
-    int  SendOpCode        (uint16_t  OpCode, uint8_t chipId) { std::cout << "chip ID = " << chipId << std::endl; return SendOpCode (OpCode);};
+  int  SendOpCode        (std::uint16_t  OpCode) ;
+    int  SendOpCode        (std::uint16_t  OpCode, std::uint8_t chipId) { std::cout << "chip ID = " << chipId << std::endl; return SendOpCode (OpCode);};
 
   int  SetTriggerConfig  (bool enablePulse, bool enableTrigger, int triggerDelay, int pulseDelay);
   void SetTriggerSource  (TTriggerSource triggerSource);
@@ -188,7 +187,7 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
 
   //// methods only for Cagliari DAQ board
   //---------------------------------------------------------
-  TBoardConfigDAQ *GetBoardConfig() {return fBoardConfigDAQ;};
+    std::weak_ptr<TBoardConfigDAQ> GetBoardConfig() {return fBoardConfigDAQ;}
 
   bool PowerOn           (int &overflow);
   void PowerOff          ();
@@ -232,7 +231,7 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
   // READOUT Module:
   void WriteReadoutModuleConfigRegisters (); // write current Readout module config (fBoardConfigDAQ) to registers
   bool ResyncSerialPort ();
-  bool WriteSlaveDataEmulatorReg (uint32_t data);
+  bool WriteSlaveDataEmulatorReg (std::uint32_t data);
   bool EndOfRun ()    {return WriteRegister((MODULE_READOUT << DAQBOARD_REG_ADDR_SIZE) + READOUT_EOR_COMMAND, 5);};
 
 
@@ -255,8 +254,8 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
 
   // ID Module:
   int ReadBoardAddress (); 
-  uint32_t ReadFirmwareVersion (); 
-  uint32_t ReadFirmwareDate (); 
+  std::uint32_t ReadFirmwareVersion (); 
+  std::uint32_t ReadFirmwareDate (); 
   int ReadFirmwareChipVersion (); 
 
 

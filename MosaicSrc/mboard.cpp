@@ -82,7 +82,9 @@ MBoard::~MBoard()
 	closeTCP();		
 
 	// delete objects in creation reverse order
-	delete mRunControl;
+    delete mSysPLL;
+    delete mTriggerControl;
+    delete mRunControl;
 	delete mIPbus;
 }
 

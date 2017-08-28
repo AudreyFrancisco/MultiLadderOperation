@@ -1,6 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// obsolete class, not used any more, kept to track mdoficiations
+// from original repository
+
 #include <vector>
 #include <string>
 #include "TChipConfig.h"
@@ -22,8 +25,8 @@ class TConfig {
   TDeviceType                  fDeviceType;
 
   void        ReadConfigFile (const char *fName);
-  void        Init           (int nBoards, std::vector <int> chipIds, TBoardType boardType = boardMOSAIC); 
-  void        Init           (int chipId, TBoardType boardType = boardDAQ);
+    void        Init           (int nBoards, std::vector <int> chipIds, TBoardType boardType = TBoardType::kBOARD_MOSAIC);
+    void        Init           (int chipId, TBoardType boardType = TBoardType::kBOARD_DAQ);
   void        ParseLine      (const char *Line, char *Param, char *Rest, int *Chip);
   void        DecodeLine     (const char *Line);
   void        SetDeviceType  (TDeviceType AType, int NChips);
@@ -31,8 +34,8 @@ class TConfig {
  protected:
  public:
   TConfig (const char *fName);
-  TConfig (int nBoards, std::vector <int> chipIds, TBoardType boardType = boardMOSAIC); 
-  TConfig (int chipId, TBoardType boardType = boardDAQ);
+  TConfig (int nBoards, std::vector <int> chipIds, TBoardType boardType = TBoardType::kBOARD_MOSAIC);
+  TConfig (int chipId, TBoardType boardType = TBoardType::kBOARD_DAQ);
   
   TDeviceType   GetDeviceType      () {return fDeviceType;};
   int           GetNChips          () {return fChipConfigs.size();};

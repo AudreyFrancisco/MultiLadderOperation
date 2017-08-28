@@ -1,16 +1,21 @@
 #include <iostream>
 
+#include "TBoardConfig.h"
 #include "BoardDecoder.h"
 #include "MosaicSrc/mboard.h"
 #include "MosaicSrc/TAlpideDataParser.h"
 
 bool BoardDecoder::DecodeEvent(TBoardType boardType, unsigned char *data, int nBytes, int &nBytesHeader, int &nBytesTrailer, TBoardHeader &boardInfo, uint32_t firmwareVersion, int headerType)
 {
-    std::cout << "TBoardDecoder::DecodeEvent() - firmware version = " << firmwareVersion << std::endl;
-  if (boardType == boardDAQ) {
+    if ( headerType ) {
+        // nothing to do
+        // (this block is only intended to remove annoying warning at compilation
+    }
+    //std::cout << "TBoardDecoder::DecodeEvent() - firmware version = " << firmwareVersion << std::endl;
+    if (boardType == TBoardType::kBOARD_DAQ) {
     return DecodeEventDAQ(data, nBytes, nBytesHeader, nBytesTrailer, boardInfo);
   }
-  else if (boardType == boardMOSAIC) {
+    else if (boardType == TBoardType::kBOARD_MOSAIC) {
     return DecodeEventMOSAIC(data, nBytes, nBytesHeader, nBytesTrailer, boardInfo);
   }
   else {

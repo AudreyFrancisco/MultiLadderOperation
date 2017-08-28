@@ -1,3 +1,5 @@
+#include "TROOT.h"
+
 void x_csa() {
 
     gROOT->LoadMacro("../classes/AliPALPIDEFSRawStreamMS.cpp+");

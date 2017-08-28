@@ -11,6 +11,8 @@
 #include <TFitResultPtr.h>
 #include <TF1.h>
 
+using namespace std;
+
 Bool_t scanDACs(TString directory = "../pALPIDEfs-software/Data/", Int_t n_bits = 256) {
 
     if (directory[directory.Length()-1] != '/') {
