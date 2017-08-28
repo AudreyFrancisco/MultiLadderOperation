@@ -5,6 +5,8 @@ using namespace std;
 
 //___________________________________________________________________
 TPixHit::TPixHit() :
+    fBoardIndex( 0 ),
+    fBoardReceiver( 0 ),
     fChipId( ILLEGAL_CHIP_ID ),
     fRegion( 0 ),
     fDcol( 0 ),

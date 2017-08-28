@@ -12,7 +12,13 @@
  */
 
 class TPixHit {
-    
+
+    /// id of the board that read the chip to which belong the hit pixel
+    unsigned int fBoardIndex;
+
+    /// id of the receiver on the readout board that gets the chip data
+    unsigned int fBoardReceiver;
+
     /// id of the chip to which belong the hit pixel
     unsigned int fChipId;
     
@@ -44,6 +50,8 @@ public:
 
 #pragma mark - setters
 
+    inline void SetBoardIndex( const unsigned int value ) { fBoardIndex = value; }
+    inline void SetBoardReceiver( const unsigned int value ) { fBoardReceiver = value; }
     void SetChipId( const unsigned int value );
     void SetRegion( const unsigned int value );
     void SetDoubleColumn( const unsigned int value );
@@ -51,6 +59,8 @@ public:
 
 #pragma mark - getters
 
+    inline unsigned int GetBoardIndex() const { return fBoardIndex; }
+    inline unsigned int GetBoardReceiver() const { return fBoardReceiver; }
     unsigned int GetChipId() const;
     unsigned int GetRegion() const;
     unsigned int GetDoubleColumn() const;
