@@ -1,7 +1,22 @@
-/* ---------------
- * Example of MOSAIC use
+/**
+ * \brief This executable runs a communication test {device <--> mosaic board}.
  *
- ----------------- */
+ * \remark
+ * The TAlpideDecoder does not seem to work properly for the moment (to be fixed in
+ * subsequent versions). Only empty frames are detected, which is not the case with
+ * the low level software from Giuseppe.
+ *
+ * \note
+ * The default configuration file for this test for a MFT ladder is
+ * ConfigMFTladderMOSAIC.cfg
+ *
+ * \warning
+ * The current code can not correctly handle a number N > 1 of readout boards
+ * (currently only one is written). See for e.g. TDeviceBuilder::SetDeviceParamValue().
+ * For MFT, this is enough since the implemented device types (the different
+ * types of MFT ladders) only need one readout board to be entirely read.
+ *
+ */
 
 #include <iostream>
 #include <unistd.h>
