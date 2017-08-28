@@ -24,17 +24,6 @@
 
 using namespace std;
 
-/*
-// initialisation of Fromu
-int configureFromu(TAlpide *chip) {
-    chip->WriteRegister(Alpide::REG_FROMU_CONFIG1,  0x0);             // fromu config 1: digital pulsing (put to 0x20 for analogue)
-    chip->WriteRegister(Alpide::REG_FROMU_CONFIG2,  chip->GetConfig()->GetParamValue("STROBEDURATION"));  // fromu config 2: strobe length
-    chip->WriteRegister(Alpide::REG_FROMU_PULSING1, chip->GetConfig()->GetParamValue("STROBEDELAYCHIP"));   // fromu pulsing 1: delay pulse - strobe (not used here, since using external strobe)
-    chip->WriteRegister(Alpide::REG_FROMU_PULSING2, chip->GetConfig()->GetParamValue("PULSEDURATION"));   // fromu pulsing 2: pulse length
-    return 0;
-}
-*/
-
 // Example of usage :
 // ./test_digital -v 1 -c ConfigMFTladder_DigitalScan.cfg
 //
