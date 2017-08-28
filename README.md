@@ -2,13 +2,13 @@
 
 The main interest into the ITS new alpide software is the following: it is meant to have ALPIDE test routines or utilities (such as FIFO scan, digital scan, threshold scan ...) that should be usable for any type of readout board (so far DAQ board and MOSAIC board, RU is being included as well, but not yet in this MFT fork). The test utilities will also be the same for different types of device (for e.g. single chip on a carrier board in IB mode, MFT ladder with 2 chips, MFT ladder with 5 chips ...). To be able to do so, the utilities must be fed at run time with a configuration describing how many chips are used, the configuration of each chip, and the type of readout board to be used.
 
-The original ITS repository was forked into our own repository. The code was modified and optimized to match MFT specific needs. The master branch will be regularly kept in sync with the corresponding master branch from the original project. The default branch is set to be the mft branch. The mft-dev branch is the one where new features for MFT are being developed and tested. Once these new features are validated, they are merged into the mft branch.
+The original ITS repository was forked into our own repository. The code was modified and optimized to match MFT specific needs. The _master_ branch will be regularly kept in sync with the corresponding _master_ branch from the original project. The **default** branch is set to be the _mft_ branch. This default branch is protected, meaning that only users with Master rank or the owner of the repository can commit to this default branch. The _mft-dev_ branch is the one where new features for MFT are being developed and tested. Once these new features are validated, they are merged into the _mft_ branch. The Git workflow to be followed to add new features to _mft_dev_ is outlined in the [Versioning](#versioning) section below.
 
 A Doxygen web-based documentation will be added soon.
 
 ## Getting Started
 
-Clone the repository (you will get the default branch, i.e. mft):
+Clone the repository (you will get the default branch, i.e. _mft_):
 
 ```
 $ git clone ssh://git@gitlab.cern.ch:7999/alice-MFT-upgrade/new-alpide-software.git
@@ -57,7 +57,7 @@ Assuming your MOSAIC is seen by your computer, and the device (an MFT ladder wit
 ## Versioning
 
 * We use Cern GitLab for versioning, with the repository at https://gitlab.cern.ch/alice-MFT-upgrade/new-alpide-software
-* We are working with the Git Hg flow in SourceTree. The philosophy is summarised at https://blog.sourcetreeapp.com/2012/08/01/smart-branching-with-sourcetree-and-git-flow/
+* We choose follow the **Git workflow** named Hg flow in SourceTree. **If you have no idea what this is**, before doing any modification to the _mft-dev_ branch, please have a look at the philosophy of this workflow nicely summarised at https://blog.sourcetreeapp.com/2012/08/01/smart-branching-with-sourcetree-and-git-flow/
 
 ## Acknowledgments
 
