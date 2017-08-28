@@ -1,14 +1,15 @@
-#include <unistd.h>
-#include "TThresholdScan.h"
-#include "THisto.h"
+#include "AlpideDecoder.h"
 #include "AlpideDictionary.h"
+#include "TBoardDecoder.h"
 #include "TAlpide.h"
-#include "TDevice.h"
 #include "TChipConfig.h"
+#include "TThresholdScan.h"
+#include "TPixHit.h"
+#include "THisto.h"
+#include "TDevice.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TReadoutBoardDAQ.h"
 #include "TBoardConfig.h"
-#include "AlpideDecoder.h"
 #include "TScanConfig.h"
 
 
@@ -87,11 +88,11 @@ std::shared_ptr<THisto> TThresholdScan::CreateHisto()
 //___________________________________________________________________
 void TThresholdScan::Init()
 {
-    CountEnabledChips();
+    //CountEnabledChips();
     shared_ptr<TDevice> currentDevice = fDevice.lock();
 
     for ( unsigned int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
-        cout << "Board " << i << ", found " << fEnabled[i] << " enabled chips" << endl;
+        //cout << "Board " << i << ", found " << fEnabled[i] << " enabled chips" << endl;
         ConfigureBoard(i);
         (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::GRST );
         (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::PRST );
@@ -141,7 +142,6 @@ void TThresholdScan::Execute()
     unsigned char         buffer[1024*4000];
     int                   n_bytes_data, n_bytes_header, n_bytes_trailer;
     int                   nBad = 0, skipped = 0;
-    TBoardHeader          boardInfo;
     
     shared_ptr<TDevice> currentDevice = fDevice.lock();
 
@@ -149,26 +149,29 @@ void TThresholdScan::Execute()
         (currentDevice->GetBoard( iboard ))->Trigger( fNTriggers );
     }
     
+    TBoardDecoder boardDecoder;
     for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
         int itrg = 0;
         int trials = 0;
-        while ( itrg < fNTriggers * fEnabled[iboard] ) {
+        while ( itrg < fNTriggers * ((int)currentDevice->GetNWorkingChipsPerBoard(iboard)) ) {
             if ((currentDevice->GetBoard( iboard ))->ReadEventData(n_bytes_data, buffer) == -1) { // no event available in buffer yet, wait a bit
                 usleep(100); // Increment from 100us
                 trials++;
                 if (trials == 10) {
                     cout << "Board " << iboard << ": reached 10 timeouts, giving up on this event" << endl;
-                    itrg = fNTriggers * fEnabled[iboard];
+                    itrg = fNTriggers * currentDevice->GetNWorkingChipsPerBoard(iboard);
                     skipped++;
                     trials = 0;
                 }
                 continue;
             }
             else {
-                BoardDecoder::DecodeEvent( (currentDevice->GetBoardConfig( iboard ))->GetBoardType(), buffer, n_bytes_data, n_bytes_header, n_bytes_trailer, boardInfo );
+                boardDecoder.SetBoardType( (currentDevice->GetBoardConfig( iboard ))->GetBoardType() );
+                boardDecoder.DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
+
                 // decode Chip event
                 int n_bytes_chipevent=n_bytes_data-n_bytes_header;//-n_bytes_trailer;
-                if (boardInfo.eoeCount < 2) n_bytes_chipevent -= n_bytes_trailer;
+                if ( boardDecoder.GetMosaicEoeCount() < 2) n_bytes_chipevent -= n_bytes_trailer;
                 if (!AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, fHits)) {
                     cout << "Found bad event, length = " << n_bytes_chipevent << endl;
                     nBad ++;
