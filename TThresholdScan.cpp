@@ -1,254 +1,231 @@
-#include "TAlpideDecoder.h"
-#include "AlpideDictionary.h"
-#include "TBoardDecoder.h"
-#include "TAlpide.h"
-#include "TChipConfig.h"
+#include <unistd.h>
 #include "TThresholdScan.h"
-#include "TPixHit.h"
-#include "THisto.h"
-#include "TDevice.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TReadoutBoardDAQ.h"
-#include "TBoardConfig.h"
-#include "TScanConfig.h"
+#include "AlpideConfig.h"
 
 
-using namespace std;
-
-//___________________________________________________________________
-TThresholdScan::TThresholdScan() : TMaskScan()
+TThresholdScan::TThresholdScan (TScanConfig *config, std::vector <TAlpide *> chips, std::vector <TReadoutBoard *> boards, std::deque<TScanHisto> *histoQue) 
+  : TMaskScan (config, chips, boards, histoQue) 
 {
-    fVPULSEH = 170;
-    fNTriggers = 50;
+  m_start[0]  = m_config->GetChargeStart();
+  m_stop [0]  = m_config->GetChargeStop ();
+  m_step [0]  = m_config->GetChargeStep ();
+
+  m_start[1]  = 0;
+  m_step [1]  = 1;
+  m_stop [1]  = m_config->GetNMaskStages();
+
+  m_start[2]  = 0;
+  m_step [2]  = 1;
+  m_stop [2]  = 1;
+
+  m_VPULSEH   = 170;
+  m_nTriggers = m_config->GetParamValue("NINJ");
+  CreateScanHisto();
 }
 
-//___________________________________________________________________
-TThresholdScan::TThresholdScan( shared_ptr<TScanConfig> config,
-                               shared_ptr<TDevice> aDevice,
-                               deque<TScanHisto> *histoQue )
-: TMaskScan( config, aDevice, histoQue )
+
+void TThresholdScan::ConfigureBoard(TReadoutBoard *board) 
 {
-    shared_ptr<TScanConfig> currentScanConfig = fScanConfig.lock();
-    fStart[0]  = currentScanConfig->GetChargeStart();
-    fStop [0]  = currentScanConfig->GetChargeStop ();
-    fStep [0]  = currentScanConfig->GetChargeStep ();
-    
-    fStart[1]  = 0;
-    fStep [1]  = 1;
-    fStop [1]  = currentScanConfig->GetNMaskStages();
-    
-    fStart[2]  = 0;
-    fStep [2]  = 1;
-    fStop [2]  = 1;
-    
-    fVPULSEH   = 170;
-    fNTriggers = currentScanConfig->GetParamValue("NINJ");
-    CreateScanHisto();
+  if (board->GetConfig()->GetBoardType() == boardMOSAIC) {
+    board->SetTriggerConfig (true, true, 
+                             board->GetConfig()->GetParamValue("STROBEDELAYBOARD"),
+                             board->GetConfig()->GetParamValue("PULSEDELAY"));
+    board->SetTriggerSource (trigInt);
+  }
+  else if (board->GetConfig()->GetBoardType() == boardDAQ) {
+    // for the DAQ board the delay between pulse and strobe is 12.5ns * pulse delay + 25 ns * strobe delay
+    // pulse delay cannot be 0, therefore set strobe delay to 0 and use only pulse delay
+    board->SetTriggerConfig (true, false, 
+                             0,
+                             2 * board->GetConfig()->GetParamValue("STROBEDELAYBOARD"));
+    board->SetTriggerSource (trigExt);
+  }
+
+
 }
 
-//___________________________________________________________________
-void TThresholdScan::ConfigureBoard( const int iboard )
+ 
+void TThresholdScan::ConfigureFromu(TAlpide *chip) 
 {
-    shared_ptr<TDevice> currentDevice = fDevice.lock();
-    shared_ptr<TReadoutBoard> board = currentDevice->GetBoard( iboard );
-    shared_ptr<TBoardConfig> boardConfig = currentDevice->GetBoardConfig( iboard );
-    
-    if ( boardConfig->GetBoardType() == TBoardType::kBOARD_MOSAIC ) {
-        board->SetTriggerConfig( true, true,
-                                 boardConfig->GetParamValue("STROBEDELAYBOARD"),
-                                 boardConfig->GetParamValue("PULSEDELAY") );
-        board->SetTriggerSource( TTriggerSource::kTRIG_INT );
+  chip->WriteRegister(Alpide::REG_FROMU_CONFIG1,  0x20);            // fromu config 1: digital pulsing (put to 0x20 for analogue)
+  chip->WriteRegister(Alpide::REG_FROMU_CONFIG2,  chip->GetConfig()->GetParamValue("STROBEDURATION"));  // fromu config 2: strobe length
+  chip->WriteRegister(Alpide::REG_FROMU_PULSING1, chip->GetConfig()->GetParamValue("STROBEDELAYCHIP"));   // fromu pulsing 1: delay pulse - strobe (not used here, since using external strobe)
+  chip->WriteRegister(Alpide::REG_FROMU_PULSING2, chip->GetConfig()->GetParamValue("PULSEDURATION"));   // fromu pulsing 2: pulse length 
+}
+
+
+void TThresholdScan::ConfigureChip(TAlpide *chip)
+{
+  AlpideConfig::BaseConfig(chip);
+
+  ConfigureFromu(chip);
+
+  AlpideConfig::ConfigureCMU (chip);
+}
+
+
+THisto TThresholdScan::CreateHisto() {
+  THisto *histo = new THisto ("ThresholdHisto", "ThresholdHisto", 1024, 0, 1023, (m_stop[0] - m_start[0]) / m_step[0], m_start[0], m_stop[0]);
+  return *histo;
+}
+
+
+void TThresholdScan::Init() {
+  CountEnabledChips();
+  for (int i = 0; i < (int)m_boards.size(); i++) {
+    std::cout << "Board " << i << ", found " << m_enabled[i] << " enabled chips" << std::endl;
+    ConfigureBoard(m_boards.at(i));
+
+    m_boards.at(i)->SendOpCode (Alpide::OPCODE_GRST);
+    m_boards.at(i)->SendOpCode (Alpide::OPCODE_PRST);
+  }
+
+  for (int i = 0; i < (int)m_chips.size(); i ++) {
+    if (! (m_chips.at(i)->GetConfig()->IsEnabled())) continue;
+    ConfigureChip (m_chips.at(i));
+  }
+
+  for (int i = 0; i < (int)m_boards.size(); i++) {
+    m_boards.at(i)->SendOpCode (Alpide::OPCODE_RORST);     
+    TReadoutBoardMOSAIC *myMOSAIC = dynamic_cast<TReadoutBoardMOSAIC*> (m_boards.at(i));
+
+    if (myMOSAIC) {
+     myMOSAIC->StartRun();
+    } 
+  }
+}
+
+
+void TThresholdScan::PrepareStep (int loopIndex) 
+{
+  switch (loopIndex) {
+  case 0:    // innermost loop: change VPULSEL
+    for (int ichip = 0; ichip < (int)m_chips.size(); ichip ++) {
+      if (! m_chips.at(ichip)->GetConfig()->IsEnabled()) continue;
+      m_chips.at(ichip)->WriteRegister(Alpide::REG_VPULSEL, m_VPULSEH - m_value[0]);
     }
-    else if ( boardConfig->GetBoardType() == TBoardType::kBOARD_DAQ ) {
-        // for the DAQ board the delay between pulse and strobe is 12.5ns * pulse delay + 25 ns * strobe delay
-        // pulse delay cannot be 0, therefore set strobe delay to 0 and use only pulse delay
-        board->SetTriggerConfig( true, false,
-                                 0,
-                                 2 * boardConfig->GetParamValue("STROBEDELAYBOARD") );
-        board->SetTriggerSource( TTriggerSource::kTRIG_EXT );
+    break;
+  case 1:    // 2nd loop: mask staging
+    for (int ichip = 0; ichip < (int)m_chips.size(); ichip ++) {
+      if (! m_chips.at(ichip)->GetConfig()->IsEnabled()) continue;
+      ConfigureMaskStage(m_chips.at(ichip), m_value[1]);
     }
+    break;
+  default: 
+    break;
+  }
 }
 
-//___________________________________________________________________
-void TThresholdScan::ConfigureChip( const int ichip )
-{
-    shared_ptr<TDevice> currentDevice = fDevice.lock();
-    shared_ptr<TAlpide> chip = currentDevice->GetChip( ichip );
-    // the user should use a config file with settings relevant for threshold scan
-    chip->BaseConfig();
-}
 
-//___________________________________________________________________
-std::shared_ptr<THisto> TThresholdScan::CreateHisto()
+void TThresholdScan::Execute() 
 {
-    std::shared_ptr<THisto> histo = std::make_shared<THisto>("ThresholdHisto", "ThresholdHisto", 1024, 0, 1023, (fStop[0] - fStart[0]) / fStep[0], fStart[0], fStop[0]);
-    return histo;
-}
+  unsigned char         buffer[1024*4000]; 
+  int                   n_bytes_data, n_bytes_header, n_bytes_trailer;
+  int                   nBad = 0, skipped = 0;
+  TBoardHeader          boardInfo;
+  std::vector<TPixHit> *Hits = new std::vector<TPixHit>;
 
-//___________________________________________________________________
-void TThresholdScan::Init()
-{
-    //CountEnabledChips();
-    shared_ptr<TDevice> currentDevice = fDevice.lock();
+  for (int iboard = 0; iboard < (int)m_boards.size(); iboard ++) {
+    m_boards.at(iboard)->Trigger(m_nTriggers);
+  }
 
-    for ( unsigned int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
-        //cout << "Board " << i << ", found " << fEnabled[i] << " enabled chips" << endl;
-        ConfigureBoard(i);
-        (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::GRST );
-        (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::PRST );
-    }
-    
-    for ( unsigned int i = 0; i < currentDevice->GetNChips(); i++ ) {
-        if (! ((currentDevice->GetChipConfig( i ))->IsEnabled())) continue;
-        ConfigureChip(i);
-    }
-    
-    for ( unsigned int i = 0; i < currentDevice->GetNBoards(false); i++ ) {
-        (currentDevice->GetBoard( i ))->SendOpCode( (uint16_t)AlpideOpCode::RORST );
-        shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(currentDevice->GetBoard( i ));
-        if ( myMOSAIC ) {
-            myMOSAIC->StartRun();
+  for (int iboard = 0; iboard < (int)m_boards.size(); iboard ++) {
+    int itrg = 0;
+    int trials = 0;
+    while(itrg < m_nTriggers * m_enabled[iboard]) {
+      if (m_boards.at(iboard)->ReadEventData(n_bytes_data, buffer) == -1) { // no event available in buffer yet, wait a bit
+        usleep(100);
+        trials ++;
+        if (trials == 3) {
+      	  std::cout << "Board " << iboard << ": reached 3 timeouts, giving up on this event" << std::endl;
+          itrg = m_nTriggers * m_enabled[iboard];
+          skipped ++;
+          trials = 0;
+        }
+        continue;
+      }
+      else {
+        BoardDecoder::DecodeEvent(m_boards.at(iboard)->GetConfig()->GetBoardType(), buffer, n_bytes_data, n_bytes_header, n_bytes_trailer, boardInfo);
+        // decode Chip event
+        int n_bytes_chipevent=n_bytes_data-n_bytes_header;//-n_bytes_trailer;
+        if (boardInfo.eoeCount < 2) n_bytes_chipevent -= n_bytes_trailer;
+        if (!AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits)) {
+          std::cout << "Found bad event, length = " << n_bytes_chipevent << std::endl;
+          nBad ++;
+          if (nBad > 10) continue;
+	  FILE *fDebug = fopen ("DebugData.dat", "a");
+          fprintf(fDebug, "Bad event:\n");
+          for (int iByte=0; iByte<n_bytes_data + 1; ++iByte) {
+            fprintf (fDebug, "%02x ", (int) buffer[iByte]);
+          }
+          fprintf(fDebug, "\nFull Event:\n"); 
+          for (int ibyte = 0; ibyte < (int)fDebugBuffer.size(); ibyte ++) {
+            fprintf (fDebug, "%02x ", (int) fDebugBuffer.at(ibyte));
+          }
+          fprintf(fDebug, "\n\n");
+          fclose (fDebug);
+	}
+        itrg++;
         }
     }
+    std::cout << "Found " << Hits->size() << " hits" << std::endl;
+    FillHistos (Hits, iboard);
+  }
 }
 
-//___________________________________________________________________
-void TThresholdScan::PrepareStep( const int loopIndex )
+
+void TThresholdScan::FillHistos (std::vector<TPixHit> *Hits, int board)
 {
-    shared_ptr<TDevice> currentDevice = fDevice.lock();
-    
-    switch ( loopIndex ) {
-        case 0:    // innermost loop: change VPULSEL
-            for ( unsigned int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
-                if (! ((currentDevice->GetChipConfig( ichip ))->IsEnabled()) ) continue;
-                fVPULSEH = (currentDevice->GetChipConfig( ichip ))->GetParamValue("VPULSEH"); // Replace default value with the one from config file
-                (currentDevice->GetChip( ichip ))->WriteRegister( AlpideRegister::VPULSEL, fVPULSEH - fValue[0] ); // Automatically matches max pulse = VPULSEH in config
-            }
-            break;
-        case 1:    // 2nd loop: mask staging
-            for ( unsigned int ichip = 0; ichip < currentDevice->GetNChips(); ichip++ ) {
-                if (! ((currentDevice->GetChipConfig( ichip ))->IsEnabled()) ) continue;
-                ConfigureMaskStage( ichip, fValue[1]);
-            }
-            break;
-        default:
-            break;
-    }
+  TChipIndex idx; 
+  idx.boardIndex = board;
+/*
+  int chipId;
+  int region; 
+  int dcol;
+  int address;
+ */
+
+  for (int i = 0; i < (int)Hits->size(); i++) {
+    if (Hits->at(i).address / 2 != m_row) continue;  // todo: keep track of spurious hits, i.e. hits in non-injected rows
+    // !! This will not work when allowing several chips with the same Id
+    idx.dataReceiver = m_boards.at(board)->GetReceiver(Hits->at(i).chipId);
+    idx.chipId       = Hits->at(i).chipId;
+    int col = Hits->at(i).region * 32 + Hits->at(i).dcol * 2;
+    int leftRight = ((((Hits->at(i).address % 4) == 1) || ((Hits->at(i).address % 4) == 2))? 1:0); 
+    col += leftRight;
+
+    m_histo->Incr(idx, col, m_value[0]);
+  }
+  
 }
 
-//___________________________________________________________________
-void TThresholdScan::Execute()
+
+void TThresholdScan::LoopEnd(int loopIndex) 
 {
-    unsigned char         buffer[1024*4000];
-    int                   n_bytes_data, n_bytes_header, n_bytes_trailer;
-    int                   nBad = 0, skipped = 0;
-    
-    shared_ptr<TDevice> currentDevice = fDevice.lock();
-
-    for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
-        (currentDevice->GetBoard( iboard ))->Trigger( fNTriggers );
-    }
-    
-    TBoardDecoder boardDecoder;
-    for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
-        int itrg = 0;
-        int trials = 0;
-        while ( itrg < fNTriggers * ((int)currentDevice->GetNWorkingChipsPerBoard(iboard)) ) {
-            if ((currentDevice->GetBoard( iboard ))->ReadEventData(n_bytes_data, buffer) == -1) { // no event available in buffer yet, wait a bit
-                usleep(100); // Increment from 100us
-                trials++;
-                if (trials == 10) {
-                    cout << "Board " << iboard << ": reached 10 timeouts, giving up on this event" << endl;
-                    itrg = fNTriggers * currentDevice->GetNWorkingChipsPerBoard(iboard);
-                    skipped++;
-                    trials = 0;
-                }
-                continue;
-            }
-            else {
-                boardDecoder.SetBoardType( (currentDevice->GetBoardConfig( iboard ))->GetBoardType() );
-                boardDecoder.DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
-
-                // decode Chip event
-                int n_bytes_chipevent=n_bytes_data-n_bytes_header;//-n_bytes_trailer;
-                if ( boardDecoder.GetMosaicEoeCount() < 2) n_bytes_chipevent -= n_bytes_trailer;
-                if (!AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, fHits)) {
-                    cout << "Found bad event, length = " << n_bytes_chipevent << endl;
-                    nBad ++;
-                    if (nBad > 10) continue;
-                    FILE *fDebug = fopen ("DebugData.dat", "a");
-                    fprintf(fDebug, "Bad event:\n");
-                    for (int iByte=0; iByte<n_bytes_data + 1; ++iByte) {
-                        fprintf (fDebug, "%02x ", (int) buffer[iByte]);
-                    }
-                    fprintf(fDebug, "\nFull Event:\n");
-                    for (int ibyte = 0; ibyte < (int)fDebugBuffer.size(); ibyte ++) {
-                        fprintf (fDebug, "%02x ", (int) fDebugBuffer.at(ibyte));
-                    }
-                    fprintf(fDebug, "\n\n");
-                    fclose (fDebug);
-                }
-                itrg++;
-            }
-        }
-        cout << "Found " << fHits.size() << " hits" << endl;
-        FillHistos( iboard );
-        fHits.clear();
-    }
+  if (loopIndex == 0) {
+    m_histoQue->push_back(*m_histo);
+    m_histo   ->Clear();
+  }
 }
 
-//___________________________________________________________________
-void TThresholdScan::FillHistos( const int iboard )
+
+void TThresholdScan::Terminate() 
 {
-    TChipIndex idx;
-    idx.boardIndex = iboard;
-    /*
-     int chipId;
-     int region;
-     int dcol;
-     int address;
-     */
-    
-    shared_ptr<TDevice> currentDevice = fDevice.lock();
-
-    for (int i = 0; i < (int)fHits.size(); i++) {
-        if ((fHits.at(i))->GetAddress() / 2 != fRow) continue;  // todo: keep track of spurious hits, i.e. hits in non-injected rows
-        // !! This will not work when allowing several chips with the same Id
-        idx.dataReceiver = (currentDevice->GetBoard( iboard ))->GetReceiver((fHits.at(i))->GetChipId());
-        idx.chipId       = (fHits.at(i))->GetChipId();
-        int col = (fHits.at(i))->GetRegion() * 32 + (fHits.at(i))->GetDoubleColumn() * 2;
-        int leftRight = (((((fHits.at(i))->GetAddress() % 4) == 1) || (((fHits.at(i))->GetAddress() % 4) == 2))? 1:0);
-        col += leftRight;
-        
-        fHisto->Incr( idx, col, fValue[0] );
+  // write Data;
+  for (int iboard = 0; iboard < (int)m_boards.size(); iboard ++) {
+    TReadoutBoardMOSAIC *myMOSAIC = dynamic_cast<TReadoutBoardMOSAIC*> (m_boards.at(iboard));
+    if (myMOSAIC) {
+      myMOSAIC->StopRun();
+      //delete myMOSAIC;
     }
-}
-
-//___________________________________________________________________
-void TThresholdScan::LoopEnd( const int loopIndex )
-{
-    if ( loopIndex == 0 ) {
-        TScanHisto myHisto = TScanHisto( *fHisto );
-        fHistoQue->push_back( myHisto );
-        fHisto->Clear();
+    TReadoutBoardDAQ *myDAQBoard = dynamic_cast<TReadoutBoardDAQ*> (m_boards.at(iboard));
+    if (myDAQBoard) {
+      myDAQBoard->PowerOff();
+      //delete myDAQBoard;
     }
-}
+  }
 
-//___________________________________________________________________
-void TThresholdScan::Terminate()
-{
-    shared_ptr<TDevice> currentDevice = fDevice.lock();
-
-    // write Data;
-    for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard ++ ) {
-        shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(currentDevice->GetBoard( iboard ));
-        if (myMOSAIC) {
-            myMOSAIC->StopRun();
-        }
-        shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(currentDevice->GetBoard( iboard ));
-        if (myDAQBoard) {
-            myDAQBoard->PowerOff();
-        }
-    }
 }
 

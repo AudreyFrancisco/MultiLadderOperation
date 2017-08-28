@@ -21,9 +21,10 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "USBHelpers.h"
+#include "TConfig.h"
 #include "AlpideDecoder.h"
 #include "BoardDecoder.h"
-#include "TSetup.h"
+#include "SetupHelpers.h"
 
 TBoardType fBoardType;
 std::vector <TReadoutBoard *> fBoards;
@@ -197,7 +198,7 @@ void scan(const char *fName) {
           }
           else {
             // decode DAQboard event
-            BoardDecoder::DecodeEvent(kBOARD_DAQ, buffer, n_bytes_data, n_bytes_header, n_bytes_trailer, boardInfo);
+            BoardDecoder::DecodeEvent(boardDAQ, buffer, n_bytes_data, n_bytes_header, n_bytes_trailer, boardInfo);
             // decode Chip event
             int n_bytes_chipevent=n_bytes_data-n_bytes_header-n_bytes_trailer;
             AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, Hits);
@@ -247,7 +248,7 @@ int main(int argc, char** argv) {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_RORST);     
 
     // put your test here... 
-    fBoards.at(0)->SetTriggerSource (kTRIG_EXT);
+    fBoards.at(0)->SetTriggerSource (trigExt);
 
     scan(fName);
 

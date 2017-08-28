@@ -32,10 +32,10 @@ TConfig::TConfig (int chipId, TBoardType boardType) {
 
 void TConfig::Init (int nBoards, std::vector <int> chipIds, TBoardType boardType) {
   for (int iboard = 0; iboard < nBoards; iboard ++) {
-    if (boardType == kBOARD_DAQ) {
+    if (boardType == boardDAQ) {
       fBoardConfigs.push_back (new TBoardConfigDAQ());
     } 
-    else if (boardType == kBOARD_MOSAIC) {
+    else if (boardType == boardMOSAIC) {
       fBoardConfigs.push_back (new TBoardConfigMOSAIC());
     }
     else {
@@ -49,11 +49,11 @@ void TConfig::Init (int nBoards, std::vector <int> chipIds, TBoardType boardType
 
 
 void TConfig::Init (int chipId, TBoardType boardType) {
-  if (boardType == kBOARD_DAQ) {
+  if (boardType == boardDAQ) {
     fDeviceType = TYPE_CHIP;
     fBoardConfigs.push_back (new TBoardConfigDAQ());
   } 
-  else if (boardType == kBOARD_MOSAIC) {
+  else if (boardType == boardMOSAIC) {
     fDeviceType = TYPE_CHIP_MOSAIC;
     fBoardConfigs.push_back (new TBoardConfigMOSAIC());
   }
@@ -131,29 +131,29 @@ void TConfig::SetDeviceType (TDeviceType AType, int NChips) {
 
   fDeviceType = AType;
   if (AType == TYPE_CHIP) {
-    Init(16, kBOARD_DAQ);
+    Init(16, boardDAQ);
   }
   else if (AType == TYPE_CHIP_MOSAIC) {
-    Init(16, kBOARD_MOSAIC);
+    Init(16, boardMOSAIC);
   }
   else if (AType == TYPE_TELESCOPE) {
     for (int i = 0; i < NChips; i++) {
       chipIds.push_back(16);
     }
-    Init(NChips, chipIds, kBOARD_DAQ);
+    Init(NChips, chipIds, boardDAQ);
   }
   else if (AType == TYPE_OBHIC) {
     for (int i = 0; i < 15; i++) {
       if (i == 7) continue;
       chipIds.push_back(i + ((DEFAULT_MODULE_ID & 0x7) << 4));
     }
-    Init (1, chipIds, kBOARD_MOSAIC);
+    Init (1, chipIds, boardMOSAIC);
   }
   else if (AType == TYPE_IBHIC) {
     for (int i = 0; i < 9; i++) {
       chipIds.push_back(i);
     }
-    Init (1, chipIds, kBOARD_MOSAIC);    
+    Init (1, chipIds, boardMOSAIC);    
   }
   else if (AType == TYPE_HALFSTAVE) {
     for (int imod = 0; imod < NChips; imod++) {
@@ -163,7 +163,7 @@ void TConfig::SetDeviceType (TDeviceType AType, int NChips) {
         chipIds.push_back(i + ((moduleId & 0x7) << 4));
       }
     }
-    Init (2, chipIds, kBOARD_MOSAIC);
+    Init (2, chipIds, boardMOSAIC);
   }
 }
 
@@ -268,7 +268,7 @@ void TConfig::DecodeLine(const char *Line)
   else if (fScanConfig->IsParameter(Param)) {
     fScanConfig->SetParamValue (Param, Rest);
   }
-  else if ((!strcmp(Param, "ADDRESS")) && (fBoardConfigs.at(0)->GetBoardType() == kBOARD_MOSAIC)) {
+  else if ((!strcmp(Param, "ADDRESS")) && (fBoardConfigs.at(0)->GetBoardType() == boardMOSAIC)) {
     for (int i = Start; i < BoardStop; i++) {
       ((TBoardConfigMOSAIC *)fBoardConfigs.at(i))->SetIPaddress(Rest);
     }

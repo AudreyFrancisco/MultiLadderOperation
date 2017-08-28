@@ -21,9 +21,10 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "USBHelpers.h"
+#include "TConfig.h"
 #include "AlpideDecoder.h"
 #include "BoardDecoder.h"
-#include "TSetup.h"
+#include "SetupHelpers.h"
 
 TBoardType fBoardType;
 std::vector <TReadoutBoard *> fBoards;
@@ -72,7 +73,7 @@ void WriteRawData (FILE *fp, std::vector <TPixHit> *Hits, int oldHits, TBoardHea
   for (unsigned int ihit = oldHits; ihit < Hits->size(); ihit ++) {
     dcol     = Hits->at(ihit).dcol + Hits->at(ihit).region * 16;
     address  = Hits->at(ihit).address;
-    if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_DAQ) {
+    if (fBoards.at(0)->GetConfig()->GetBoardType() == boardDAQ) {
       event = boardInfo.eventId;
     } 
     else {
@@ -240,13 +241,13 @@ int main(int argc, char** argv) {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_RORST);     
 
     // put your test here... 
-    if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_MOSAIC) {
+    if (fBoards.at(0)->GetConfig()->GetBoardType() == boardMOSAIC) {
       fBoards.at(0)->SetTriggerConfig (false, true, myPulseDelay, myStrobeLength * 2);
-      fBoards.at(0)->SetTriggerSource (kTRIG_INT);
+      fBoards.at(0)->SetTriggerSource (trigInt);
     }
-    else if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_DAQ) {
+    else if (fBoards.at(0)->GetConfig()->GetBoardType() == boardDAQ) {
       fBoards.at(0)->SetTriggerConfig (true, false, myStrobeDelay, myPulseDelay);
-      fBoards.at(0)->SetTriggerSource (kTRIG_EXT);
+      fBoards.at(0)->SetTriggerSource (trigExt);
     }
 
     sprintf(fNameRaw, "Data/SourceRaw_%s.dat", Suffix);

@@ -29,11 +29,8 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include "pexception.h"
 #include "controlinterface.h"
-#include <iostream>
-#include <stdexcept>
-
-using namespace std;
 
 
 ControlInterface::ControlInterface() 
@@ -92,7 +89,7 @@ void ControlInterface::addGetErrorCounter(uint32_t *ctr)
 void ControlInterface::addSendCmd(uint8_t cmd)
 {
 	if (!wbb)
-		throw runtime_error("ControlInterface::addSendCmd() - No IPBus configured");
+		throw PControlInterfaceError("No IPBus configured");
 
 	wbb->addWrite(baseAddress+regWriteCtrl, cmd << 24);
 // printf("Sd_com-> 0x%04x : 0x%04x\n", regWriteCtrl, cmd);
@@ -104,7 +101,7 @@ void ControlInterface::addSendCmd(uint8_t cmd)
 void ControlInterface::addWriteReg(uint8_t chipID, uint16_t address, uint16_t data)
 {
 	if (!wbb)
-		throw runtime_error("ControlInterface::addWriteReg() - No IPBus configured");
+		throw PControlInterfaceError("No IPBus configured");
 
 	wbb->addWrite(baseAddress+regWriteData, data);
 	wbb->addWrite(baseAddress+regWriteCtrl, 
@@ -123,7 +120,7 @@ void ControlInterface::addWriteReg(uint8_t chipID, uint16_t address, uint16_t da
 void ControlInterface::addReadReg(uint8_t chipID, uint16_t address, uint16_t *dataPtr)
 {
 	if (!wbb)
-		throw runtime_error("ControlInterface::addReadReg() - No IPBus configured");
+		throw PControlInterfaceError("No IPBus configured");
 
 	if ( numReadRequest >= readRequestSize )
 		execute();
@@ -149,40 +146,37 @@ void ControlInterface::execute()
 {
 	try {
 		MWbbSlave::execute();
-    } catch ( std::runtime_error &err ) {
-        numReadRequest = 0;
-        throw err;
-    }
-    // check the read results
-    for (int i=0; i<numReadRequest; i++){
-        uint32_t d = readReqest[i].IPBusReadData;
-        uint8_t rxChipID = (d >> 16) & 0xff;
-        uint8_t rxFlags  = (d >> 24) & 0x0f;
-        
-        // check the flags
-        if ((rxFlags & FLAG_SYNC_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - Sync error reading data");
-        }
-        
-        if ((rxFlags & FLAG_CHIPID_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - No ChipID reading data");
-        }
 
-        if ((rxFlags & FLAG_DATAL_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - No Data Low byte reading data");
-        }
+		// check the read results
+		for (int i=0; i<numReadRequest; i++){
+			uint32_t d = readReqest[i].IPBusReadData;
+			uint8_t rxChipID = (d >> 16) & 0xff;
+			uint8_t rxFlags  = (d >> 24) & 0x0f;
 
-        if ((rxFlags & FLAG_DATAH_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - No Data High byte reading data");
-        }
+			// check the flags
+			if ((rxFlags & FLAG_SYNC_BIT) == 0)
+				throw PControlInterfaceError("Sync error reading data");
 
-        // check the sender
-        if (rxChipID!=readReqest[i].chipID) {
-            throw runtime_error("ControlInterface::execute() - ChipID mismatch");
-        }
-        *readReqest[i].readDataPtr = (d & 0xffff);
-    }
-    numReadRequest = 0;
+			if ((rxFlags & FLAG_CHIPID_BIT) == 0)
+				throw PControlInterfaceError("No ChipID reading data");
+
+			if ((rxFlags & FLAG_DATAL_BIT) == 0)
+				throw PControlInterfaceError("No Data Low byte reading data");
+
+			if ((rxFlags & FLAG_DATAH_BIT) == 0)
+				throw PControlInterfaceError("No Data High byte reading data");
+
+			// check the sender
+			if (rxChipID!=readReqest[i].chipID)
+				throw PControlInterfaceError("ChipID mismatch");
+
+			*readReqest[i].readDataPtr = (d & 0xffff);
+		}
+		numReadRequest = 0;
+	} catch (...) {
+		numReadRequest = 0;
+		throw;
+	}
 }
 
 

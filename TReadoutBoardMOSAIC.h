@@ -16,11 +16,9 @@
 #include <string>
 #include <deque>
 #include <iostream>
-#include <cstdint>
 
-
-#include "TAlpide.h"
 #include "TReadoutBoard.h"
+#include "TConfig.h"
 #include "TBoardConfig.h"
 #include "TBoardConfigMOSAIC.h"
 #include "BoardDecoder.h"
@@ -39,9 +37,11 @@
 #include "MosaicSrc/mdatagenerator.h"
 #include "MosaicSrc/TAlpideDataParser.h"
 
-#include <memory>
-
 // Constant Definitions
+
+//class string;
+//using namespace std;
+
 
 extern std::vector<unsigned char> fDebugBuffer;
 
@@ -51,13 +51,7 @@ public:
 	DummyReceiver() {} ;
 	~DummyReceiver() {} ;
 
-	long parse(int numClosed) {
-        if ( numClosed ) {
-            // nothing to do
-            // (this block is only intended to remove annoying warning at compilation
-        }
-        return(dataBufferUsed);
-    };
+	long parse(int numClosed) { return(dataBufferUsed); };
 };
 
 // -----------------------------------------------------
@@ -66,15 +60,14 @@ class TReadoutBoardMOSAIC : public TReadoutBoard, private MBoard
 {
 // Methods
 public:
-    TReadoutBoardMOSAIC();
-	TReadoutBoardMOSAIC( std::shared_ptr<TBoardConfigMOSAIC> boardConfig );
+	TReadoutBoardMOSAIC(TConfig* config, TBoardConfigMOSAIC *boardConfig);
 	virtual ~TReadoutBoardMOSAIC();
-    std::weak_ptr<TBoardConfig> GetConfig() {return fBoardConfig;}
-    std::weak_ptr<TBoardConfigMOSAIC> GetConfigBoard() {return fBoardConfig;}
-    
-	int SendOpCode        (std::uint16_t  OpCode, std::uint8_t chipId);
-	int SendOpCode        (std::uint16_t  OpCode);
-        // Markus: changed trigger delay type from std::uint32_t to int, since changed upstream
+
+	int WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId =0);
+	int ReadChipRegister  (uint16_t address, uint16_t &value, uint8_t chipId =0);
+	int SendOpCode        (uint16_t  OpCode, uint8_t chipId);
+	int SendOpCode        (uint16_t  OpCode);
+        // Markus: changed trigger delay type from uint32_t to int, since changed upstream
 	int SetTriggerConfig  (bool enablePulse, bool enableTrigger, int triggerDelay, int pulseDelay);
 	void SetTriggerSource  (TTriggerSource triggerSource);
 	int Trigger           (int nTriggers);
@@ -84,10 +77,10 @@ public:
 	void StartRun();
 	void StopRun();
 
-    int ReadRegister      (std::uint16_t Address, std::uint32_t &Value) {
+    int ReadRegister      (uint16_t Address, uint32_t &Value) {
         std::cout << "TReadoutBoardMOSAIC::ReadRegister( " << Address << " , " << &Value << ") - doing nothing" << std::endl;
         return(0);};
-	int WriteRegister     (std::uint16_t Address, std::uint32_t Value)  {
+	int WriteRegister     (uint16_t Address, uint32_t Value)  {
         std::cout << "TReadoutBoardMOSAIC::WriteRegister( " << Address << " , " << Value << ") - doing nothing" << std::endl;
 
         return(0);};
@@ -96,35 +89,29 @@ private:
 	void init();
 	void enableDefinedReceivers();
 	void setPhase(int APhase, int ACii = 0) {
-			fControlInterface[ACii]->setPhase(APhase);
-			fControlInterface[ACii]->addSendCmd(ControlInterface::OPCODE_GRST);
-			fControlInterface[ACii]->execute();
+			controlInterface[ACii]->setPhase(APhase);
+			controlInterface[ACii]->addSendCmd(ControlInterface::OPCODE_GRST);
+			controlInterface[ACii]->execute();
 			return;
 		};
 
 	void setSpeedMode(Mosaic::TReceiverSpeed ASpeed);
 	void setInverted (bool AInverted, int Aindex = -1);
 
-	std::uint32_t decodeError();
+	uint32_t decodeError();
 
-protected:
-    /// implementation of base class method to write chip registers
-    int WriteChipRegister (std::uint16_t address, std::uint16_t value, std::uint8_t chipId =0, const bool doExecute = true  );
 
-    /// implementation of base class method to read chip registers
-    int ReadChipRegister  (std::uint16_t address, std::uint16_t &value, std::uint8_t chipId =0, const bool doExecute = true );
-    
 // Properties
 private:
-    
-	std::weak_ptr<TBoardConfigMOSAIC> fBoardConfig;
-    std::shared_ptr<MDataGenerator> fDataGenerator;
-    std::shared_ptr<I2Cbus> fI2cBus;
-    std::shared_ptr<Pulser>	fPulser;
-    DummyReceiver* fDummyReceiver;
-    std::shared_ptr<ControlInterface> fControlInterface[BoardConfigMOSAIC::MAX_MOSAICCTRLINT];
-    std::shared_ptr<ALPIDErcv>	fAlpideRcv[BoardConfigMOSAIC::MAX_MOSAICTRANRECV];
-    TAlpideDataParser* fAlpideDataParser[BoardConfigMOSAIC::MAX_MOSAICTRANRECV];
+	TBoardConfigMOSAIC *fBoardConfig;
+  TConfig            *fConfig;
+	MDataGenerator 		*dataGenerator;
+	I2Cbus 	 			*i2cBus;
+	ControlInterface 	*controlInterface[MAX_MOSAICCTRLINT];
+	Pulser			 	*pulser;
+	ALPIDErcv			*alpideRcv[MAX_MOSAICTRANRECV];
+	TAlpideDataParser	*alpideDataParser[MAX_MOSAICTRANRECV];
+	DummyReceiver 		*dr;
 	//TBoardHeader 		theHeaderOfReadData;  // This will host the info catch from Packet header/trailer
 
 private:

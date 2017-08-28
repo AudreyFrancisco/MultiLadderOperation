@@ -1,9 +1,3 @@
-#include "TROOT.h"
-#include <Riostream.h>
-#include <TSystem.h>
-
-using namespace std;
-
 void load_classes() {
     gSystem->Load("AliPALPIDEFSRawStreamMS_cpp.so");
     gSystem->Load("BinaryPixel_cpp.so");

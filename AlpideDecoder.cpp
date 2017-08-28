@@ -1,270 +1,216 @@
 #include "AlpideDecoder.h"
-#include "TPixHit.h"
 #include <stdint.h>
 #include <iostream>
-#include <bitset>
 
-/* Obsolete struct and class, not used any more, kept to track modificiations
- * from original repository.
- * Replaced by TBoardDecoder.h
- */
+//using namespace AlpideDecoder;
 
-using namespace std;
 
-bool AlpideDecoder::fNewEvent = false;
+bool newEvent;
 
-//___________________________________________________________________
-TDataType AlpideDecoder::GetDataType( unsigned char dataWord )
-{
-    cout << "AlpideDecoder::GetDataType() - dataWord = " << endl;
-    printf ("%02x ", (int)dataWord);
-    cout << endl;
-    if      ( dataWord == 0xff )          return TDataType::kIDLE;
-    else if ( dataWord == 0xf1 )          return TDataType::kBUSYON;
-    else if ( dataWord == 0xf0 )          return TDataType::kBUSYOFF;
-    else if ( (dataWord & 0xf0) == 0xa0 ) return TDataType::kCHIPHEADER;
-    else if ( (dataWord & 0xf0) == 0xb0 ) return TDataType::kCHIPTRAILER;
-    else if ( (dataWord & 0xf0) == 0xe0 ) return TDataType::kEMPTYFRAME;
-    else if ( (dataWord & 0xe0) == 0xc0 ) return TDataType::kREGIONHEADER;
-    else if ( (dataWord & 0xc0) == 0x40 ) return TDataType::kDATASHORT;
-    else if ( (dataWord & 0xc0) == 0x0 )  return TDataType::kDATALONG;
-    else return TDataType::kUNKNOWN;
+TDataType AlpideDecoder::GetDataType(unsigned char dataWord) {
+  if      (dataWord == 0xff)          return DT_IDLE;
+  else if (dataWord == 0xf1)          return DT_BUSYON;
+  else if (dataWord == 0xf0)          return DT_BUSYOFF;
+  else if ((dataWord & 0xf0) == 0xa0) return DT_CHIPHEADER;
+  else if ((dataWord & 0xf0) == 0xb0) return DT_CHIPTRAILER;
+  else if ((dataWord & 0xf0) == 0xe0) return DT_EMPTYFRAME;
+  else if ((dataWord & 0xe0) == 0xc0) return DT_REGIONHEADER;
+  else if ((dataWord & 0xc0) == 0x40) return DT_DATASHORT;
+  else if ((dataWord & 0xc0) == 0x0)  return DT_DATALONG;
+  else return DT_UNKNOWN;
 }
 
-//___________________________________________________________________
-int AlpideDecoder::GetWordLength( TDataType dataType )
-{
-    if ( dataType == TDataType::kDATALONG ) {
+
+int AlpideDecoder::GetWordLength(TDataType dataType) {
+  if (dataType == DT_DATALONG) {
     return 3;
   }
-    else if ( (dataType == TDataType::kDATASHORT) || (dataType == TDataType::kCHIPHEADER) || (dataType == TDataType::kEMPTYFRAME) ) {
+  else if ((dataType == DT_DATASHORT) || (dataType == DT_CHIPHEADER) || (dataType == DT_EMPTYFRAME)) {
     return 2;
   }
   else return 1;
 }
 
-//___________________________________________________________________
-bool AlpideDecoder::DecodeEvent( unsigned char* data,
-                                int nBytes,
-                                vector<shared_ptr<TPixHit>> hits )
-{
-    int       byte    = 0;
-    int       region  = -1;
-    int       chip    = -1;
-    int       flags   = 0;
-    bool      started = false; // event has started, i.e. chip header has been found
-    bool      finished = false; // event trailer found
-    TDataType type;
-    
-    unsigned char last;
-    
-    unsigned int BunchCounterTmp;
-    
-    while ( byte < nBytes ) {
-        
-        last = data[byte];
-        type = GetDataType( data[byte] );
-        
-        switch ( type ) {
-            case TDataType::kIDLE:
-                byte +=1;
-                break;
-            case TDataType::kBUSYON:
-                byte += 1;
-                break;
-            case TDataType::kBUSYOFF:
-                byte += 1;
-                break;
-            case TDataType::kEMPTYFRAME:
-                started = true;
-                DecodeEmptyFrame( data + byte, chip, BunchCounterTmp );
-                cout << "AlpideDecoder::DecodeEvent() - empty frame" << endl;
-                byte += 2;
-                finished = true;
-                break;
-            case TDataType::kCHIPHEADER:
-                started = true;
-                finished = false;
-                DecodeChipHeader( data + byte, chip, BunchCounterTmp );
-                cout << "AlpideDecoder::DecodeEvent() - chip header" << endl;
-                byte += 2;
-                break;
-            case TDataType::kCHIPTRAILER:
-                if ( !started ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, chip trailer found before chip header" << endl;
-                    return false;
-                }
-                if ( finished ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, chip trailer found after event was finished" << endl;
-                    return false;
-                }
-                cout << "AlpideDecoder::DecodeEvent() - chip trailer" << endl;
-                DecodeChipTrailer( data + byte, flags );
-                finished = true;
-                chip = -1;
-                byte += 1;
-                break;
-            case TDataType::kREGIONHEADER:
-                if (!started) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, region header found before chip header or after chip trailer" << endl;
-                    return false;
-                }
-                cout << "AlpideDecoder::DecodeEvent() - region header" << endl;
-                DecodeRegionHeader( data + byte, region );
-                byte +=1;
-                break;
-            case TDataType::kDATASHORT:
-                if ( !started ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, hit data found before chip header or after chip trailer" << endl;
-                    return false;
-                }
-                if ( region == -1 ) {
-                    cout << "AlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << chip << ")" << endl;
-                }
-                else if ( hits.data() ) {
-                    if ( chip == -1 ) {
-                        cerr << "AlpideDecoder::DecodeEvent() - TDataType::kDATASHORT" << endl;
-                        for ( int i = 0; i < nBytes; i++ ) {
-                            printf("%02x ", data[i]);
-                        }
-                        printf("\n");
-                    }
-                    DecodeDataWord( data + byte, chip, region, hits, false );
-                }
-                byte += 2;
-                break;
-            case TDataType::kDATALONG:
-                if ( !started ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, hit data found before chip header or after chip trailer" << endl;
-                    return false;
-                }
-                if ( region == -1 ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << chip << ")" << endl;
-                }
-                else if ( hits.data() ) {
-                    if ( chip == -1 ) {
-                        cerr << "AlpideDecoder::DecodeEvent() - TDataType::kDATALONG" << endl;
-                        for ( int i = 0; i < nBytes; i++ ) {
-                            printf("%02x ", data[i]);
-                        }
-                        printf("\n");
-                    }
-                    DecodeDataWord( data + byte, chip, region, hits, true );
-                }
-                byte += 3;
-                break;
-            case TDataType::kUNKNOWN:
-                cerr << "AlpideDecoder::DecodeEvent() - Error, data of unknown type 0x" << std::hex << data[byte] << std::dec << endl;
-                return false;
-        }
-    }
-    //cout << "Found " << Hits->size() - NOldHits << " hits" << endl;
-    if ( started && finished ) return true;
-    else {
-        if ( started && !finished ) {
-            cout << "AlpideDecoder::DecodeEvent() - Warning (chip "<< chip << "), event not finished at end of data, last byte was 0x" << std::hex << (int) last << std::dec << ", event length = " << nBytes << endl;
-            return false;
-        }
-        if ( !started ) {
-            cout << "AlpideDecoder::DecodeEvent() - Warning, event not started at end of data" << endl;
-            return false;
-        }
-    }
-    return true;
-}
 
-//___________________________________________________________________
-void AlpideDecoder::DecodeChipHeader( unsigned char* data,
-                                      int& chipId,
-                                      unsigned int& bunchCounter )
-{
+void AlpideDecoder::DecodeChipHeader (unsigned char *data, int &chipId, unsigned int &bunchCounter) {
   int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
   bunchCounter = data_field & 0xff;
   chipId       = (data_field >> 8) & 0xf;
-  fNewEvent    = true;
+  newEvent     = true;
 }
 
-//___________________________________________________________________
-void AlpideDecoder::DecodeChipTrailer( unsigned char* data, int& flags )
-{
+
+void AlpideDecoder::DecodeChipTrailer (unsigned char *data, int &flags) {
   flags = data[0] & 0xf;
 }
 
-//___________________________________________________________________
-void AlpideDecoder::DecodeRegionHeader( unsigned char* data, int& region )
-{
+
+void AlpideDecoder::DecodeRegionHeader (unsigned char *data, int &region) {
   region = data[0] & 0x1f;
 }
 
-//___________________________________________________________________
-void AlpideDecoder::DecodeEmptyFrame ( unsigned char* data,
-                                      int& chipId,
-                                      unsigned int& bunchCounter )
-{
+
+void AlpideDecoder::DecodeEmptyFrame (unsigned char *data, int &chipId, unsigned int &bunchCounter) {
   int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
   bunchCounter = data_field & 0xff;
   chipId       = (data_field >> 8) & 0xf;
 }
 
-//___________________________________________________________________
-void AlpideDecoder::DecodeDataWord( unsigned char* data,
-                                   int chip,
-                                   int region,
-                                   vector<shared_ptr<TPixHit>> hits,
-                                   bool datalong )
-{
-    cout << "AlpideDecoder::DecodeDataWord() - start" << endl;
 
-    auto hit = make_shared<TPixHit>();
-    
-    unsigned int address;
-    int hitmap_length;
+void AlpideDecoder::DecodeDataWord (unsigned char *data, int chip, int region, std::vector <TPixHit> *hits, bool datalong) {
+  TPixHit hit;
+  int     address, hitmap_length;
 
-    int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
+  int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
-    if ( chip == -1 ) {
-        cout << "AlpideDecoder::DecodeDataWord() - Warning, found chip id -1, dataword = 0x" << std::hex << (int) data_field << std::dec << endl;
+  if (chip == -1) {std::cout << "Warning, found chip id -1, dataword = 0x" <<std::hex << (int) data_field << std::dec << std::endl;}
+  hit.chipId = chip;
+  hit.region = region;
+  hit.dcol   = (data_field & 0x3c00) >> 10;
+  address    = (data_field & 0x03ff);
+
+  if ((hits->size() > 0) && (!newEvent)) {
+    if ((hit.region == hits->back().region) && (hit.dcol == hits->back().dcol) && (address == hits->back().address)) {
+      std::cout << "Warning (chip "<< chip << "), received pixel " << hit.region << "/" << hit.dcol << "/" << address <<  " twice." << std::endl;
     }
-    hit->SetChipId( chip );
-    hit->SetRegion( region );
-    hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 );
-    address = (data_field & 0x03ff);
-
-    if ( (hits.size() > 0) && (!fNewEvent) ) {
-        if ( (hit->GetRegion() == (hits.back())->GetRegion())
-            && ( hit->GetDoubleColumn() == (hits.back())->GetDoubleColumn())
-            && (address == (hits.back())->GetAddress()) ) {
-            cout << "AlpideDecoder::DecodeDataWord() - Warning (chip "<< chip << "), received pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn()
-                << "/" << address <<  " twice." << endl;
-        }
-        else if ( (hit->GetRegion() == (hits.back())->GetRegion() )
-                 && (hit->GetDoubleColumn() == (hits.back())->GetDoubleColumn())
-                 && (address < (hits.back())->GetAddress()) ) {
-            cout << "AlpideDecoder::DecodeDataWord() - Warning (chip "<< chip << "), address of pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn() << "/" << address <<  " is lower than previous one ("
-                << (hits.back())->GetAddress()
-                << ") in same double column." << endl;
-        }
+    else if ((hit.region == hits->back().region) && (hit.dcol == hits->back().dcol) && (address < hits->back().address)) {
+      std::cout << "Warning (chip "<< chip << "), address of pixel " << hit.region << "/" << hit.dcol << "/" << address <<  " is lower than previous one ("<< hits->back().address << ") in same double column." << std::endl;
     }
+  }
 
-    if ( datalong ) {
-        hitmap_length = 7;
-    } else {
-        hitmap_length = 0;
-    }
+  if (datalong) {
+    hitmap_length = 7;
+  }
+  else {
+    hitmap_length = 0;
+  }
 
-    for ( int i = -1; i < hitmap_length; i ++ ) {
-        if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;
-        hit->SetAddress( address + (i + 1) );
-        /*
-        if ( hit->GetChipId() == -1 ) {
-            cout << "AlpideDecoder::DecodeDataWord() - Warning, found chip id -1"
-                 << endl;
-        }
-         */
-        hits.push_back( move(hit) );
-        cout << "AlpideDecoder::DecodeDataWord() - hit added." << endl;
+  for (int i = -1; i < hitmap_length; i ++) {
+    if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;     
+    hit.address = address + (i + 1);
+  if (hit.chipId == -1) {std::cout << "Warning, found chip id -1" << std::endl;}
+    hits->push_back (hit);
+  }
+  newEvent = false;
+}
+
+
+bool AlpideDecoder::DecodeEvent (unsigned char *data, int nBytes, std::vector <TPixHit> *hits) {
+  int       byte    = 0;
+  int       region  = -1;
+  int       chip    = -1;
+  int       flags   = 0;
+  bool      started = false; // event has started, i.e. chip header has been found
+  bool      finished = false; // event trailer found
+  TDataType type;
+
+  unsigned char last;
+
+  unsigned int BunchCounterTmp;
+
+  while (byte < nBytes) {
+    last = data[byte];
+    type = GetDataType (data[byte]);
+    switch (type) {
+    case DT_IDLE:
+      byte +=1;
+      break;
+    case DT_BUSYON:
+      byte += 1;
+      break;
+    case DT_BUSYOFF:
+      byte += 1;
+      break;
+    case DT_EMPTYFRAME:
+      started = true;
+      DecodeEmptyFrame (data + byte, chip, BunchCounterTmp);
+      byte += 2;
+      finished = true;
+      break;
+    case DT_CHIPHEADER:
+      started = true;
+      finished = false;
+      DecodeChipHeader (data + byte, chip, BunchCounterTmp);
+      byte += 2;
+      break;
+    case DT_CHIPTRAILER:
+      if (!started) {
+        std::cout << "Error, chip trailer found before chip header" << std::endl;
+        return false; 
+      }
+      if (finished) {
+        std::cout << "Error, chip trailer found after event was finished" << std::endl;
+        return false;  
+      }
+      DecodeChipTrailer (data + byte, flags);
+      finished = true;
+      chip = -1;
+      byte += 1;
+      break;
+    case DT_REGIONHEADER:
+      if (!started) {
+        std::cout << "Error, region header found before chip header or after chip trailer" << std::endl;
+        return false;
+      }
+      DecodeRegionHeader (data + byte, region);
+      byte +=1;
+      break;
+    case DT_DATASHORT:
+      if (!started) {
+        std::cout << "Error, hit data found before chip header or after chip trailer" << std::endl;
+        return false;
+      }
+      if (region == -1) {
+	std::cout << "Warning: data word without region, skipping (Chip " << chip << ")" << std::endl;
+      }
+      else if (hits) {
+        if (chip == -1) {
+          for (int i = 0; i < nBytes; i++) {
+            printf("%02x ", data[i]);
+	  }
+          printf("\n");
+	}
+        DecodeDataWord (data + byte, chip, region, hits, false);
+      }
+      byte += 2;
+      break;
+    case DT_DATALONG:
+      if (!started) {
+        std::cout << "Error, hit data found before chip header or after chip trailer" << std::endl;
+        return false;
+      }
+      if (region == -1) {
+	std::cout << "Warning: data word without region, skipping (Chip " << chip << ")" << std::endl;
+      }
+      else if (hits) {
+        if (chip == -1) {
+          for (int i = 0; i < nBytes; i++) {
+            printf("%02x ", data[i]);
+	  }
+          printf("\n");
+	}
+        DecodeDataWord (data + byte, chip, region, hits, true);
+      }
+      byte += 3;
+      break;
+    case DT_UNKNOWN:
+      std::cout << "Error, data of unknown type 0x" << std::hex << data[byte] << std::dec << std::endl;
+      return false;
     }
-    fNewEvent = false;
+  }
+  //std::cout << "Found " << Hits->size() - NOldHits << " hits" << std::endl;
+  if (started && finished) return true;
+  else {
+    if (started && !finished) {
+      std::cout << "Warning (chip "<< chip << "), event not finished at end of data, last byte was 0x" << std::hex << (int) last << std::dec << ", event length = " << nBytes <<std::endl;
+      return false;
+    }
+    if (!started) {
+      std::cout << "Warning, event not started at end of data" << std::endl;
+      return false;
+    }
+  }
+  return true;
 }

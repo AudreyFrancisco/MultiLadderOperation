@@ -1,6 +1,5 @@
 /* Written by Jacobus van Hoorne, jvanhoor@cern.ch */
 
-#include <string.h>
 #include <Riostream.h>
 #include <TString.h>
 #include <TCanvas.h>
@@ -11,8 +10,6 @@
 #include "helpers.h"
 
 #define NSEC 1
-
-using namespace std;
 
 Float_t n_trg=1e6;
 

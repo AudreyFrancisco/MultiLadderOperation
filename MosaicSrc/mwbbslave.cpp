@@ -30,10 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mwbbslave.h"
-#include <stdexcept>
-
-using namespace std;
-
+#include "pexception.h"
 
 MWbbSlave::MWbbSlave()
 {
@@ -56,7 +53,7 @@ void MWbbSlave::setBusAddress(WishboneBus *wbbPtr, uint32_t baseAdd)
 void MWbbSlave::execute()
 {
 	if (!wbb)
-		throw runtime_error("MWbbSlave::execute() - No IPBus configured");
+		throw PControlInterfaceError("No IPBus configured");
 	wbb->execute();
 }
 

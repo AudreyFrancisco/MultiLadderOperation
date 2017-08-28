@@ -5,9 +5,6 @@
 #include <vector>
 #include "TReadoutBoard.h"
 
-// obsolete functions, not used any more, kept to track mdoficiations
-// from original repository
-
 
 // definition of standard setup types: 
 //   - single chip with DAQ board

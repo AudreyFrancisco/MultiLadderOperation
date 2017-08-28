@@ -22,9 +22,10 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "USBHelpers.h"
+#include "TConfig.h"
 #include "AlpideDecoder.h"
 #include "BoardDecoder.h"
-#include "TSetup.h"
+#include "SetupHelpers.h"
 
 
 // !!! NOTE: Scan parameters are now set via Config file
@@ -302,19 +303,19 @@ int main(int argc, char** argv) {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_RORST);     
 
     // put your test here... 
-    if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_MOSAIC) {
+    if (fBoards.at(0)->GetConfig()->GetBoardType() == boardMOSAIC) {
       fBoards.at(0)->SetTriggerConfig (true, true, 
                                        fBoards.at(0)->GetConfig()->GetParamValue("STROBEDELAYBOARD"),
                                        fBoards.at(0)->GetConfig()->GetParamValue("PULSEDELAY"));
-      fBoards.at(0)->SetTriggerSource (kTRIG_INT);
+      fBoards.at(0)->SetTriggerSource (trigInt);
     }
-    else if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_DAQ) {
+    else if (fBoards.at(0)->GetConfig()->GetBoardType() == boardDAQ) {
       // for the DAQ board the delay between pulse and strobe is 12.5ns * pulse delay + 25 ns * strobe delay
       // pulse delay cannot be 0, therefore set strobe delay to 0 and use only pulse delay
       fBoards.at(0)->SetTriggerConfig (true, false, 
                                        0,
                                        2 * fBoards.at(0)->GetConfig()->GetParamValue("STROBEDELAYBOARD"));
-      fBoards.at(0)->SetTriggerSource (kTRIG_EXT);
+      fBoards.at(0)->SetTriggerSource (trigExt);
     }
 
     scan();

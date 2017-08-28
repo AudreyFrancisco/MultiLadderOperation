@@ -21,7 +21,7 @@ char ConfigurationFileName[1024] = "Config.cfg";
 //    - receiver number for slaves set to -1 (not connected directly to receiver)
 //      (this ensures that a receiver is disabled only if the connected master is disabled)
 int initSetupOB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
-  (*boardType)                      = kBOARD_MOSAIC;
+  (*boardType)                      = boardMOSAIC;
   TBoardConfigMOSAIC *boardConfig = (TBoardConfigMOSAIC*) config->GetBoardConfig(0);
 
   boardConfig->SetInvertedData (boardConfig->IsInverted());
@@ -72,7 +72,7 @@ int initSetupOB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardT
 // implicit assumptions on the setup in this method
 // - chips of master 0 of all modules are connected to 1st mosaic, chips of master 8 to 2nd MOSAIC
 int initSetupHalfStave(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
-  (*boardType) = kBOARD_MOSAIC;
+  (*boardType) = boardMOSAIC;
   for (int i = 0; i < config->GetNBoards(); i++) {
     TBoardConfigMOSAIC* boardConfig = (TBoardConfigMOSAIC*) config->GetBoardConfig(i);
 
@@ -209,7 +209,7 @@ int CheckControlInterface(std::vector <TAlpide *> * chips) {
 //    - each chip has its own receiver, mapping defined in RCVMAP
 int initSetupIB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
   int RCVMAP []                   = { 3, 5, 7, 8, 6, 4, 2, 1, 0 };
-  (*boardType)                      = kBOARD_MOSAIC;
+  (*boardType)                      = boardMOSAIC;
   TBoardConfigMOSAIC *boardConfig = (TBoardConfigMOSAIC*) config->GetBoardConfig(0);
 
   boardConfig->SetInvertedData (false);
@@ -263,7 +263,7 @@ int initSetupIB(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardT
 
 int initSetupSingleMosaic(TConfig* config, std::vector <TReadoutBoard *> * boards, TBoardType* boardType, std::vector <TAlpide *> * chips) {
   TChipConfig        *chipConfig  = config->GetChipConfig(0);
-  (*boardType)                      = kBOARD_MOSAIC;
+  (*boardType)                      = boardMOSAIC;
   TBoardConfigMOSAIC *boardConfig = (TBoardConfigMOSAIC*) config->GetBoardConfig(0);
   int                 control     = chipConfig->GetParamValue("CONTROLINTERFACE");
   int                 receiver    = chipConfig->GetParamValue("RECEIVER");
@@ -294,7 +294,7 @@ int initSetupSingle(TConfig* config, std::vector <TReadoutBoard *> * boards, TBo
   TReadoutBoardDAQ  *myDAQBoard = 0;
   TChipConfig       *chipConfig = config->GetChipConfig(0);
   chipConfig->SetParamValue("LINKSPEED", "-1");
-  (*boardType)                    = kBOARD_DAQ;
+  (*boardType)                    = boardDAQ;
   // values for control interface and receiver currently ignored for DAQ board
 //  int               control     = chipConfig->GetParamValue("CONTROLINTERFACE");
 //  int               receiver    = chipConfig->GetParamValue("RECEIVER");

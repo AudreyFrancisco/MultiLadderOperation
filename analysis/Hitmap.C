@@ -1,16 +1,5 @@
-#include <stdio.h>
-#include <iostream>
-
-#include <TROOT.h>
-#include <TStyle.h>
-#include <TSystem.h>
-#include <TColor.h>
-#include <TH2F.h>
-#include <TProfile.h>
-
-using namespace std;
-
-void set_plot_style()
+void
+set_plot_style()
 {
     const Int_t NRGBs = 5;
     const Int_t NCont = 255;

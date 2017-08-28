@@ -91,9 +91,8 @@ private:
 protected:
     std::vector <TUSBEndpoint *> fEndpoints; // Vector that contains the endpoints object.
 public:
-    TUSBBoard();
     TUSBBoard             (libusb_device *ADevice);
-    virtual ~TUSBBoard            ();
+    ~TUSBBoard            ();
     libusb_device_handle *GetHandle   ()      {return fHandle;};
     TUSBEndpoint         *GetEndpoint (int i) {return fEndpoints.at(i);};
     void                  DumpDeviceInfo      () const;

@@ -2,43 +2,32 @@
 #define TTHRESHOLDSCAN_H
 
 #include <deque>
-#include <vector>
-#include <memory>
 #include "TScan.h"
+#include "THisto.h"
+#include "AlpideDecoder.h"
 
-class THisto;
-class TScanHisto;
-class TPixHit;
-class AlpideDecoder;
-
-class TScanConfig;
-class TDevice;
 
 class TThresholdScan : public TMaskScan {
-private:
-    int         fVPULSEH;
-    int         fNTriggers;
-    std::vector<std::shared_ptr<TPixHit>> fHits;
-    
-    void ConfigureChip  ( const int ichip);
-    void ConfigureBoard ( const int iboard );
-    void FillHistos     ( const int iboard );
-protected:
-    std::shared_ptr<THisto> CreateHisto();
-    friend class AlpideDecoder;
-public:
-    TThresholdScan();
-    TThresholdScan( std::shared_ptr<TScanConfig> config,
-                   std::shared_ptr<TDevice> aDevice,
-                   std::deque<TScanHisto> *histoQue );
-    virtual ~TThresholdScan() {};
-    
-    void Init        ();
-    void PrepareStep ( const int loopIndex );
-    void LoopEnd     ( const int loopIndex );
-    void LoopStart   ( const int loopIndex ) { fValue[loopIndex] = fStart[loopIndex];};
-    void Execute     ();
-    void Terminate   ();
+ private:
+  int         m_VPULSEH; 
+  int         m_nTriggers;
+
+  void ConfigureFromu (TAlpide *chip);
+  void ConfigureChip  (TAlpide *chip);
+  void ConfigureBoard (TReadoutBoard *board);
+  void FillHistos     (std::vector<TPixHit> *Hits, int board);
+ protected:
+  THisto CreateHisto    ();
+ public: 
+  TThresholdScan   (TScanConfig *config, std::vector <TAlpide *> chips, std::vector <TReadoutBoard *> boards, std::deque<TScanHisto> *histoque);
+  ~TThresholdScan  () {};
+
+  void Init        ();
+  void PrepareStep (int loopIndex);
+  void LoopEnd     (int loopIndex);
+  void LoopStart   (int loopIndex) {m_value[loopIndex] = m_start[loopIndex];};
+  void Execute     ();
+  void Terminate   ();
 };
 
 

@@ -4,37 +4,37 @@
 #include <map>
 #include <string>
 
-class TScanConfig {
+namespace ScanConfig {
+  const int NINJ           = 50;
+  const int CHARGE_START   = 0;
+  const int CHARGE_STOP    = 50;
+  const int CHARGE_STEP    = 1;
+  const int N_MASK_STAGES  = 3;
+  const int PIX_PER_REGION = 32;
+}
 
-private:
-    std::map <std::string, int*> fSettings;
-    int fNInj;
-    int fChargeStart;
-    int fChargeStop;
-    int fChargeStep;
-    int fNMaskStages;
-    int fPixPerRegion;
-    void InitParamMap();
-public:
-    TScanConfig ();
-    ~TScanConfig() {};
-    bool SetParamValue (const char *Name, const char *Value);
-    int  GetParamValue (const char *Name) const ;
-    bool IsParameter   (const char *Name) {return (fSettings.count(Name) > 0);}
-    int GetNInj        () const { return fNInj;}
-    int GetChargeStart () const { return fChargeStart; }
-    int GetChargeStep  () const { return fChargeStep; }
-    int GetChargeStop  () const { return fChargeStop; }
-    int GetNMaskStages () const { return fNMaskStages; }
-    int GetPixPerRegion() const { return fPixPerRegion; }
-private:
-    #pragma mark - default value for the config
-    static const int NINJ;
-    static const int CHARGE_START;
-    static const int CHARGE_STOP;
-    static const int CHARGE_STEP;
-    static const int N_MASK_STAGES;
-    static const int PIX_PER_REGION;
+
+class TScanConfig {
+ private: 
+  std::map <std::string, int*> fSettings;
+  int m_nInj;
+  int m_chargeStart;
+  int m_chargeStop;
+  int m_chargeStep;
+  int m_nMaskStages;
+  int m_pixPerRegion;
+ protected: 
+ public:
+  TScanConfig ();
+  ~TScanConfig() {};
+  void InitParamMap  ();
+  bool SetParamValue (const char *Name, const char *Value);
+  int  GetParamValue (const char *Name) ;
+  bool IsParameter   (const char *Name) {return (fSettings.count(Name) > 0);};
+  int GetChargeStart () {return m_chargeStart;};
+  int GetChargeStep  () {return m_chargeStep;};
+  int GetChargeStop  () {return m_chargeStop;};
+  int GetNMaskStages () {return m_nMaskStages;};
 };
 
 

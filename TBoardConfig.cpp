@@ -1,49 +1,34 @@
 #include "TBoardConfig.h"
 #include <stdio.h>
-#include <iostream>
 
-using namespace std;
+using namespace BoardConfig;
 
-//___________________________________________________________________
 TBoardConfig::TBoardConfig()
 {
-  fTriggerDelay = fSTROBEDELAY;
-  fPulseDelay   = fPULSEDELAY;
+  fTriggerDelay = STROBEDELAY;
+  fPulseDelay   = PULSEDELAY;
 }
 
 
-//___________________________________________________________________
-void TBoardConfig::InitParamMap()
+void TBoardConfig::InitParamMap() 
 {
   fSettings["STROBEDELAYBOARD"] = &fTriggerDelay;
   fSettings["PULSEDELAY"]       = &fPulseDelay;
 }
 
 
-//___________________________________________________________________
-bool TBoardConfig::SetParamValue (const char *Name, const char *Value)
+bool TBoardConfig::SetParamValue (const char *Name, const char *Value) 
 {
-    if (fSettings.find (Name) != fSettings.end()) {
-        sscanf (Value, "%d", fSettings.find(Name)->second);
-        return true;
-    }
-    cerr << "TBoardConfig::SetParamValue() - Unknown parameter `-" << Name << "`" << endl;
-    return false;
+  if (fSettings.find (Name) != fSettings.end()) {
+    sscanf (Value, "%d", fSettings.find(Name)->second);
+    return true;
+  }
+
+  return false;
 }
 
-//___________________________________________________________________
-bool TBoardConfig::SetParamValue(const char *Name, const int Value)
-{
-    if (fSettings.find (Name) != fSettings.end()) {
-        *(fSettings.find(Name)->second) = Value;
-        return true;
-    }
-    cerr << "TBoardConfig::SetParamValue() - Unknown parameter `-" << Name << "`" << endl;
-    return false;
-}
 
-//___________________________________________________________________
-int TBoardConfig::GetParamValue (const char *Name)
+int TBoardConfig::GetParamValue (const char *Name) 
 {
   if (fSettings.find (Name) != fSettings.end()) {
     return *(fSettings.find(Name)->second);

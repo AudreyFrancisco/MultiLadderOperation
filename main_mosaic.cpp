@@ -1,139 +1,105 @@
-/**
- * \brief This executable runs a communication test {device <--> mosaic board}.
+/* ---------------
+ * Example of MOSAIC use
  *
- * \remark
- * The TAlpideDecoder does not seem to work properly for the moment (to be fixed in
- * subsequent versions). Only empty frames are detected, which is not the case with
- * the low level software from Giuseppe.
- *
- * \note
- * The default configuration file for this test for a MFT ladder is
- * ConfigMFTladderMOSAIC.cfg
- *
- * \warning
- * The current code can not correctly handle a number N > 1 of readout boards
- * (currently only one is written). See for e.g. TDeviceBuilder::SetDeviceParamValue().
- * For MFT, this is enough since the implemented device types (the different
- * types of MFT ladders) only need one readout board to be entirely read.
- *
- */
+ ----------------- */
 
 #include <iostream>
 #include <unistd.h>
-#include <cstdint>
-#include <memory>
 #include "TReadoutBoard.h"
 #include "TReadoutBoardMOSAIC.h"
+#include "TBoardConfig.h"
+#include "TBoardConfigMOSAIC.h"
+#include "TConfig.h"
 #include "TAlpide.h"
-#include "TSetup.h"
-#include "TDevice.h"
-#include "TScanConfig.h"
-#include "AlpideDictionary.h"
-#include "TDeviceChipVisitor.h"
-#include "TVerbosity.h"
-
-using namespace std;
-
-// Example of usage :
-// ./test_mosaic -v 1 -c ConfigMFTladderMOSAIC.cfg
-//
+#include <exception>
+#include "SetupHelpers.h"
 
 int main(int argc, char** argv) {
-    
-    TSetup mySetup;
-    mySetup.DecodeCommandParameters(argc, argv);
-    mySetup.ReadConfigFile();
-    
-    shared_ptr<TDevice> theDevice = (mySetup.GetDevice()).lock();
 
-    const int nBoards = theDevice->GetNBoards( false );
-    if ( !nBoards ) {
-        cout << "No board found, exit!" << endl;
-        return 1;
-    }
-    if ( nBoards != 1 ) {
-        cout << "More than one board found, exit!" << endl;
-        return 1;
-    }
-    const int nWorkingChips = theDevice->GetNWorkingChips();
-    if ( !nWorkingChips ) {
-        cout << "No working chip found, exit!" << endl;
-        return 1;
-    }
+    decodeCommandParameters(argc, argv);
+	TBoardConfigMOSAIC *theBoardConfiguration;
+	TReadoutBoard      *theBoard;
 
-    shared_ptr<TScanConfig> theScanConfig = (mySetup.GetScanConfig()).lock();
+	// First create an instance of the Configuration
+	//theBoardConfiguration = new TBoardConfigMOSAIC("Config.cfg", 0); // The file must exists... but could be useful a constructor without param
+	// Then create an instance of the board
 
-    if ( !theScanConfig ) {
-        cout << "No scan config found, exit!" << endl;
-        return 1;
-    }
-    
-    shared_ptr<TReadoutBoardMOSAIC> theBoard = dynamic_pointer_cast<TReadoutBoardMOSAIC>(theDevice->GetBoard( 0 ));
 
-    if ( !theBoard ) {
-        cout << "No MOSAIC board found, exit!" << endl;
-        return 1;
-    }
-    
-    // configure chip(s)
-    TDeviceChipVisitor theDeviceChipVisitor( theDevice );
-    theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
-    theDeviceChipVisitor.Init();
-    theDeviceChipVisitor.DoBaseConfig();
-    theDeviceChipVisitor.DoConfigureMaskStage( theScanConfig->GetPixPerRegion(), theScanConfig->GetNMaskStages() );
-    if ( mySetup.GetVerboseLevel() ) {
-        theDeviceChipVisitor.DoDumpConfig();
-    }
-    
-	//--- Data Tacking
+	std::vector <int>      chipIDs;
+	std::vector <TAlpide*> fChips;
+ 
+        for (int i = 0; i < 30; i++) chipIDs.push_back(i);
+
+        //TConfig *config = new TConfig (5);
+        TConfig *config = new TConfig (1, chipIDs);
+
+	theBoard = (TReadoutBoard *) new TReadoutBoardMOSAIC(config, (TBoardConfigMOSAIC*)config->GetBoardConfig(0));
+
+        for (int i = 0; i < config->GetNChips(); i++) {
+          fChips.push_back(new TAlpide(config->GetChipConfigById(chipIDs.at(i))));
+          fChips.at(i) -> SetReadoutBoard(theBoard);
+          theBoard     -> AddChip        (chipIDs.at(i), 0, 0);
+	}
+
+        uint16_t Value;
+
+        for (unsigned int i = 0; i < fChips.size(); i++) {
+	  // std::cout << "About to write chip " << chipIDs.at(i) << std::endl;
+          //for (int ii = 5; ii >0; ii --) {
+	  //  std::cout << "  in " << ii << " s." << std::endl;
+          //  sleep(1);
+	  //}
+          fChips.at(i)->WriteRegister (0x60d, 10);
+          try {
+            fChips.at(i)->ReadRegister (0x60d, Value);
+    	    std::cout << "Chip ID " << chipIDs.at(i) << ", Value = 0x" << std::hex << (int) Value << std::dec << std::endl;
+	  }
+            catch (std::exception &e) {
+    	    std::cout << "Chip ID " << chipIDs.at(i) << ", not answering, exception: " << e.what() << std::endl;
+	  }
+	}
+
+
+        return 0;
+
+
+	/* Create the Chip Structures */
+	/* Reset Chips */
+	/* Initialize Chips */
+
+	/* Data Tacking */
 	int numberOfReadByte; // the bytes of row event
 	unsigned char *theBuffer; // the buffer containing the event
 
-    // variables that define the trigger/pulse
-    bool enablePulse = true, enableTrigger = true;
-    const int triggerDelay = theDevice->GetBoardConfig(0)->GetParamValue("STROBEDELAYBOARD"); // original value 160
-    const int pulseDelay = theDevice->GetBoardConfig(0)->GetParamValue("PULSEDELAY"); // original value 1000
-    const int nTriggers = theScanConfig->GetNInj(); // original value -1
-    
+	int enablePulse, enableTrigger, triggerDelay, pulseDelay, nTriggers; // variables that define the trigger/pulse
+
 	theBuffer = (unsigned char*) malloc(200 * 1024); // allocates 200 kilobytes ...
 
-	bool isDataTakingEnd = false; // break the execution of read polling
+	bool isDataTackingEnd = false; // break the execution of read polling
 	int returnCode = 0;
 	int timeoutLimit = 10; // ten seconds
 
 	// sets the trigger
-	theBoard->SetTriggerConfig( enablePulse, enableTrigger, triggerDelay, pulseDelay );
-	theBoard->SetTriggerSource( TTriggerSource::kTRIG_INT );
+	theBoard->SetTriggerConfig (enablePulse, enableTrigger, triggerDelay, pulseDelay);
+	theBoard->SetTriggerSource (TTriggerSource::trigInt);
 
-	theBoard->StartRun(); // Activate the data taking ...
+	((TReadoutBoardMOSAIC *)theBoard)->StartRun(); // Activate the data taking ...
 
-	theBoard->Trigger( nTriggers ); // Preset and start the trigger
+	theBoard->Trigger(nTriggers); // Preset end start the trigger
 
-    int nEvents = 0;
-    const int MAX_N_EVENTS = 100;
-	while( !isDataTakingEnd ) { // while we don't receive a timeout or we don't have enough events yet
-        if ( nEvents > MAX_N_EVENTS ) {
-            isDataTakingEnd = true;
-        }
-		returnCode = theBoard->ReadEventData( numberOfReadByte, theBuffer );
-		if( returnCode != 0 ) { // we have some thing
-            cout << "Received Event " << nEvents << " with length " << numberOfReadByte << endl;
-            if ( mySetup.GetVerboseLevel() > TVerbosity::kVERBOSE ) {
-                for ( int iByte = 0; iByte < numberOfReadByte; ++iByte ) {
-                    printf ("%02x ", (int) theBuffer[iByte]);
-                }
-                cout << endl;
-            }
-            if( numberOfReadByte == 0 ) isDataTakingEnd = true;
-            nEvents++;
-			usleep(200); // wait
+	while(!isDataTackingEnd) { // while we don't receive a timeout
+		returnCode = theBoard->ReadEventData(numberOfReadByte, theBuffer);
+		if(returnCode != 0) { // we have some thing
+			std::cout << "Read an event !  Dimension :" << numberOfReadByte << std::endl;   // Consume the buffer ...
+			usleep(20000); // wait
 		} else { // read nothing is finished ?
-			if(timeoutLimit-- == 0) isDataTakingEnd = true;
+			if(timeoutLimit-- == 0) isDataTackingEnd = true;
 			sleep(1);
 		}
 	}
 
-	theBoard->StopRun(); // Stop run
+	((TReadoutBoardMOSAIC *)theBoard)->StopRun(); // Stop run
 
-    return 0;
+	exit(0);
+        return 0;
 }

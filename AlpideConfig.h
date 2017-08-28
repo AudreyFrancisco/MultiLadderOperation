@@ -3,10 +3,6 @@
 
 #include "TAlpide.h"
 
-// obsolete functions, not used any more, kept to track mdoficiations
-// from original repository
-
-
 namespace AlpideConfig {
   void Init (TAlpide *chip);
   void ClearPixSelectBits (TAlpide *chip, bool clearPulseGating);

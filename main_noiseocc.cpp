@@ -22,9 +22,10 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "USBHelpers.h"
+#include "TConfig.h"
 #include "AlpideDecoder.h"
 #include "BoardDecoder.h"
-#include "TSetup.h"
+#include "SetupHelpers.h"
 
 
 TBoardType fBoardType;
@@ -286,13 +287,13 @@ int main(int argc, char** argv) {
     fBoards.at(0)->SendOpCode (Alpide::OPCODE_RORST);
 
     // put your test here... 
-    if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_MOSAIC) {
+    if (fBoards.at(0)->GetConfig()->GetBoardType() == boardMOSAIC) {
       fBoards.at(0)->SetTriggerConfig (true, true, myPulseDelay, myPulseLength * 10);
-      fBoards.at(0)->SetTriggerSource (kTRIG_INT);
+      fBoards.at(0)->SetTriggerSource (trigInt);
     }
-    else if (fBoards.at(0)->GetConfig()->GetBoardType() == kBOARD_DAQ) {
+    else if (fBoards.at(0)->GetConfig()->GetBoardType() == boardDAQ) {
       fBoards.at(0)->SetTriggerConfig (true, false, myStrobeDelay, myPulseDelay);
-      fBoards.at(0)->SetTriggerSource (kTRIG_EXT);
+      fBoards.at(0)->SetTriggerSource (trigExt);
     }
 
     scan();

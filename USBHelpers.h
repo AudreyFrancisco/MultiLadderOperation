@@ -6,10 +6,6 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoard.h"
 
-// obsolete functions, not used any more, kept to track mdoficiations
-// from original repository
-
-
 static struct libusb_context *fContext = 0;
 
 int  InitLibUsb    ();
