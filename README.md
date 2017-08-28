@@ -51,7 +51,7 @@ Each main*.cpp file has a few comments explaining how to run the test. If you us
 Assuming your MOSAIC is seen by your computer, and the device (an MFT ladder with 2 chips) is properly powered and connected to the MOSAIC board, execute the following command on your terminal:
 
 ```
-./test_fifo -v 3 -c ConfigMFTladder_FIFOtest.cfg
+$ ./test_fifo -v 3 -c ConfigMFTladder_FIFOtest.cfg
 ```
 
 ## Versioning
