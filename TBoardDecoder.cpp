@@ -237,8 +237,8 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
 
   //    return DecodeEventTrailer(Trailer, AHeader);
   //bool TDAQBoard::DecodeEventTrailer (int * Trailer, TEventHeader *ATrailer) {
-  if (Trailer[1] != (int)DAQ_TRAILER_WORD) {
-    std::cout << "Corrupt trailer, expecting 0x " << std::hex << DAQ_TRAILER_WORD << ", found 0x" << Trailer[1] << std::dec << std::endl;
+    if (Trailer[1] != (int)DAQBoardDecoder::TRAILER_WORD) {
+        std::cout << "Corrupt trailer, expecting 0x " << std::hex << DAQBoardDecoder::TRAILER_WORD << ", found 0x" << Trailer[1] << std::dec << std::endl;
     return false;
   }
   int EventSize = Trailer[0];

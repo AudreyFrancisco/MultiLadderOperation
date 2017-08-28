@@ -39,8 +39,6 @@ class TBoardDecoder : public TVerbosity {
     int             fDAQ_trigCountDAQBusy;
     int             fDAQ_extTrigCount;
 
-    static const std::uint32_t DAQ_TRAILER_WORD; // = 0xbfbfbfbf;
-    
 public:
     
     // constructor / destructor
@@ -114,6 +112,9 @@ namespace DAQBoardDecoder {
     std::uint32_t GetIntFromBinaryString(int numByte, unsigned char *str);
     
     std::uint32_t GetIntFromBinaryStringReversed(int numByte, unsigned char *str);
+    
+    static const std::uint32_t TRAILER_WORD = 0xbfbfbfbf;
+    
 }
 
 namespace MOSAICBoardDecoder {
