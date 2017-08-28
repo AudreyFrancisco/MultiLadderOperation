@@ -1,13 +1,8 @@
-#include "AlpideDecoder.h"
+#include "TAlpideDecoder.h"
 #include "TPixHit.h"
 #include <stdint.h>
 #include <iostream>
 #include <bitset>
-
-/* Obsolete struct and class, not used any more, kept to track modificiations
- * from original repository.
- * Replaced by TBoardDecoder.h
- */
 
 using namespace std;
 

@@ -9,9 +9,9 @@ LIBPATH=/usr/local/lib
 LINKFLAGS=-lusb-1.0 -lpthread -L $(LIBPATH)
 OBJECT= runTest
 LIBRARY=libalpide.so
-CLASS= AlpideDecoder.cpp \
-           USB.cpp \
+CLASS= USB.cpp \
            TAlpide.cpp \
+           TAlpideDecoder.cpp \
            TBoardDecoder.cpp \
            TBoardConfig.cpp \
            TBoardConfigDAQ.cpp \
@@ -64,7 +64,8 @@ CLASS= AlpideDecoder.cpp \
 OBJS = $(CLASS:.cpp=.o)
 $(info OBJS="$(OBJS)")
 
-all:    test_mosaic test_fifo test_digital test_threshold test_noiseocc test_dacscan test_pulselength test_source test_poweron test_noiseocc_ext test_scantest test_temperature
+#all:    test_mosaic test_fifo test_digital test_threshold test_noiseocc test_dacscan test_pulselength test_source test_poweron test_noiseocc_ext test_scantest test_temperature
+all:    test_mosaic test_fifo test_digital
 
 $(OBJECT):   $(OBJS) main.cpp
 	$(CC) -o $(OBJECT) $(OBJS) $(CFLAGS) main.cpp $(LINKFLAGS)

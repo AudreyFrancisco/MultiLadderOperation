@@ -48,7 +48,7 @@
 #include "TReadoutBoardMOSAIC.h"
 #include "TBoardConfig.h"
 #include "BoardDecoder.h"
-#include "AlpideDecoder.h"
+#include "TAlpideDecoder.h"
 #include "TAlpide.h"
 #include "MosaicSrc/mexception.h"
 #include "MosaicSrc/pexception.h"
@@ -269,6 +269,7 @@ void TReadoutBoardMOSAIC::init()
         fAlpideRcv[i] = make_shared<ALPIDErcv>(mIPbus, WbbBaseAddress::alpideRcv+(i<<24));
         fAlpideRcv[i]->addEnable(false);
         fAlpideRcv[i]->addInvertInput(false);
+        fAlpideRcv[i]->execute();
     }
     
     // The data consumer for hardware generators
@@ -305,7 +306,7 @@ void TReadoutBoardMOSAIC::init()
     for(int i=0;i<BoardConfigMOSAIC::MAX_MOSAICCTRLINT;i++)
         setPhase(spBoardConfig->GetCtrlInterfacePhase(),i);  // set the Phase shift on the line
     
-    setSpeedMode (spBoardConfig->GetSpeedMode());// set 400 MHz mode
+    setSpeedMode (spBoardConfig->GetSpeedMode());
     setInverted  (spBoardConfig->IsInverted(),-1);
     
     fPulser->run(0);
@@ -313,6 +314,7 @@ void TReadoutBoardMOSAIC::init()
     mRunControl->clearErrors();
     mRunControl->setAFThreshold(spBoardConfig->GetCtrlAFThreshold());
     mRunControl->setLatency(spBoardConfig->GetCtrlLatMode(), spBoardConfig->GetCtrlLatMode());
+    mRunControl->setConfigReg(0); // // 0: internal 40 MHz clock (can be OR of bits: CFG_CLOCK_SEL_BIT,  CFG_CLOCK_20MHZ_BIT)
     
     return;
 }

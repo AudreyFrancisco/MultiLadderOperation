@@ -4,13 +4,18 @@
 #include <vector>
 #include <memory>
 
-/* Obsolete struct and class, not used any more, kept to track modificiations
- * from original repository.
- * Replaced by TBoardDecoder.h
- */
-
-
-enum class TDataType { kIDLE, kCHIPHEADER, kCHIPTRAILER, kEMPTYFRAME, kREGIONHEADER, kDATASHORT, kDATALONG, kBUSYON, kBUSYOFF, kUNKNOWN };
+enum class TDataType {
+    kIDLE,
+    kCHIPHEADER,
+    kCHIPTRAILER,
+    kEMPTYFRAME,
+    kREGIONHEADER,
+    kDATASHORT,
+    kDATALONG,
+    kBUSYON,
+    kBUSYOFF,
+    kUNKNOWN
+};
 
 class TPixHit;
 

@@ -1,4 +1,4 @@
-#include "AlpideDecoder.h"
+#include "TAlpideDecoder.h"
 #include "AlpideDictionary.h"
 #include "TBoardDecoder.h"
 #include "TAlpide.h"
