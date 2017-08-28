@@ -34,7 +34,7 @@ Then start a new shell to have gcc 6.
 Edit the Makefile according to your OS (instructions are in the Makefile). Then:
 
 ```
-> make
+$ make
 ```
 
 ## Running the tests
@@ -57,7 +57,7 @@ Assuming your MOSAIC is seen by your computer, and the device (an MFT ladder wit
 ## Versioning
 
 * We use Cern GitLab for versioning, with the repository at https://gitlab.cern.ch/alice-MFT-upgrade/new-alpide-software
-* We choose follow the **Git workflow** named Hg flow in SourceTree. **If you have no idea what this is**, before doing any modification to the _mft-dev_ branch, please have a look at the philosophy of this workflow nicely summarised at https://blog.sourcetreeapp.com/2012/08/01/smart-branching-with-sourcetree-and-git-flow/
+* We choose follow the **Git workflow** named *Hg* flow in SourceTree. **If you have no idea what this is**, before doing any modification to the _mft-dev_ branch, please have a look at the philosophy of this workflow nicely summarised at https://blog.sourcetreeapp.com/2012/08/01/smart-branching-with-sourcetree-and-git-flow/
 
 ## Acknowledgments
 
