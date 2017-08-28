@@ -115,5 +115,6 @@ void TDeviceBuilderTelescope::InitSetup()
         cout << "TDeviceBuilderTelescope::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
+    CountEnabledChipsPerBoard();
 }
 

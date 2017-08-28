@@ -155,8 +155,11 @@ void TDevice::IncrementWorkingChipCounter()
 //___________________________________________________________________
 void TDevice::AddNWorkingChipCounterPerBoard( const unsigned int nChips )
 {
-    if ( fInitialisedSetup ) {
+    if ( !fNWorkingChips ) {
         return;
+    }
+    if ( fNWorkingChipsPerBoard.size() >= fBoards.size() ) {
+        throw runtime_error( "TDevice::AddNWorkingChipCounterPerBoard() - no more board available!" );
     }
     fNWorkingChipsPerBoard.push_back( nChips );
 }

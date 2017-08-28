@@ -128,6 +128,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
         cout << "TDeviceBuilderOBSingleDAQ::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
+    CountEnabledChipsPerBoard();
 }
 
 

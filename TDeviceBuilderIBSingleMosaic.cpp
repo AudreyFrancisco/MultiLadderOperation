@@ -153,5 +153,6 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         cout << "TDeviceBuilderIBSingleMosaic::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
+    CountEnabledChipsPerBoard();
 }
 

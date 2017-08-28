@@ -142,4 +142,5 @@ void TDeviceBuilderHalfStave::InitSetup()
         cout << "TDeviceBuilderHalfStave::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
+    CountEnabledChipsPerBoard();
 }

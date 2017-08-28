@@ -191,4 +191,5 @@ void TDeviceBuilderMFTLadder::InitSetup()
         cout << "TDeviceBuilderMFTLadder::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
+    CountEnabledChipsPerBoard();
 }

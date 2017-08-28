@@ -105,8 +105,8 @@ void TDeviceBuilder::SetVerboseLevel( const int level )
 //___________________________________________________________________
 void TDeviceBuilder::CountEnabledChipsPerBoard()
 {
-    if ( fCurrentDevice->IsSetupFrozen() ) {
-        cerr << "TDeviceBuilder::CountEnabledChipsPerBoard() - setup already initialised!" << endl;
+    if ( !fCurrentDevice->GetNWorkingChips() ) {
+        cerr << "TDeviceBuilder::CountEnabledChipsPerBoard() - no working chip, doing nothing!" << endl;
         return;
     }
 
@@ -160,46 +160,41 @@ void TDeviceBuilder::CheckControlInterface()
         throw runtime_error( "TDeviceBuilder::CheckControlInterface() - no chip defined!" );
     }
 
-    for ( unsigned int iboard = 0; iboard < fCurrentDevice->GetNBoards(false); iboard ++ ) {
+    for ( unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++ ) {
         
-        for ( unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++ ) {
-            
-            if ( !(fCurrentDevice->GetChipConfig(i)->IsEnabled()) ) continue;
-            try {
-                (fCurrentDevice->GetChip(i))->WriteRegister( AlpideRegister::IBIAS, WriteValue );
-            } catch ( exception& err ) {
-                cerr << err.what() << endl;
-                cerr << "TDeviceBuilder::CheckControlInterface() - Chip ID "
-                << (fCurrentDevice->GetChipConfig(i))->GetChipId() << ", can not write to register, disabling." << endl;
-                fCurrentDevice->GetChipConfig(i)->SetEnable(false);
-                continue;
-            }
-            try {
-                (fCurrentDevice->GetChip(i))->ReadRegister( AlpideRegister::IBIAS, Value );
-            } catch ( exception &err ) {
-                cerr << err.what() << endl;
-                cerr << "TDeviceBuilder::CheckControlInterface() - Chip ID "
-                << (fCurrentDevice->GetChipConfig(i))->GetChipId() << ", not answering, disabling." << endl;
-                fCurrentDevice->GetChipConfig(i)->SetEnable(false);
-                continue;
-            }
-            if ( WriteValue == Value ) {
-                if ( fVerboseLevel > kTERSE ) {
-                    cout << "TDeviceBuilder::CheckControlInterface() -  Chip ID "
-                    << (fCurrentDevice->GetChipConfig(i))->GetChipId()
-                    << ", readback correct." << endl;
-                }
-                fCurrentDevice->IncrementWorkingChipCounter();
-            } else {
-                cerr << "TDeviceBuilder::CheckControlInterface() - Chip ID "
+        if ( !(fCurrentDevice->GetChipConfig(i)->IsEnabled()) ) continue;
+        try {
+            (fCurrentDevice->GetChip(i))->WriteRegister( AlpideRegister::IBIAS, WriteValue );
+        } catch ( exception& err ) {
+            cerr << err.what() << endl;
+            cerr << "TDeviceBuilder::CheckControlInterface() - Chip ID "
+            << (fCurrentDevice->GetChipConfig(i))->GetChipId() << ", can not write to register, disabling." << endl;
+            fCurrentDevice->GetChipConfig(i)->SetEnable(false);
+            continue;
+        }
+        try {
+            (fCurrentDevice->GetChip(i))->ReadRegister( AlpideRegister::IBIAS, Value );
+        } catch ( exception &err ) {
+            cerr << err.what() << endl;
+            cerr << "TDeviceBuilder::CheckControlInterface() - Chip ID "
+            << (fCurrentDevice->GetChipConfig(i))->GetChipId() << ", not answering, disabling." << endl;
+            fCurrentDevice->GetChipConfig(i)->SetEnable(false);
+            continue;
+        }
+        if ( WriteValue == Value ) {
+            if ( fVerboseLevel > kTERSE ) {
+                cout << "TDeviceBuilder::CheckControlInterface() -  Chip ID "
                 << (fCurrentDevice->GetChipConfig(i))->GetChipId()
-                << ", wrong readback value (" << Value << " instead of " << WriteValue << "), disabling." << endl;
-                fCurrentDevice->GetChipConfig(i)->SetEnable(false);
+                << ", readback correct." << endl;
             }
+            fCurrentDevice->IncrementWorkingChipCounter();
+        } else {
+            cerr << "TDeviceBuilder::CheckControlInterface() - Chip ID "
+            << (fCurrentDevice->GetChipConfig(i))->GetChipId()
+            << ", wrong readback value (" << Value << " instead of " << WriteValue << "), disabling." << endl;
+            fCurrentDevice->GetChipConfig(i)->SetEnable(false);
         }
     }
-    
-    CountEnabledChipsPerBoard();
     
     cout << "TDeviceBuilder::CheckControlInterface() - Found a total of "
          << fCurrentDevice->GetNWorkingChips() << " working chips." << endl << endl;

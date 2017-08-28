@@ -154,4 +154,5 @@ void TDeviceBuilderIB::InitSetup()
         cout << "TDeviceBuilderIB::InitSetup() - end" << endl;
     }
     fCurrentDevice->FreezeSetup();
+    CountEnabledChipsPerBoard();
 }
