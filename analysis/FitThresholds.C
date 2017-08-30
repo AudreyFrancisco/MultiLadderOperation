@@ -132,6 +132,7 @@ void ProcessPixel (int col, int row) {
 
 
 void ProcessFile (const char *fName) {
+  std::cout << fName << std::endl;
   FILE *fp = fopen (fName, "r");
   int col, address, ampl, hits;
   int lastcol = -1, lastaddress = -1;
@@ -170,6 +171,7 @@ void ProcessFile (const char *fName) {
 
 int FitThresholds(const char *fName, bool WriteToFile, int ITH, int VCASN, bool saveCanvas) {
   PrepareHistos();
+  std::cout << "Histos prepared" << std::endl;
   ProcessFile(fName);
 
   std::cout << "Found " << NPixels << " pixels, i.e." << 524288 - NPixels << " pixels have no hits." << std::endl;
@@ -208,9 +210,12 @@ int FitThresholds(const char *fName, bool WriteToFile, int ITH, int VCASN, bool 
   for (int isec=0;isec<NSEC;++isec)
     std::cout << "Noise sector "<<isec<<":     " << hNoise [isec]->GetMean() << " +- " << hNoise [isec]->GetRMS() << std::endl;
 
-  if (WriteToFile) {
-      FILE *fp = fopen("ThresholdSummary.dat", "a");
-
+  if (true) { //if WriteToFile
+      char fSummary[50];
+      sprintf(fSummary, "ThresholdSummary%s", strstr(fName,"_"));
+      std::cout << "Summary file " << fSummary << std::endl;
+      //FILE *fp = fopen("ThresholdSummary.dat", "a");
+      FILE *fp = fopen(fSummary, "a");
       fprintf(fp, "%d %d %d %.1f %.1f %.1f %.1f\n", ITH, VCASN, GoodPixels, hThresh[0]->GetMean(), hThresh[0]->GetRMS(), 
 	  hNoise[0]->GetMean(), hNoise[0]->GetRMS());
       fclose(fp);

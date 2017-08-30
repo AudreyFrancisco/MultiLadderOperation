@@ -1,10 +1,18 @@
 *.o
 *.so
+*.a
 *.d
 *.swp
-runTest
+*.pcm
+*.dat
 test_*
+startclk*
+stopclk*
+Config.cfg
+Config_To_HS.cfg
 *~
+git_status.txt
+
 # Qt5 local project files
 *.pro.user
 .qmake.stash
@@ -12,4 +20,3 @@ test_*
 # ECLIPSE local projects
 .project
 .cproject
-
