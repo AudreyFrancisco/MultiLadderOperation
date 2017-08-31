@@ -2,7 +2,8 @@
 #define BOARDCONFIGMOSAIC_H
 
 #include "TBoardConfig.h"
-#include "MosaicSrc/mruncontrol.h"
+//#include "MosaicSrc/mruncontrol.h"
+#include "mruncontrol.h"
 #include <stdio.h>
 #include <cstdint>
 

@@ -1,9 +1,12 @@
 #include <iostream>
 #include "TBoardConfig.h"
 #include "TBoardDecoder.h"
-#include "MosaicSrc/mboard.h"
-#include "MosaicSrc/ipbus.h"
-#include "MosaicSrc/TAlpideDataParser.h"
+//#include "MosaicSrc/mboard.h"
+//#include "MosaicSrc/ipbus.h"
+//#include "MosaicSrc/TAlpideDataParser.h"
+#include "mboard.h"
+#include "ipbus.h"
+#include "TAlpideDataParser.h"
 
 using namespace std;
 

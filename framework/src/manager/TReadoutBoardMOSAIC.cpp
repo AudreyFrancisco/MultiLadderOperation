@@ -47,11 +47,10 @@
 #include "TChipConfig.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TBoardConfig.h"
-#include "BoardDecoder.h"
 #include "TAlpideDecoder.h"
 #include "TAlpide.h"
-#include "MosaicSrc/mexception.h"
-#include "MosaicSrc/pexception.h"
+#include "mexception.h"
+#include "pexception.h"
 
 using namespace std;
 std::vector<unsigned char> fDebugBuffer;

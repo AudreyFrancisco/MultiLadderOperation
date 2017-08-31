@@ -9,7 +9,8 @@
 #include "TBoardConfigMOSAIC.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TAlpide.h"
-#include "MosaicSrc/mruncontrol.h"
+//#include "MosaicSrc/mruncontrol.h"
+#include "mruncontrol.h"
 #include "TChipConfig.h"
 
 using namespace std;

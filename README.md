@@ -16,6 +16,8 @@ $ git clone ssh://git@gitlab.cern.ch:7999/alice-MFT-upgrade/new-alpide-software.
 
 ### Prerequisites
 
+#### Recent compiler
+
 Make sure you have either at least clang version Apple LLVM version 8.1.0 (clang-802.0.42) if you work on MacOS X, or a gcc version with C++14 is enabled by default i.e. at least gcc 6. If you don't have gcc 6, you can easily install it on Cent OS 7 thanks to devtoolset-6. More details at this [link](https://www.softwarecollections.org/en/scls/rhscl/devtoolset-6/). Don't forget to add the following line in your .bashrc:
 
 ```
@@ -29,9 +31,22 @@ source scl_source enable devtoolset-6
 
 Then start a new shell to have gcc 6.
 
+#### Recent cmake
+
+The minimal version is 3.4.3.
+
 ### Installing
 
-Edit the Makefile according to your OS (instructions are in the Makefile). Then:
+Generate the Makefile with Cmake:
+
+```
+$ cd new-alpide-software
+$ mkdir build
+$ cd build
+$ cmake ../framework/
+```
+
+Then compile:
 
 ```
 $ make
@@ -51,7 +66,8 @@ Each main*.cpp file has a few comments explaining how to run the test. If you us
 Assuming your MOSAIC is seen by your computer, and the device (an MFT ladder with 2 chips) is properly powered and connected to the MOSAIC board, execute the following command on your terminal:
 
 ```
-$ ./test_fifo -v 3 -c ConfigMFTladder_FIFOtest.cfg
+$ cd new-alpide-software/framework/bin
+$ ./test_fifo -v 3 -c ../config/ConfigMFTladder_FIFOtest.cfg
 ```
 
 ## Versioning

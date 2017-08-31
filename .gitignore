@@ -1,15 +1,6 @@
-*.o
-*.so
-*.d
-*.swp
-runTest
-test_*
-*~
-# Qt5 local project files
-*.pro.user
-.qmake.stash
+# Build directory
+build*/
 
-# ECLIPSE local projects
-.project
-.cproject
-
+# Xcode files
+*.xcworkspace
+*.xcodeproj
