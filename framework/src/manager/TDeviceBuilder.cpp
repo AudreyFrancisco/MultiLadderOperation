@@ -9,7 +9,7 @@
 #include "TBoardConfig.h"
 #include "TBoardConfigMOSAIC.h"
 #include "TAlpide.h"
-
+#include "TReadoutBoard.h"
 
 using namespace std;
 
@@ -201,6 +201,14 @@ void TDeviceBuilder::CheckControlInterface()
     
     if ( fCurrentDevice->GetNWorkingChips() == 0 ) {
         throw runtime_error( "TDeviceBuilder::CheckControlInterface() - no working chip found!" );
+    }
+}
+
+//___________________________________________________________________
+void TDeviceBuilder::PropagateVerbosityToBoards()
+{
+    for ( unsigned int i = 0; i < fCurrentDevice->GetNBoards(false); i++ ) {
+        fCurrentDevice->GetBoard(i)->SetVerboseLevel( this->GetVerboseLevel() );
     }
 }
 

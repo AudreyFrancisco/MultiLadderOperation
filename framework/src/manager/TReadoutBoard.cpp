@@ -7,7 +7,7 @@
 using namespace std;
 
 //___________________________________________________________________
-TReadoutBoard::TReadoutBoard()
+TReadoutBoard::TReadoutBoard() : TVerbosity()
 { }
 
 //___________________________________________________________________

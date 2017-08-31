@@ -1,9 +1,7 @@
 #include <iostream>
 #include "TBoardConfig.h"
 #include "TBoardDecoder.h"
-//#include "MosaicSrc/mboard.h"
-//#include "MosaicSrc/ipbus.h"
-//#include "MosaicSrc/TAlpideDataParser.h"
+// MOSAIC includes
 #include "mboard.h"
 #include "ipbus.h"
 #include "TAlpideDataParser.h"

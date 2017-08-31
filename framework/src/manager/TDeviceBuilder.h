@@ -32,7 +32,8 @@ protected:
 protected:
     void CheckControlInterface();
     void CountEnabledChipsPerBoard();
-
+    void PropagateVerbosityToBoards();
+    
 public:
     #pragma mark - Constructors/destructor
     TDeviceBuilder();

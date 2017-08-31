@@ -277,6 +277,7 @@ void TReadoutBoardMOSAIC::init()
     
     for (int i=0; i<BoardConfigMOSAIC::MAX_MOSAICTRANRECV; i++){
         fAlpideDataParser[i] = new TAlpideDataParser();
+        fAlpideDataParser[i]->SetId(i);
         addDataReceiver(i+1, fAlpideDataParser[i]);
     }
     
