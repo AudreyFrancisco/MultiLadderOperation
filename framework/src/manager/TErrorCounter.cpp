@@ -23,7 +23,7 @@ TErrorCounter::~TErrorCounter()
 void TErrorCounter::Dump()
 {
     cout << "------------------------------- TErrorCounter::Dump() " << endl;
-    cout << "Number of 8b10b decoder errors: " << fN8b10b << endl;
+    cout << "Number of 8b10b decoder errors: " << std::dec << fN8b10b << endl;
     cout << "Number of corrupted events: " << fNCorruptEvent << endl;
     cout << "Number of priority encoder errors: " << fNPrioEncoder << endl;
     cout << "Number of timeout: " << fNTimeout << endl;
