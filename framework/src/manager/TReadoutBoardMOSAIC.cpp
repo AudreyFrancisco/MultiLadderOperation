@@ -47,7 +47,6 @@
 #include "TChipConfig.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TBoardConfig.h"
-#include "TAlpideDecoder.h"
 #include "TAlpide.h"
 #include "mexception.h"
 #include "pexception.h"
