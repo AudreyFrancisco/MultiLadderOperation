@@ -146,8 +146,8 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   // all header words are supposed to have a zero MSB
   for (int i=0; i<header_length; ++i) {
     if (0x80000000 & Header[i]) {
-      std::cout << "Corrupt header data, MSB of header word active!" << std::endl;
-      std::cout << std::hex << "0x" << Header[i] << "\t0x" << (0x80000000 & Header[i]) << std::dec << std::endl;
+      cerr << "Corrupt header data, MSB of header word active!" << endl;
+      cerr << std::hex << "0x" << Header[i] << "\t0x" << (0x80000000 & Header[i]) << std::dec << endl;
       return false;
     }
   }
@@ -191,15 +191,15 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
 
     // few consistency checks:
     if ((Header[0] & 0xfffe03bf) != 0x8) {
-      std::cout << "Corrupt header word 0: 0x" << std::hex << Header[0] << std::dec << std::endl;
+      cerr << "Corrupt header word 0: 0x" << std::hex << Header[0] << std::dec << endl;
       return false;
     }
     if ((Header[1] & 0xff000000) || (Header[2] & 0xff000000) || (Header[3] & 0xff000000)) {
-      std::cout << "Corrupt header, missing at least one of the leading 0s in word 1-4" << std::endl;
+      cerr << "Corrupt header, missing at least one of the leading 0s in word 1-4" << endl;
       return false;
     }
     if ((TrigType < 1) || (TrigType > 2)) {
-      std::cout << "Bad Trigger Type " << TrigType << std::endl;
+      cerr << "Bad Trigger Type " << TrigType << endl;
       return false;
     }
   }  
@@ -239,7 +239,7 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   //    return DecodeEventTrailer(Trailer, AHeader);
   //bool TDAQBoard::DecodeEventTrailer (int * Trailer, TEventHeader *ATrailer) {
     if (Trailer[1] != (int)DAQBoardDecoder::TRAILER_WORD) {
-        std::cout << "Corrupt trailer, expecting 0x " << std::hex << DAQBoardDecoder::TRAILER_WORD << ", found 0x" << Trailer[1] << std::dec << std::endl;
+        cerr << "Corrupt trailer, expecting 0x " << std::hex << DAQBoardDecoder::TRAILER_WORD << ", found 0x" << Trailer[1] << std::dec << endl;
     return false;
   }
   int EventSize = Trailer[0];
