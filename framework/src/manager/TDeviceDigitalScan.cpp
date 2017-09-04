@@ -169,7 +169,10 @@ void TDeviceDigitalScan::Go()
     }
     
     TBoardDecoder boardDecoder;
+    boardDecoder.SetVerboseLevel( this->GetVerboseLevel() );
+    
     TAlpideDecoder chipDecoder;
+    chipDecoder.SetVerboseLevel( this->GetVerboseLevel() );
 
     for ( int istage = 0; istage < myMaskStages; istage ++ ) {
         
