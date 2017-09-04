@@ -90,6 +90,8 @@ public:
         std::cout << "TReadoutBoardMOSAIC::WriteRegister( " << Address << " , " << Value << ") - doing nothing" << std::endl;
 
         return(0);};
+    
+    virtual void SetVerboseLevel( const int level );
 
 private:
 	void init();

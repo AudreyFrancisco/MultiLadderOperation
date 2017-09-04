@@ -237,6 +237,15 @@ int  TReadoutBoardMOSAIC::ReadEventData (int &nBytes, unsigned char *buffer)
     return -1;
 }
 
+//___________________________________________________________________
+void TReadoutBoardMOSAIC::SetVerboseLevel( const int level )
+{
+    for (int i=0; i<BoardConfigMOSAIC::MAX_MOSAICTRANRECV; i++){
+        fAlpideDataParser[i]->SetVerboseLevel( level );
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
 #pragma mark - private methods
 
 // Private : Init the board
@@ -277,6 +286,7 @@ void TReadoutBoardMOSAIC::init()
     for (int i=0; i<BoardConfigMOSAIC::MAX_MOSAICTRANRECV; i++){
         fAlpideDataParser[i] = new TAlpideDataParser();
         fAlpideDataParser[i]->SetId(i);
+        fAlpideDataParser[i]->SetVerboseLevel( this->GetVerboseLevel() );
         addDataReceiver(i+1, fAlpideDataParser[i]);
     }
     
