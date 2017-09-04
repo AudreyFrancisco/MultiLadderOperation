@@ -20,11 +20,13 @@
 #include <memory>
 #include <vector>
 #include "TDeviceChipVisitor.h"
+#include "TErrorCounter.h"
 
 class TPixHit;
 class TScanConfig;
 class TDevice;
-class AlpideDecoder;
+class TAlpideDecoder;
+class TErrorCounter;
 
 class TDeviceDigitalScan : public TDeviceChipVisitor {
     
@@ -46,9 +48,12 @@ class TDeviceDigitalScan : public TDeviceChipVisitor {
     /// scan configuration
     std::shared_ptr<TScanConfig> fScanConfig;
     
-    /// vector of hit pixels
+    /// hit pixel list with all decoded hits
     std::vector<std::shared_ptr<TPixHit>> fHits;
-    
+
+    /// dedicated error counter
+    TErrorCounter fErrorCounter;
+
 public:
 
     /// constructor

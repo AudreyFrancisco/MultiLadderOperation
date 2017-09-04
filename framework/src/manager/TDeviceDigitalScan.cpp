@@ -5,6 +5,7 @@
 #include "TChipConfig.h"
 #include "TDevice.h"
 #include "TDeviceDigitalScan.h"
+//#include "TErrorCounter.h"
 #include "TPixHit.h"
 #include "TReadoutBoard.h"
 #include "TReadoutBoardDAQ.h"
@@ -155,19 +156,20 @@ void TDeviceDigitalScan::Go()
     const int myPixPerRegion = fScanConfig->GetPixPerRegion();
 
     unsigned char buffer[1024*4000];
-    int n_bytes_data, n_bytes_header, n_bytes_trailer, errors8b10b = 0, nClosedEvents = 0;
-    unsigned int nBad       = 0;
+    int n_bytes_data, n_bytes_header, n_bytes_trailer;
     unsigned int nSkipped   = 0;
+    const unsigned int iboard = 0;
     
-    shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( 0 ));
+    shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( iboard ));
 
-    shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( 0 ));
+    shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( iboard ));
 
     if ( myMOSAIC ) {
         myMOSAIC->StartRun();
     }
     
     TBoardDecoder boardDecoder;
+    TAlpideDecoder chipDecoder;
 
     for ( int istage = 0; istage < myMaskStages; istage ++ ) {
         
@@ -181,7 +183,7 @@ void TDeviceDigitalScan::Go()
         //cout << "CMU DMU Config: 0x" << std::hex << Value << std::dec << endl;
         //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_FROMU_STATUS1, Value );
         //cout << "Trigger counter before: " << Value << endl;
-        (fDevice->GetBoard( 0 ))->Trigger(myNTriggers);
+        (fDevice->GetBoard( iboard ))->Trigger(myNTriggers);
         //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_FROMU_STATUS1, Value );
         //cout << "Trigger counter after: " << Value << endl;
         
@@ -193,7 +195,9 @@ void TDeviceDigitalScan::Go()
         
         while( itrg < myNTriggers * fDevice->GetNWorkingChips() ) {
 
-            if ( (fDevice->GetBoard( 0 ))->ReadEventData(n_bytes_data, buffer) == -1) {
+            unsigned int nBad       = 0;
+
+            if ( (fDevice->GetBoard( iboard ))->ReadEventData(n_bytes_data, buffer) == -1) {
 
                 // no event available in buffer yet, wait a bit
                 usleep(100);
@@ -217,38 +221,48 @@ void TDeviceDigitalScan::Go()
                     cout << endl;
                 }
 
-
                 // decode readout board event
-                shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( 0 );
+                shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( iboard );
                 boardDecoder.SetBoardType( boardConfig->GetBoardType() );
                 boardDecoder.DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
-                //cout << "Closed data counter: " <<  boardDecoder.GetMosaicEoeCount() << endl;
-                if ( boardDecoder.GetMosaicEoeCount() ) {
-                    nClosedEvents = boardDecoder.GetMosaicEoeCount();
-                } else {
-                    nClosedEvents = 1;
+                if ( boardDecoder.GetMosaicDecoder10b8bError() ) {
+                    fErrorCounter.IncrementN8b10b();
                 }
-                if ( boardDecoder.GetMosaicDecoder10b8bError() ) errors8b10b++;
+                if ( boardDecoder.GetMosaicTimeout() ) {
+                    fErrorCounter.IncrementNTimeout();
+                }
 
                 // decode Chip event
-                int n_bytes_chipevent = n_bytes_data-n_bytes_header - n_bytes_trailer;
-                if ( !AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, fHits) ) {
+                int n_bytes_chipevent = n_bytes_data-n_bytes_header;// - n_bytes_trailer;
+                if ( boardDecoder.GetMosaicEoeCount() < 2) {
+                    n_bytes_chipevent -= n_bytes_trailer;
+                }
+                bool isOk = chipDecoder.DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, fHits, iboard, boardDecoder.GetMosaicChannel() );
+                fErrorCounter.IncrementNPrioEncoder( chipDecoder.GetPrioErrors() );
+
+                if ( !isOk ) {
                     if ( GetVerboseLevel() > kSILENT ) {
                         cout << "TDeviceDigitalScan::Go() - Found bad event " << endl;
                     }
-                    nBad ++;
+                    fErrorCounter.IncrementNCorruptEvent();
+                    nBad++;
                     if ( nBad > TDeviceDigitalScan::MAXNBAD ) continue;
                     FILE *fDebug = fopen ("DebugData.dat", "a");
                     for ( int iByte=0; iByte<n_bytes_data; ++iByte ) {
                         fprintf (fDebug, "%02x ", (int) buffer[iByte]);
                     }
+                    fprintf(fDebug, "\nFull Event:\n");
+                    for (unsigned int ibyte = 0; ibyte < fDebugBuffer.size(); ibyte ++) {
+                        fprintf (fDebug, "%02x ", (int) fDebugBuffer.at(ibyte));
+                    }
+                    fprintf(fDebug, "\n\n");
                     fclose( fDebug );
                 }
                 if ( GetVerboseLevel() > kVERBOSE ) {
                     cout << "TDeviceDigitalScan::Go() - total number of hits found: "
                          << fHits.size() << endl;
                 }
-                itrg+= nClosedEvents;
+                itrg++;
             }
         }
         MoveHitData();
@@ -257,15 +271,13 @@ void TDeviceDigitalScan::Go()
     cout << endl;
     if ( myMOSAIC ) {
         myMOSAIC->StopRun();
-        cout << "TDeviceDigitalScan::Go() - Total number of 8b10b decoder errors: " << errors8b10b << endl;
     }
     if ( myDAQBoard ) {
         myDAQBoard->PowerOff();
     }
-    cout << "TDeviceDigitalScan::Go() - Number of corrupt events:             " << nBad       << endl;
+    fErrorCounter.Dump();
     cout << "TDeviceDigitalScan::Go() - Number of skipped points:             " << nSkipped   << endl;
 
-    
 }
 
 //___________________________________________________________________

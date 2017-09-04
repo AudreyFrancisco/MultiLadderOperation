@@ -150,6 +150,8 @@ void TThresholdScan::Execute()
     }
     
     TBoardDecoder boardDecoder;
+    TAlpideDecoder chipDecoder;
+
     for ( unsigned int iboard = 0; iboard < currentDevice->GetNBoards(false); iboard++ ) {
         int itrg = 0;
         int trials = 0;
@@ -171,8 +173,12 @@ void TThresholdScan::Execute()
 
                 // decode Chip event
                 int n_bytes_chipevent=n_bytes_data-n_bytes_header;//-n_bytes_trailer;
-                if ( boardDecoder.GetMosaicEoeCount() < 2) n_bytes_chipevent -= n_bytes_trailer;
-                if (!AlpideDecoder::DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, fHits)) {
+                if ( boardDecoder.GetMosaicEoeCount() < 2) {
+                    n_bytes_chipevent -= n_bytes_trailer;
+                }
+                bool isOk = chipDecoder.DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, fHits, iboard, boardDecoder.GetMosaicChannel() );
+
+                if ( !isOk ) {
                     cout << "Found bad event, length = " << n_bytes_chipevent << endl;
                     nBad ++;
                     if (nBad > 10) continue;
