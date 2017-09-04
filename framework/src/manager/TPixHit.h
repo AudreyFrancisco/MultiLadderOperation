@@ -8,8 +8,21 @@
  *
  * The "hit" (responding) pixel is identified thanks to the following coordinates:
  * chip id, region id, double colum id, index (address) of the pixel in the double 
- * column.
+ * column. 
+ * The container also store the board index and the board receiver id that are
+ * collecting the data from the chip.
  */
+
+enum class TPixFlag {
+    kOK,
+    kBAD_CHIPID,
+    kBAD_REGIONID,
+    kBAD_DCOLID,
+    kBAD_ADDRESS,
+    kSTUCK,
+    kUNKNOWN
+};
+
 
 class TPixHit {
 
@@ -31,11 +44,14 @@ class TPixHit {
     /// index (address) of the pixel in the double column
     unsigned int fAddress;
     
+    /// flag to check the status of this hit pixel
+    TPixFlag fFlag;
+    
     /// id of the last region of the chip
     static const unsigned int MAX_REGION = 31;  // [0 .. 31] 32 regions
 
-    /// id of the last double column in a region of the chip
-    static const unsigned int MAX_DCOL = 15;  // [0 .. 15] 16 double columns / region
+    /// id of the last double column of the chip
+    static const unsigned int MAX_DCOL = 511;  // [0 .. 511] 16 double columns / region
 
     /// index of the last pixel in a double column of the chip
     static const unsigned int MAX_ADDR = 1023;  // [0 .. 1023] 1024 pixels / double column
@@ -56,6 +72,7 @@ public:
     void SetRegion( const unsigned int value );
     void SetDoubleColumn( const unsigned int value );
     void SetAddress( const unsigned int value );
+    inline void SetPixFlag( const TPixFlag flag ) { fFlag = flag; }
 
 #pragma mark - getters
 
@@ -65,6 +82,7 @@ public:
     unsigned int GetRegion() const;
     unsigned int GetDoubleColumn() const;
     unsigned int GetAddress() const;
+    TPixFlag GetPixFlag() const;
 };
 
 #endif
