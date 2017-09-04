@@ -6,260 +6,353 @@
 
 using namespace std;
 
-bool AlpideDecoder::fNewEvent = false;
-
 //___________________________________________________________________
-TDataType AlpideDecoder::GetDataType( unsigned char dataWord )
+TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
+    fNewEvent( false ),
+    fBunchCounter( 0 ),
+    fFlags( 0 ),
+    fChipId( -1 ),
+    fRegion( -1 ),
+    fBoardIndex( 0 ),
+    fBoardReceiver( 0 ),
+    fPrioErrors( 0 ),
+    fDataType( TDataType::kUNKNOWN )
 {
-    cout << "AlpideDecoder::GetDataType() - dataWord = " << endl;
-    printf ("%02x ", (int)dataWord);
-    cout << endl;
-    if      ( dataWord == 0xff )          return TDataType::kIDLE;
-    else if ( dataWord == 0xf1 )          return TDataType::kBUSYON;
-    else if ( dataWord == 0xf0 )          return TDataType::kBUSYOFF;
-    else if ( (dataWord & 0xf0) == 0xa0 ) return TDataType::kCHIPHEADER;
-    else if ( (dataWord & 0xf0) == 0xb0 ) return TDataType::kCHIPTRAILER;
-    else if ( (dataWord & 0xf0) == 0xe0 ) return TDataType::kEMPTYFRAME;
-    else if ( (dataWord & 0xe0) == 0xc0 ) return TDataType::kREGIONHEADER;
-    else if ( (dataWord & 0xc0) == 0x40 ) return TDataType::kDATASHORT;
-    else if ( (dataWord & 0xc0) == 0x0 )  return TDataType::kDATALONG;
-    else return TDataType::kUNKNOWN;
+    
 }
 
 //___________________________________________________________________
-int AlpideDecoder::GetWordLength( TDataType dataType )
+TAlpideDecoder::~TAlpideDecoder()
 {
-    if ( dataType == TDataType::kDATALONG ) {
+    
+}
+
+//___________________________________________________________________
+void TAlpideDecoder::SetDataType( unsigned char dataWord )
+{
+    if      ( dataWord == 0xff )          fDataType = TDataType::kIDLE;
+    else if ( dataWord == 0xf1 )          fDataType = TDataType::kBUSYON;
+    else if ( dataWord == 0xf0 )          fDataType = TDataType::kBUSYOFF;
+    else if ( (dataWord & 0xf0) == 0xa0 ) fDataType = TDataType::kCHIPHEADER;
+    else if ( (dataWord & 0xf0) == 0xb0 ) fDataType = TDataType::kCHIPTRAILER;
+    else if ( (dataWord & 0xf0) == 0xe0 ) fDataType = TDataType::kEMPTYFRAME;
+    else if ( (dataWord & 0xe0) == 0xc0 ) fDataType = TDataType::kREGIONHEADER;
+    else if ( (dataWord & 0xc0) == 0x40 ) fDataType = TDataType::kDATASHORT;
+    else if ( (dataWord & 0xc0) == 0x0 )  fDataType = TDataType::kDATALONG;
+    else fDataType = TDataType::kUNKNOWN;
+
+    if ( GetVerboseLevel() > kCHATTY ) {
+        
+        cout << "TAlpideDecoder::SetDataType() - dataWord = " << endl;
+        printf ("%02x ", (int)dataWord);
+        cout << endl << "TAlpideDecoder::SetDataType() - fDataType = " ;
+        switch ( (int)fDataType ) {
+            case (int)TDataType::kIDLE:
+                cout << "TDataType::kIDLE" << endl;
+                break;
+            case (int)TDataType::kCHIPHEADER:
+                cout << "TDataType::kCHIPHEADER" << endl;
+                break;
+            case (int)TDataType::kCHIPTRAILER:
+                cout << "TDataType::kCHIPTRAILER" << endl;
+                break;
+            case (int)TDataType::kEMPTYFRAME:
+                cout << "TDataType::kEMPTYFRAME" << endl;
+                break;
+            case (int)TDataType::kREGIONHEADER:
+                cout << "TDataType::kREGIONHEADER" << endl;
+                break;
+            case (int)TDataType::kDATASHORT:
+                cout << "TDataType::kDATASHORT" << endl;
+                break;
+            case (int)TDataType::kDATALONG:
+                cout << "TDataType::kDATALONG" << endl;
+                break;
+            case (int)TDataType::kBUSYON:
+                cout << "TDataType::kBUSYON" << endl;
+                break;
+            case (int)TDataType::kBUSYOFF:
+                cout << "TDataType::kBUSYOFF" << endl;
+                break;
+            default:
+                cout << "TDataType::kUNKNOWN" << endl;
+                break;
+        }
+    }
+}
+
+//___________________________________________________________________
+int TAlpideDecoder::GetWordLength() const
+{
+    if ( fDataType == TDataType::kDATALONG ) {
     return 3;
   }
-    else if ( (dataType == TDataType::kDATASHORT) || (dataType == TDataType::kCHIPHEADER) || (dataType == TDataType::kEMPTYFRAME) ) {
+    else if ( (fDataType == TDataType::kDATASHORT) || (fDataType == TDataType::kCHIPHEADER) || (fDataType == TDataType::kEMPTYFRAME) ) {
     return 2;
   }
   else return 1;
 }
 
 //___________________________________________________________________
-bool AlpideDecoder::DecodeEvent( unsigned char* data,
+bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                                 int nBytes,
-                                vector<shared_ptr<TPixHit>> hits )
+                                vector<shared_ptr<TPixHit>> hits,
+                                 int boardIndex,
+                                 int boardReceiver )
 {
-    int       byte    = 0;
-    int       region  = -1;
-    int       chip    = -1;
-    int       flags   = 0;
-    bool      started = false; // event has started, i.e. chip header has been found
-    bool      finished = false; // event trailer found
-    TDataType type;
+    fBunchCounter = 0;
+    fFlags  = 0;
+    fChipId = -1;
+    fRegion = -1;
+    fBoardIndex = boardIndex;
+    fBoardReceiver = boardReceiver;
+    fDataType = TDataType::kUNKNOWN;
+    bool started = false; // event has started, i.e. chip header has been found
+    bool finished = false; // event trailer found
+    bool corrupt  = false; // corrupt data found (i.e. data without region or chip)
+    int byte = 0;
     
     unsigned char last;
-    
-    unsigned int BunchCounterTmp;
     
     while ( byte < nBytes ) {
         
         last = data[byte];
-        type = GetDataType( data[byte] );
+        SetDataType( data[byte] );
         
-        switch ( type ) {
+        switch ( fDataType ) {
             case TDataType::kIDLE:
-                byte +=1;
+                byte +=GetWordLength();
                 break;
             case TDataType::kBUSYON:
-                byte += 1;
+                byte += GetWordLength();
                 break;
             case TDataType::kBUSYOFF:
-                byte += 1;
+                byte += GetWordLength();
                 break;
             case TDataType::kEMPTYFRAME:
                 started = true;
-                DecodeEmptyFrame( data + byte, chip, BunchCounterTmp );
-                cout << "AlpideDecoder::DecodeEvent() - empty frame" << endl;
-                byte += 2;
+                DecodeEmptyFrame( data + byte );
+                byte += GetWordLength();
                 finished = true;
                 break;
             case TDataType::kCHIPHEADER:
                 started = true;
                 finished = false;
-                DecodeChipHeader( data + byte, chip, BunchCounterTmp );
-                cout << "AlpideDecoder::DecodeEvent() - chip header" << endl;
-                byte += 2;
+                DecodeChipHeader( data + byte );
+                byte += GetWordLength();
                 break;
             case TDataType::kCHIPTRAILER:
                 if ( !started ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, chip trailer found before chip header" << endl;
+                    cerr << "TAlpideDecoder::DecodeEvent() - Error: chip trailer found before chip header" << endl;
                     return false;
                 }
                 if ( finished ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, chip trailer found after event was finished" << endl;
+                    cerr << "TAlpideDecoder::DecodeEvent() - Error: chip trailer found after event was finished" << endl;
                     return false;
                 }
-                cout << "AlpideDecoder::DecodeEvent() - chip trailer" << endl;
-                DecodeChipTrailer( data + byte, flags );
+                DecodeChipTrailer( data + byte );
                 finished = true;
-                chip = -1;
-                byte += 1;
+                fChipId = -1;
+                byte += GetWordLength();
                 break;
             case TDataType::kREGIONHEADER:
                 if (!started) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, region header found before chip header or after chip trailer" << endl;
+                    cerr << "TAlpideDecoder::DecodeEvent() - Error: region header found before chip header or after chip trailer" << endl;
                     return false;
                 }
-                cout << "AlpideDecoder::DecodeEvent() - region header" << endl;
-                DecodeRegionHeader( data + byte, region );
-                byte +=1;
+                DecodeRegionHeader( data + byte );
+                byte += GetWordLength();
                 break;
             case TDataType::kDATASHORT:
                 if ( !started ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, hit data found before chip header or after chip trailer" << endl;
+                    cerr << "TAlpideDecoder::DecodeEvent() - Error: hit data found before chip header or after chip trailer" << endl;
                     return false;
                 }
-                if ( region == -1 ) {
-                    cout << "AlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << chip << ")" << endl;
+                if ( fRegion == -1 ) {
+                    cout << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
+                    corrupt = true;
                 }
                 else if ( hits.data() ) {
-                    if ( chip == -1 ) {
-                        cerr << "AlpideDecoder::DecodeEvent() - TDataType::kDATASHORT" << endl;
+                    if ( fChipId == -1 ) {
+                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: found chip id -1, TDataType::kDATASHORT" << endl;
                         for ( int i = 0; i < nBytes; i++ ) {
                             printf("%02x ", data[i]);
                         }
                         printf("\n");
                     }
-                    DecodeDataWord( data + byte, chip, region, hits, false );
+                    bool corrupted = DecodeDataWord( data + byte, hits, false );
+                    if (corrupted) {
+                        corrupt = true;
+                    }
                 }
-                byte += 2;
+                byte += GetWordLength();
                 break;
             case TDataType::kDATALONG:
                 if ( !started ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Error, hit data found before chip header or after chip trailer" << endl;
+                    cerr << "TAlpideDecoder::DecodeEvent() - Error: hit data found before chip header or after chip trailer" << endl;
                     return false;
                 }
-                if ( region == -1 ) {
-                    cerr << "AlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << chip << ")" << endl;
+                if ( fRegion == -1 ) {
+                    cerr << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
+                    corrupt = true;
                 }
                 else if ( hits.data() ) {
-                    if ( chip == -1 ) {
-                        cerr << "AlpideDecoder::DecodeEvent() - TDataType::kDATALONG" << endl;
+                    if ( fChipId == -1 ) {
+                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: found chip id -1, TDataType::kDATALONG" << endl;
                         for ( int i = 0; i < nBytes; i++ ) {
                             printf("%02x ", data[i]);
                         }
                         printf("\n");
                     }
-                    DecodeDataWord( data + byte, chip, region, hits, true );
+                    bool corrupted = DecodeDataWord( data + byte, hits, true );
+                    if (corrupted) {
+                        corrupt = true;
+                    }
                 }
-                byte += 3;
+                byte += GetWordLength();
                 break;
             case TDataType::kUNKNOWN:
-                cerr << "AlpideDecoder::DecodeEvent() - Error, data of unknown type 0x" << std::hex << data[byte] << std::dec << endl;
+                cerr << "TAlpideDecoder::DecodeEvent() - Error: data of unknown type 0x" << std::hex << data[byte] << std::dec << endl;
                 return false;
         }
     }
-    //cout << "Found " << Hits->size() - NOldHits << " hits" << endl;
-    if ( started && finished ) return true;
+    if ( started && finished ) return (!corrupt);
     else {
         if ( started && !finished ) {
-            cout << "AlpideDecoder::DecodeEvent() - Warning (chip "<< chip << "), event not finished at end of data, last byte was 0x" << std::hex << (int) last << std::dec << ", event length = " << nBytes << endl;
+            cout << "TAlpideDecoder::DecodeEvent() - Warning (chip "<< fChipId << "): event not finished at end of data, last byte was 0x" << std::hex << (int) last << std::dec << ", event length = " << nBytes << endl;
             return false;
         }
         if ( !started ) {
-            cout << "AlpideDecoder::DecodeEvent() - Warning, event not started at end of data" << endl;
+            cout << "TAlpideDecoder::DecodeEvent() - Warning: event not started at end of data" << endl;
             return false;
         }
     }
-    return true;
+    return (!corrupt);
 }
 
 //___________________________________________________________________
-void AlpideDecoder::DecodeChipHeader( unsigned char* data,
-                                      int& chipId,
-                                      unsigned int& bunchCounter )
+void TAlpideDecoder::DecodeChipHeader( unsigned char* data )
 {
   int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
-  bunchCounter = data_field & 0xff;
-  chipId       = (data_field >> 8) & 0xf;
-  fNewEvent    = true;
+  fBunchCounter = data_field & 0xff;
+  fChipId       = (data_field >> 8) & 0xf;
+  fNewEvent     = true;
 }
 
 //___________________________________________________________________
-void AlpideDecoder::DecodeChipTrailer( unsigned char* data, int& flags )
+void TAlpideDecoder::DecodeChipTrailer( unsigned char* data )
 {
-  flags = data[0] & 0xf;
+  fFlags = data[0] & 0xf;
 }
 
 //___________________________________________________________________
-void AlpideDecoder::DecodeRegionHeader( unsigned char* data, int& region )
+void TAlpideDecoder::DecodeRegionHeader( unsigned char* data )
 {
-  region = data[0] & 0x1f;
+  fRegion = data[0] & 0x1f;
 }
 
 //___________________________________________________________________
-void AlpideDecoder::DecodeEmptyFrame ( unsigned char* data,
-                                      int& chipId,
-                                      unsigned int& bunchCounter )
+void TAlpideDecoder::DecodeEmptyFrame ( unsigned char* data )
 {
   int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
-  bunchCounter = data_field & 0xff;
-  chipId       = (data_field >> 8) & 0xf;
+  fBunchCounter = data_field & 0xff;
+  fChipId       = (data_field >> 8) & 0xf;
 }
 
 //___________________________________________________________________
-void AlpideDecoder::DecodeDataWord( unsigned char* data,
-                                   int chip,
-                                   int region,
-                                   vector<shared_ptr<TPixHit>> hits,
-                                   bool datalong )
+bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
+                                    vector<shared_ptr<TPixHit>> hits,
+                                    bool datalong )
 {
-    cout << "AlpideDecoder::DecodeDataWord() - start" << endl;
-
     auto hit = make_shared<TPixHit>();
     
-    unsigned int address;
-    int hitmap_length;
-
     int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
-    if ( chip == -1 ) {
-        cout << "AlpideDecoder::DecodeDataWord() - Warning, found chip id -1, dataword = 0x" << std::hex << (int) data_field << std::dec << endl;
+    if ( GetVerboseLevel() > kCHATTY ) {
+        cout << "TAlpideDecoder::DecodeDataWord() - data word = 0x" << std::hex << (int) data_field << std::dec << endl;
     }
-    hit->SetChipId( chip );
-    hit->SetRegion( region );
+  
+    bool corrupt = false;
+
+    hit->SetBoardIndex( fBoardIndex );
+    hit->SetBoardReceiver( fBoardReceiver );
+    hit->SetRegion( fRegion );
     hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 );
-    address = (data_field & 0x03ff);
+
+    if ( fChipId == -1 ) {
+        cout << "TAlpideDecoder::DecodeDataWord() - Warning: found chip id -1, data word = 0x" << std::hex << (int) data_field << std::dec << endl;
+        // store one hit with the flag indicating a bad chip id
+        hit->SetAddress( 0 );
+        hit->SetChipId( 0 );
+        hit->SetPixFlag( TPixFlag::kBAD_CHIPID );
+        fNewEvent = false;
+        corrupt = true;
+        return corrupt;
+    }
+    hit->SetChipId( fChipId );
+    
+    unsigned int address = (data_field & 0x03ff);
 
     if ( (hits.size() > 0) && (!fNewEvent) ) {
         if ( (hit->GetRegion() == (hits.back())->GetRegion())
             && ( hit->GetDoubleColumn() == (hits.back())->GetDoubleColumn())
             && (address == (hits.back())->GetAddress()) ) {
-            cout << "AlpideDecoder::DecodeDataWord() - Warning (chip "<< chip << "), received pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn()
+            cout << "TAlpideDecoder::DecodeDataWord() - Warning (chip "<< fChipId << "): received pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn()
                 << "/" << address <<  " twice." << endl;
+            fPrioErrors++;
+            hit->SetPixFlag( TPixFlag::kSTUCK );
         }
         else if ( (hit->GetRegion() == (hits.back())->GetRegion() )
                  && (hit->GetDoubleColumn() == (hits.back())->GetDoubleColumn())
                  && (address < (hits.back())->GetAddress()) ) {
-            cout << "AlpideDecoder::DecodeDataWord() - Warning (chip "<< chip << "), address of pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn() << "/" << address <<  " is lower than previous one ("
+            cout << "TAlpideDecoder::DecodeDataWord() - Warning (chip "<< fChipId << "): address of pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn() << "/" << address <<  " is lower than previous one ("
                 << (hits.back())->GetAddress()
                 << ") in same double column." << endl;
+            fPrioErrors++;
+            hit->SetPixFlag( TPixFlag::kSTUCK );
         }
     }
 
+    int hitmap_length;
+    
     if ( datalong ) {
-        hitmap_length = 7;
+        hitmap_length = 7; // clustering enabled
     } else {
         hitmap_length = 0;
     }
 
+    TPixFlag pixFlag = hit->GetPixFlag();
     for ( int i = -1; i < hitmap_length; i ++ ) {
         if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;
-        hit->SetAddress( address + (i + 1) );
-        /*
-        if ( hit->GetChipId() == -1 ) {
-            cout << "AlpideDecoder::DecodeDataWord() - Warning, found chip id -1"
-                 << endl;
+        auto singleHit( hit ); // copy constructor to make a new shared ptr
+        singleHit->SetAddress( address + (i + 1) ); // set hit address on the new shared ptr
+        if ( pixFlag == TPixFlag::kSTUCK) { // keep stuck flag, higher priority than bad address flag
+            singleHit->SetPixFlag( TPixFlag::kSTUCK );
         }
-         */
-        hits.push_back( move(hit) );
-        cout << "AlpideDecoder::DecodeDataWord() - hit added." << endl;
+        pixFlag = singleHit->GetPixFlag();
+        if ( GetVerboseLevel() > kCHATTY ) {
+            cout << "TAlpideDecoder::DecodeDataWord() - new hit :" << endl;
+            cout << "\t board:receiver:chip:region:dcol:add , flag "
+                << singleHit->GetBoardIndex() << ":"
+                << singleHit->GetBoardReceiver() << ":"
+                << singleHit->GetChipId() << ":"
+                << singleHit->GetRegion() << ":"
+                << singleHit->GetDoubleColumn() << ":"
+                << singleHit->GetAddress() << " , " << (int)pixFlag << endl;
+        }
+        corrupt = ( (pixFlag == TPixFlag::kBAD_ADDRESS)
+                   || (pixFlag == TPixFlag::kBAD_DCOLID)
+                   || (pixFlag == TPixFlag::kBAD_REGIONID)
+                   || (pixFlag == TPixFlag::kBAD_CHIPID)
+                   || (pixFlag == TPixFlag::kUNKNOWN) ) ? true : false;
+
+        hits.push_back( move(singleHit) ); // vector owns hit with the address set
+        if ( GetVerboseLevel() > kCHATTY ) {
+            cout << "TAlpideDecoder::DecodeDataWord() - hit added." << endl;
+        }
     }
     fNewEvent = false;
+    return corrupt;
 }

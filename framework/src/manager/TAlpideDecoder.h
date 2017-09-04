@@ -1,8 +1,9 @@
-#ifndef ALPIDEDECODER_H
-#define ALPIDEDECODER_H
+#ifndef TALPIDEDECODER_H
+#define TALPIDEDECODER_H
 
 #include <vector>
 #include <memory>
+#include "TVerbosity.h"
 
 enum class TDataType {
     kIDLE,
@@ -19,30 +20,49 @@ enum class TDataType {
 
 class TPixHit;
 
-class AlpideDecoder {
+class TAlpideDecoder : public TVerbosity {
     
 private:
 
-    static bool fNewEvent;
+    bool fNewEvent;
+    unsigned int fBunchCounter;
+    int fFlags;
+    int fChipId;
+    int fRegion;
+    int fBoardIndex;
+    int fBoardReceiver;
+    int fPrioErrors;
+    TDataType fDataType;
     
 public:
+
+    // constructor / destructor
     
-    static TDataType GetDataType        ( unsigned char dataWord );
-    static int       GetWordLength      ( TDataType dataType );
-    static bool      DecodeEvent        ( unsigned char* data, int nBytes,
-                                         std::vector<std::shared_ptr<TPixHit>> hits );
+    TAlpideDecoder();
+    ~TAlpideDecoder();
+
+    // the sole purpose of this class : decode each event read by the readout board
+
+    bool DecodeEvent( unsigned char* data, int nBytes,
+                     std::vector<std::shared_ptr<TPixHit>> hits,
+                     int boardIndex,
+                     int boardReceiver );
+    
+    // getters
+    
+    inline int GetPrioErrors() const { return fPrioErrors; }
+
 private:
     
-    static void      DecodeChipHeader   ( unsigned char* data, int& chipId,
-                                         unsigned int& bunchCounter );
-    static void      DecodeChipTrailer  ( unsigned char* data, int& flags );
-    static void      DecodeRegionHeader ( unsigned char* data, int& region);
-    static void      DecodeEmptyFrame   ( unsigned char* data, int& chipId,
-                                         unsigned int& bunchCounter );
-    static void      DecodeDataWord     ( unsigned char* data, int chip, int region,
-                                         std::vector<std::shared_ptr<TPixHit>> hits, bool datalong );
+    void SetDataType( unsigned char dataWord );
+    int GetWordLength() const;
+    void DecodeChipHeader( unsigned char* data );
+    void DecodeChipTrailer( unsigned char* data );
+    void DecodeRegionHeader( unsigned char* data );
+    void DecodeEmptyFrame( unsigned char* data );
+    bool DecodeDataWord( unsigned char* data,
+                        std::vector<std::shared_ptr<TPixHit>> hits,
+                        bool datalong );
 };
-
-
 
 #endif
