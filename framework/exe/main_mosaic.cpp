@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     }
     
     shared_ptr<TReadoutBoardMOSAIC> theBoard = dynamic_pointer_cast<TReadoutBoardMOSAIC>(theDevice->GetBoard( 0 ));
-
+    theBoard->SetVerboseLevel( mySetup.GetVerboseLevel() );
     if ( !theBoard ) {
         cout << "No MOSAIC board found, exit!" << endl;
         return 1;
@@ -110,14 +110,14 @@ int main(int argc, char** argv) {
 	theBoard->Trigger( nTriggers ); // Preset and start the trigger
 
     int nEvents = 0;
-    const int MAX_N_EVENTS = 100;
+    int MAX_N_EVENTS = nTriggers * theDevice->GetNChips();
 	while( !isDataTakingEnd ) { // while we don't receive a timeout or we don't have enough events yet
-        if ( nEvents > MAX_N_EVENTS ) {
+        if ( nEvents == MAX_N_EVENTS-1 ) {
             isDataTakingEnd = true;
         }
 		returnCode = theBoard->ReadEventData( numberOfReadByte, theBuffer );
 		if( returnCode != 0 ) { // we have some thing
-            cout << "Received Event " << nEvents << " with length " << numberOfReadByte << endl;
+            cout << "Received Event " << std::dec << nEvents << " with length " << numberOfReadByte << endl;
             if ( mySetup.GetVerboseLevel() > TVerbosity::kVERBOSE ) {
                 for ( int iByte = 0; iByte < numberOfReadByte; ++iByte ) {
                     printf ("%02x ", (int) theBuffer[iByte]);
