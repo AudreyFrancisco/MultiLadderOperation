@@ -98,7 +98,7 @@ void TDeviceChipVisitor::Init()
         
         myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
         
-        // TODO: check if this is needed ?
+        // TODO: check if AlpideOpCode::PRST is needed ?
         // -- pixel matrix reset
         // (does not affect the PULSE_EN and MASK_EN latches)
         
