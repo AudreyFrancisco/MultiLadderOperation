@@ -630,15 +630,7 @@ void TAlpide::Init()
         return;
     }
 
-    ActivateConfigMode();
     ClearPixSelectBits(true);
-    
-    // -- init in-pixel registers
-    // (the pixel latches do not provide a reset mechanism,
-    // the value after power-on is unknown)
-
-    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE, true );
-    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
 }
 
 //___________________________________________________________________
@@ -782,6 +774,9 @@ void TAlpide::ActivateConfigMode()
         }
         return;
     }
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TAlpide::ActivateConfigMode() - chip id = " << DecomposeChipId()  <<  endl;
+    }
     try {
         WriteControlReg( AlpideChipMode::CONFIG ); // set chip to config mode
     } catch ( exception& msg ) {
@@ -804,6 +799,9 @@ void TAlpide::ActivateReadoutMode()
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
         return;
+    }
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TAlpide::ActivateReadoutMode() - chip id = " << DecomposeChipId()  <<  endl;
     }
    try {
         if ( spConfig->GetReadoutMode() ) {
@@ -1018,14 +1016,6 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
         }
         return iStage;
     }
-    
-    try {
-        ActivateConfigMode();
-    } catch ( exception& msg ) {
-        cerr << msg.what() << endl;
-        cerr << "TAlpide::ConfigureMaskStage() - chip id = " << DecomposeChipId() << endl;
-        throw runtime_error( "TAlpide::ConfigureMaskStage() - failed." );
-    }
 
     EnableDoubleColumns();
 
@@ -1039,12 +1029,21 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
     
     // complete row
     if ( nPix == 32 ) {
-        WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE,   false, iStage );
+        if ( GetVerboseLevel() >= kCHATTY ) {
+            cout << "TAlpide::ConfigureMaskStage() - chip id = "
+            << DecomposeChipId() << " , complete row " << std::dec << iStage << endl;
+        }
+        WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE, false, iStage );
         WritePixRegRow( AlpidePixConfigReg::PULSE_ENABLE, true, iStage );
         return iStage;
     } else {
         int colStep = 32 / nPix;
         for ( int icol = 0; icol < 1024; icol += colStep ) {
+            if ( GetVerboseLevel() >= kCHATTY ) {
+                cout << "TAlpide::ConfigureMaskStage() - chip id = "
+                    << DecomposeChipId() << " , row:col "
+                    << iStage % 512 << ":" << icol + iStage / 512 << endl;
+            }
             WritePixRegSingle( AlpidePixConfigReg::MASK_ENABLE,   false, iStage % 512, icol + iStage / 512);
             WritePixRegSingle( AlpidePixConfigReg::PULSE_ENABLE, true,  iStage % 512, icol + iStage / 512);
         }
@@ -1208,9 +1207,9 @@ void TAlpide::BaseConfigMask()
         return;
     }
     // disable mask
-    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,  false );
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,  true );
     // enable pulse
-    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, true );
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
 }
 
 //___________________________________________________________________
@@ -1288,17 +1287,6 @@ void TAlpide::BaseConfigDACs()
 //___________________________________________________________________
 void TAlpide::BaseConfig()
 {
-    shared_ptr<TChipConfig> spConfig = fConfig.lock();
-    if ( !spConfig ) {
-        throw runtime_error( "TAlpide::BaseConfig() - chip config. not found!" );
-    }
-    try {
-        ActivateConfigMode();
-    } catch ( exception& msg ) {
-        cerr << msg.what() << endl;
-        throw runtime_error( "TAlpide::BaseConfig() - failed !" );
-    }
-    
     ConfigureCMU();
     ConfigureFROMU();
     BaseConfigDACs();

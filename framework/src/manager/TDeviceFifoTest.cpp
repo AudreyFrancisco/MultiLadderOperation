@@ -79,7 +79,7 @@ void TDeviceFifoTest::Go()
         
         // write and read the DPRAM memories of the RRU modules can only
         // be done when the chip is in configuration mode
-        fDevice->GetChip(fCurrentChipIndex)->WriteControlReg( AlpideChipMode::CONFIG );
+        fDevice->GetChip(fCurrentChipIndex)->ActivateConfigMode();
         
         MemTestPerChip();
         

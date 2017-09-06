@@ -74,18 +74,16 @@ int main(int argc, char** argv) {
         return 1;
     }
     theBoard->SetVerboseLevel( mySetup.GetVerboseLevel() );
-    theBoard->StopRun();
     
     // configure chip(s)
     TDeviceChipVisitor theDeviceChipVisitor( theDevice );
     theDeviceChipVisitor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceChipVisitor.Init();
+    theDeviceChipVisitor.DoActivateConfigMode();
     theDeviceChipVisitor.DoBaseConfig();
-    theDeviceChipVisitor.DoConfigureMaskStage( theScanConfig->GetPixPerRegion(), theScanConfig->GetNMaskStages() );
     theDeviceChipVisitor.DoActivateReadoutMode();
-    if ( mySetup.GetVerboseLevel() ) {
-        theDeviceChipVisitor.DoDumpConfig();
-    }
+    theDeviceChipVisitor.DoConfigureMaskStage( theScanConfig->GetPixPerRegion(), theScanConfig->GetNMaskStages() );
+    
 	//--- Data Tacking
 	int numberOfReadByte; // the bytes of row event
 	unsigned char *theBuffer; // the buffer containing the event
@@ -107,11 +105,15 @@ int main(int argc, char** argv) {
 	theBoard->SetTriggerSource( TTriggerSource::kTRIG_INT );
 
 	theBoard->StartRun(); // Activate the data taking ...
+    if ( mySetup.GetVerboseLevel() ) {
+        theDeviceChipVisitor.DoDumpConfig();
+    }
 
     theBoard->Trigger( nTriggers ); // Preset and start the trigger
 
+
     int nEvents = 0;
-    int MAX_N_EVENTS = nTriggers;
+    int MAX_N_EVENTS = nTriggers * theDevice->GetNWorkingChips();
 	while( !isDataTakingEnd ) { // while we don't receive a timeout or we don't have enough events yet
         if ( nEvents == MAX_N_EVENTS-1 ) {
             isDataTakingEnd = true;
