@@ -33,10 +33,10 @@
 
 #include <stdint.h>
 #include "mwbbslave.h"
+#include "TVerbosity.h"
 
 
-
-class Pulser: public MWbbSlave
+class Pulser: public MWbbSlave, public TVerbosity
 {
 public:
     Pulser();
