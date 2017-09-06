@@ -243,6 +243,7 @@ void TReadoutBoardMOSAIC::SetVerboseLevel( const int level )
     for (int i=0; i<BoardConfigMOSAIC::MAX_MOSAICTRANRECV; i++){
         fAlpideDataParser[i]->SetVerboseLevel( level );
     }
+    fPulser->SetVerboseLevel( level );
     TVerbosity::SetVerboseLevel( level );
 }
 
