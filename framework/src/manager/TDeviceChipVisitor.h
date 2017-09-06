@@ -44,6 +44,7 @@ public:
     virtual void Init();
     
     #pragma mark - forward operations to each Alpide in the device
+    void DoActivateConfigMode();
     void DoApplyStandardDACSettings( const float backBias );
     void DoBaseConfigPLL();
     void DoBaseConfigMask();
@@ -55,6 +56,7 @@ public:
     void DoConfigureDTU_TEST1();
     void DoConfigureMaskStage( int nPix, const int iStage );
     void DoDumpConfig();
+    void DoActivateReadoutMode();
     
 };
 

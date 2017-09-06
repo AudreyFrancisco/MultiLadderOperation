@@ -62,6 +62,7 @@ int main(int argc, char** argv) {
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.Init();
     theDeviceTestor.DoBaseConfig();
+    theDeviceTestor.DoActivateReadoutMode();
     if ( mySetup.GetVerboseLevel() ) {
         theDeviceTestor.DoDumpConfig();
     }

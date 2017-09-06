@@ -105,21 +105,21 @@ void TDeviceChipVisitor::Init()
         myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
     }
     
-    // -- init in-pixel registers
-    // (the pixel latches do not provide a reset mechanism,
-    // the value after power-on is unknown)
-
-    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
-        fDevice->GetChip(i)->Init();
-        // disable mask
-        fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE, false );
-        // disable pulse
-        fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
-    }
     fIsInitDone = true;
 }
 
 #pragma mark - forward configure operations to each Alpide in the device
+
+//___________________________________________________________________
+void TDeviceChipVisitor::DoActivateConfigMode()
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoActivateConfigMode() - not initialized ! Please use Init() first." );
+    }
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
+        fDevice->GetChip(i)->ActivateConfigMode();
+    }
+}
 
 //___________________________________________________________________
 void TDeviceChipVisitor::DoApplyStandardDACSettings( const float backBias )
@@ -251,4 +251,16 @@ void TDeviceChipVisitor::DoDumpConfig()
         fDevice->GetChip(i)->DumpConfig();
     }
 }
+
+//___________________________________________________________________
+void TDeviceChipVisitor::DoActivateReadoutMode()
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoActivateReadoutMode() - not initialized ! Please use Init() first." );
+    }
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
+        fDevice->GetChip(i)->ActivateReadoutMode();
+    }
+}
+
 

@@ -69,11 +69,12 @@ int main(int argc, char** argv) {
     }
     
     shared_ptr<TReadoutBoardMOSAIC> theBoard = dynamic_pointer_cast<TReadoutBoardMOSAIC>(theDevice->GetBoard( 0 ));
-    theBoard->SetVerboseLevel( mySetup.GetVerboseLevel() );
     if ( !theBoard ) {
         cout << "No MOSAIC board found, exit!" << endl;
         return 1;
     }
+    theBoard->SetVerboseLevel( mySetup.GetVerboseLevel() );
+    theBoard->StopRun();
     
     // configure chip(s)
     TDeviceChipVisitor theDeviceChipVisitor( theDevice );
@@ -81,10 +82,10 @@ int main(int argc, char** argv) {
     theDeviceChipVisitor.Init();
     theDeviceChipVisitor.DoBaseConfig();
     theDeviceChipVisitor.DoConfigureMaskStage( theScanConfig->GetPixPerRegion(), theScanConfig->GetNMaskStages() );
+    theDeviceChipVisitor.DoActivateReadoutMode();
     if ( mySetup.GetVerboseLevel() ) {
         theDeviceChipVisitor.DoDumpConfig();
     }
-    
 	//--- Data Tacking
 	int numberOfReadByte; // the bytes of row event
 	unsigned char *theBuffer; // the buffer containing the event
@@ -107,10 +108,10 @@ int main(int argc, char** argv) {
 
 	theBoard->StartRun(); // Activate the data taking ...
 
-	theBoard->Trigger( nTriggers ); // Preset and start the trigger
+    theBoard->Trigger( nTriggers ); // Preset and start the trigger
 
     int nEvents = 0;
-    int MAX_N_EVENTS = nTriggers * theDevice->GetNChips();
+    int MAX_N_EVENTS = nTriggers;
 	while( !isDataTakingEnd ) { // while we don't receive a timeout or we don't have enough events yet
         if ( nEvents == MAX_N_EVENTS-1 ) {
             isDataTakingEnd = true;

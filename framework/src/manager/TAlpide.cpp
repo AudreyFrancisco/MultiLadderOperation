@@ -630,7 +630,15 @@ void TAlpide::Init()
         return;
     }
 
+    ActivateConfigMode();
     ClearPixSelectBits(true);
+    
+    // -- init in-pixel registers
+    // (the pixel latches do not provide a reset mechanism,
+    // the value after power-on is unknown)
+
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE, true );
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
 }
 
 //___________________________________________________________________
@@ -757,6 +765,56 @@ void TAlpide::ApplyStandardDACSettings( const float backBias )
         cerr << msg.what() << endl;
         cerr << "TAlpide::ApplyStandardDACSettings() - chip id = " << DecomposeChipId() << endl;
         throw runtime_error( "TAlpide::ApplyStandardDACSettings() - failed." );
+    }
+}
+
+//___________________________________________________________________
+void TAlpide::ActivateConfigMode()
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ActivateConfigMode() - chip config. not found!" );
+    }
+   if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ActivateConfigMode() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    try {
+        WriteControlReg( AlpideChipMode::CONFIG ); // set chip to config mode
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        cerr << "TAlpide::ActivateConfigMode() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ActivateConfigMode() - chip can not be set into config mode." );
+    }
+}
+
+//___________________________________________________________________
+void TAlpide::ActivateReadoutMode()
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ActivateReadoutMode() - chip config. not found!" );
+    }
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ActivateReadoutMode() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+   try {
+        if ( spConfig->GetReadoutMode() ) {
+            WriteControlReg( AlpideChipMode::CONTINUOUS );
+        } else {
+            WriteControlReg( AlpideChipMode::TRIGGERED ); // strobed readout mode
+        }
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        cerr << "TAlpide::ActivateReadoutMode() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ActivateReadoutMode() - chip can not be set into readout mode." );
     }
 }
 
@@ -961,6 +1019,14 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
         return iStage;
     }
     
+    try {
+        ActivateConfigMode();
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        cerr << "TAlpide::ConfigureMaskStage() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ConfigureMaskStage() - failed." );
+    }
+
     EnableDoubleColumns();
 
     // check that nPix is one of (1, 2, 4, 8, 16, 32)
@@ -996,7 +1062,7 @@ void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
     }
     
     if ( !(spConfig->IsEnabled()) || (spConfig->IsOBSlave()) ) {
-        // TODO for OB: is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
+        // TODO: for OB, is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
         if ( GetVerboseLevel() > kTERSE ) {
             if ( !(spConfig->IsEnabled()) ) {
                 cout << "TAlpide::WriteControlReg() - chip id = "
@@ -1069,7 +1135,7 @@ void TAlpide::BaseConfigPLL()
         return;
     }
     if ( !(spConfig->IsEnabled()) || (spConfig->IsOBSlave()) ) {
-        // TODO for OB: is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
+        // TODO: for OB, is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
         if ( GetVerboseLevel() > kTERSE ) {
             if ( !(spConfig->IsEnabled()) ) {
                 cout << "TAlpide::BaseConfigPLL() - chip id = "
@@ -1226,13 +1292,11 @@ void TAlpide::BaseConfig()
     if ( !spConfig ) {
         throw runtime_error( "TAlpide::BaseConfig() - chip config. not found!" );
     }
-
     try {
-        WriteControlReg( AlpideChipMode::CONFIG ); // set chip to config mode
+        ActivateConfigMode();
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
-        cerr << "TAlpide::BaseConfig() - chip id = " << DecomposeChipId() << endl;
-        throw runtime_error( "TAlpide::BaseConfig() - chip can not be set into config mode." );
+        throw runtime_error( "TAlpide::BaseConfig() - failed !" );
     }
     
     ConfigureCMU();
@@ -1240,12 +1304,6 @@ void TAlpide::BaseConfig()
     BaseConfigDACs();
     BaseConfigMask();
     BaseConfigPLL();
-    
-    if ( spConfig->GetReadoutMode() ) {
-        WriteControlReg( AlpideChipMode::CONTINUOUS );
-    } else {
-        WriteControlReg( AlpideChipMode::TRIGGERED ); // strobed readout mode
-    }
 }
 
 
