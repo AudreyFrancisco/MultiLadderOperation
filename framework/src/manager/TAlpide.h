@@ -244,6 +244,7 @@ private:
     
     #pragma mark - other
     
+    /// Enable the readout of all double columns (Priority Encoders) of all regions
     void EnableDoubleColumns();
     
     std::string DecomposeChipId();

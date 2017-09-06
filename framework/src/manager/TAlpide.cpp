@@ -1017,26 +1017,45 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
         return iStage;
     }
 
-    EnableDoubleColumns();
-
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,   true );
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
+    
+    // if iStage < 0, always do full row for the first N = nPix rows
+    if ( iStage < 0 ) {
+        if ( GetVerboseLevel() >= kCHATTY ) {
+            cout << "TAlpide::ConfigureMaskStage() - chip id = "
+            << DecomposeChipId() << " , first "
+            << std::dec << nPix << " complete rows. " << endl;
+        }
+        if ( nPix > 512 ) {
+            nPix = 512;
+        }
+        if ( nPix < 0 ) {
+            nPix = 1;
+        }
+        for ( int i = 0; i < nPix; i++ ) {
+            WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE, false, i );
+            WritePixRegRow( AlpidePixConfigReg::PULSE_ENABLE, true, i );
+        }
+        return nPix;
+    }
+    
     // check that nPix is one of (1, 2, 4, 8, 16, 32)
     if ((nPix <= 0) || (nPix & (nPix - 1)) || (nPix > 32)) {
         cout << "TAlpide::ConfigureMaskStage() - Warning: bad number of pixels for mask stage (" << nPix << ", using 1 instead" << endl;
         nPix = 1;
     }
-    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,   true );
-    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
-    
-    // complete row
     if ( nPix == 32 ) {
+        // one complete row
         if ( GetVerboseLevel() >= kCHATTY ) {
             cout << "TAlpide::ConfigureMaskStage() - chip id = "
-            << DecomposeChipId() << " , complete row " << std::dec << iStage << endl;
+            << DecomposeChipId() << " , one complete row " << std::dec << iStage << endl;
         }
         WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE, false, iStage );
         WritePixRegRow( AlpidePixConfigReg::PULSE_ENABLE, true, iStage );
         return iStage;
     } else {
+        // choose pixels
         int colStep = 32 / nPix;
         for ( int icol = 0; icol < 1024; icol += colStep ) {
             if ( GetVerboseLevel() >= kCHATTY ) {
@@ -1292,6 +1311,7 @@ void TAlpide::BaseConfig()
     BaseConfigDACs();
     BaseConfigMask();
     BaseConfigPLL();
+    EnableDoubleColumns();
 }
 
 
@@ -1479,13 +1499,28 @@ void TAlpide::ClearPixSelectBits( const bool clearPulseGating )
 
 #pragma mark - other
 
+// Enable the readout of all double columns (Priority Encoders) of all regions
 //___________________________________________________________________
 void TAlpide::EnableDoubleColumns()
 {
-    for ( int ireg = 0; ireg < 32; ireg ++ ) {
-        uint16_t Register = ((uint16_t)AlpideRegister::DCOL_DISABLE_BASE) | (ireg < 11);
-        WriteRegister( Register, 0x0 );
+    uint16_t address =
+    (uint16_t)AlpideRegister::PIXEL_BROADCAST
+        | (uint16_t)AlpideRegister::DCOL_DISABLE_BASE ;
+    if ( GetVerboseLevel() > kCHATTY ) {
+        cout << "TAlpide::EnableDoubleColumns() - chip id = "
+             << DecomposeChipId()
+             << " , address = " << std::bitset<16> ( address ) << endl;
     }
+    WriteRegister( address, 0x0 );
+
+    /*
+    for ( int ireg = 0; ireg < 32; ireg ++ ) {
+        uint16_t Register = ((uint16_t)AlpideRegister::DCOL_DISABLE_BASE) | (ireg << 11);
+        if ( GetVerboseLevel() > kCHATTY ) {
+            cout << "TAlpide::EnableDoubleColumns() - " << std::bitset<16> ( Register ) << endl;
+        }
+        WriteRegister( Register, 0x0 );
+    }*/
 }
 
 //___________________________________________________________________
