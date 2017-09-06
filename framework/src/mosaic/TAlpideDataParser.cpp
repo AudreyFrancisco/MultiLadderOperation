@@ -50,7 +50,7 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
 {
 	unsigned char *p = dBuffer;
 	unsigned char h;
-    int lastRegion, lastDataField;
+    int lastRegion = -1, lastDataField = -1;
 
 	for (int closed=0;!closed;){
 		if (p-dBuffer > dataBufferUsed)
