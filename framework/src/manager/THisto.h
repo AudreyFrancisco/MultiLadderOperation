@@ -3,14 +3,9 @@
 
 #include <string>
 #include <map>
-#include <memory>
+#include <vector>
 
-typedef struct
-{
-    unsigned int boardIndex;
-    unsigned int dataReceiver;
-    unsigned int chipId;
-} TChipIndex;
+#include "Common.h"
 
 class THisto {
     
@@ -67,25 +62,55 @@ public:
         if (d >=0 && d <= 1) return fLim[d][0]; else return 0; }
     double      GetMax  (int d) const {
         if (d >=0 && d <= 1) return fLim[d][1]; else return 0; }
+    unsigned int GetNEntries() const;
 };
 
 class TScanHisto {
 private:
-    std::map<int, std::shared_ptr<THisto>> fHistos;
+    std::map<int, THisto> fHistos;
+    int fIndex;
+    std::vector<common::TChipIndex> fChipList;
+    
 public:
+    
+#pragma mark - constructors / destructor
+    
     /// Default constructor
-    TScanHisto() {};
+    TScanHisto();
+    
+    /// Copy constructor
+    TScanHisto (const TScanHisto &sh);
+    
     /// Default destructor
     ~TScanHisto();
-    /// Copy constructor;
-    TScanHisto(const TScanHisto &sh);
-    /// Bin read access 2d
-    double operator()  (TChipIndex index, unsigned int i, unsigned int j) const;
     
-    void AddHisto( TChipIndex index, std::shared_ptr<THisto> histo );
-    int  GetSize() {return fHistos.size();}
+#pragma mark - setters
+    
+    inline void SetIndex    (int aIndex) {fIndex = aIndex;};
+
+#pragma mark - getters
+
+    /// Bin read access 2d
+    double operator()  (common::TChipIndex index, unsigned int i, unsigned int j) const;
+    
+    /// Bin read access 1d
+    double operator()  (common::TChipIndex index, unsigned int i) const;
+    
+    inline int  GetSize() {return fHistos.size();}
+    inline int  GetIndex() const     {return fIndex;};
+    inline std::map<int,THisto> GetHistoMap() {return fHistos;}
+    inline unsigned int GetChipListSize() {return fChipList.size();}
+    common::TChipIndex GetChipIndex( const unsigned int i ) const;
+    unsigned int GetChipNEntries(common::TChipIndex index) const;
+
+#pragma mark - other
+    
+    void AddHisto( common::TChipIndex index, THisto histo );
+    void Incr( common::TChipIndex index, unsigned int i, unsigned int j );
+    void Incr        (common::TChipIndex index, unsigned int i);
+    void FindChipList();
+    
     void Clear();
-    void Incr( TChipIndex index, unsigned int i, unsigned int j );
 };
 
 #endif

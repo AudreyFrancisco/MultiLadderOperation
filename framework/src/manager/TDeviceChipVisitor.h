@@ -26,6 +26,10 @@ protected:
 
     std::shared_ptr<TDevice> fDevice;
     bool fIsInitDone;
+
+    #pragma mark - readout board configuration
+    virtual void ConfigureBoards() = 0;
+    virtual void ConfigureChips() = 0;
     
 public:
     
@@ -38,10 +42,11 @@ public:
     void SetDevice( std::shared_ptr<TDevice> aDevice );
 
     /// Propagate verbosity down to each Alpide in the device
-    void SetVerboseLevel( const int level );
+    virtual void SetVerboseLevel( const int level );
     
-    #pragma mark - initialization
+    #pragma mark - init / terminate
     virtual void Init();
+    virtual void Terminate() = 0;
     
     #pragma mark - forward operations to each Alpide in the device
     void DoActivateConfigMode();

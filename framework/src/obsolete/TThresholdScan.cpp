@@ -1,3 +1,6 @@
+unsigned int itrg = 0;
+unsigned int nTrials = 0;
+
 #include "TAlpideDecoder.h"
 #include "AlpideDictionary.h"
 #include "TBoardDecoder.h"
@@ -79,9 +82,9 @@ void TThresholdScan::ConfigureChip( const int ichip )
 }
 
 //___________________________________________________________________
-std::shared_ptr<THisto> TThresholdScan::CreateHisto()
+THisto TThresholdScan::CreateHisto()
 {
-    std::shared_ptr<THisto> histo = std::make_shared<THisto>("ThresholdHisto", "ThresholdHisto", 1024, 0, 1023, (fStop[0] - fStart[0]) / fStep[0], fStart[0], fStop[0]);
+    THisto histo ("ThresholdHisto", "ThresholdHisto", 1024, 0, 1023, (fStop[0] - fStart[0]) / fStep[0], fStart[0], fStop[0]);
     return histo;
 }
 

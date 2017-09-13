@@ -49,6 +49,19 @@ TDeviceFifoTest::~TDeviceFifoTest()
 }
 
 //___________________________________________________________________
+void TDeviceFifoTest::Terminate()
+{
+    for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
+        
+        shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( iboard ));
+        
+        if ( myDAQBoard ) {
+            myDAQBoard->PowerOff();
+        }
+    }
+}
+
+//___________________________________________________________________
 void TDeviceFifoTest::Go()
 {
     if ( !fIsInitDone ) {
@@ -95,15 +108,7 @@ void TDeviceFifoTest::Go()
             cout << "TDeviceFifoTest::Go() - FIFO test successful for chip ID "
             << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
         }
-    } // end of the loop on chips
-    
-    if ( fDevice->GetDeviceType() == TDeviceType::kCHIP_DAQ ) {
-        shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( 0 ));
-        
-        if ( myDAQBoard ) {
-            myDAQBoard->PowerOff();
-        }
-    }
+    } // end of the loop on chips    
 }
 
 //___________________________________________________________________
@@ -382,3 +387,15 @@ void TDeviceFifoTest::MemTestPerChip()
     }
 }
 
+//___________________________________________________________________
+void TDeviceFifoTest::ConfigureBoards()
+{
+    
+}
+
+//___________________________________________________________________
+void TDeviceFifoTest::ConfigureChips()
+{
+    DoActivateConfigMode();
+    DoBaseConfig();
+}

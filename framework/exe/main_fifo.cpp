@@ -21,7 +21,7 @@
  */
 
 #include <iostream>
-#include "AlpideDictionary.h"
+#include <cstdlib>
 #include "TSetup.h"
 #include "TDevice.h"
 #include "TDeviceFifoTest.h"
@@ -45,29 +45,24 @@ int main(int argc, char** argv) {
     const int nBoards = theDevice->GetNBoards( false );
     if ( !nBoards ) {
         cout << "No board found, exit!" << endl;
-        return 0;
+        return EXIT_FAILURE;
     }
     if ( nBoards != 1 ) {
         cout << "More than one board found, exit!" << endl;
-        return 0;
+        return EXIT_FAILURE;
     }
     
     const int nWorkingChips = theDevice->GetNWorkingChips();
     if ( !nWorkingChips ) {
         cout << "No working chip found, exit!" << endl;
-        return 0;
+        return EXIT_FAILURE;
     }
   
     TDeviceFifoTest theDeviceTestor( theDevice );
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.Init();
-    theDeviceTestor.DoActivateConfigMode();
-    theDeviceTestor.DoBaseConfig();
-    if ( mySetup.GetVerboseLevel() ) {
-        theDeviceTestor.DoDumpConfig();
-    }
-    
     theDeviceTestor.Go();
-
-    return 0;
+    theDeviceTestor.Terminate();
+    
+    return EXIT_SUCCESS;
 }

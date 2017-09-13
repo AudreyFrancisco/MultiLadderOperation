@@ -228,6 +228,33 @@ shared_ptr<TReadoutBoard> TDevice::GetBoardByChip( const unsigned int iChip )
 }
 
 //___________________________________________________________________
+unsigned int TDevice::GetBoardIndexByChip( const unsigned int iChip )
+{
+    if ( (!IsSetupFrozen()) || fBoards.empty() || fChips.empty() ) {
+        throw runtime_error( "TDevice::GetBoardIndexByChip() - no chip or board defined!" );
+    }
+    if ( iChip >= fChips.size() ) {
+        cerr << "TDevice::GetBoardIndexByChip() - iChip = " << iChip << endl;
+        throw out_of_range( "TDevice::GetBoardIndexByChip() - wrong chip index!" );
+    }
+    shared_ptr<TReadoutBoard> aBoard = (fChips.at(iChip)->GetReadoutBoard()).lock();
+    shared_ptr<TReadoutBoard> myBoard = nullptr;
+    int index = 0;
+    for ( int i = 0; i < (int)fBoards.size(); i++ ) {
+        myBoard = fBoards.at(i);
+        if ( myBoard == aBoard ) {
+            index = i;
+            break;
+        }
+    }
+    if ( !myBoard ) {
+        cerr << "TDevice::GetBoardIndexByChip() - requested chip = " << iChip << endl;
+        throw runtime_error( "TDevice::GetBoardIndexByChip() - board for requested chip not found." );
+    }
+    return index;
+}
+
+//___________________________________________________________________
 shared_ptr<TBoardConfig> TDevice::GetBoardConfigByChip( const unsigned int iChip )
 {
     if ( (!IsSetupFrozen()) || fBoardConfigs.empty() || fChips.empty() ) {
