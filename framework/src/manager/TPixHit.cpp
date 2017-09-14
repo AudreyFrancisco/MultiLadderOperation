@@ -4,7 +4,7 @@
 using namespace std;
 
 //___________________________________________________________________
-TPixHit::TPixHit() :
+TPixHit::TPixHit() : TVerbosity(),
     fBoardIndex( 0 ),
     fBoardReceiver( 0 ),
     fChipId( ILLEGAL_CHIP_ID ),
@@ -26,6 +26,7 @@ TPixHit::TPixHit( const TPixHit& obj )
     fDcol = obj.fDcol;
     fAddress = obj.fAddress;
     fFlag = obj.fFlag;
+    fVerboseLevel = obj.fVerboseLevel;
 }
 
 //___________________________________________________________________
@@ -39,6 +40,7 @@ TPixHit::TPixHit( const shared_ptr<TPixHit> obj )
         fDcol = obj->GetDoubleColumn();
         fAddress = obj->GetAddress();
         fFlag = obj->GetPixFlag();
+        fVerboseLevel = obj->GetVerboseLevel();
     }
 }
 
@@ -59,6 +61,7 @@ TPixHit& TPixHit::operator=( const TPixHit& rhs)
         fDcol = rhs.fDcol;
         fAddress = rhs.fAddress;
         fFlag = rhs.fFlag;
+        fVerboseLevel = rhs.fVerboseLevel;
     }
     return *this;
 }
@@ -109,9 +112,9 @@ void TPixHit::SetAddress( const unsigned int value )
 #pragma mark - getters
 
 //___________________________________________________________________
-unsigned int  TPixHit::GetChipId( const bool print_warning ) const
+unsigned int  TPixHit::GetChipId() const
 {
-    if ( print_warning ) {
+    if ( GetVerboseLevel() >= kINFINITE ) {
         if ( fChipId == ILLEGAL_CHIP_ID ) {
             cerr << "TPixHit::GetChipId() - Warning, illegal chip id = 15" << endl;
         }
@@ -123,9 +126,9 @@ unsigned int  TPixHit::GetChipId( const bool print_warning ) const
 }
 
 //___________________________________________________________________
-unsigned int  TPixHit::GetRegion( const bool print_warning ) const
+unsigned int  TPixHit::GetRegion() const
 {
-    if ( print_warning ) {
+    if ( GetVerboseLevel() >= kINFINITE ) {
         if ( fRegion > common::MAX_REGION  ) {
             cerr << "TPixHit::GetRegion() - Warning, region > 31" << endl;
         }
@@ -137,9 +140,9 @@ unsigned int  TPixHit::GetRegion( const bool print_warning ) const
 }
 
 //___________________________________________________________________
-unsigned int  TPixHit::GetDoubleColumn( const bool print_warning ) const
+unsigned int  TPixHit::GetDoubleColumn() const
 {
-    if ( print_warning ) {
+    if ( GetVerboseLevel() >= kINFINITE ) {
         if ( fDcol > common::MAX_DCOL ) {
             cerr << "TPixHit::GetDoubleColumn() - Warning, double column > 511" << endl;
         }
@@ -151,9 +154,9 @@ unsigned int  TPixHit::GetDoubleColumn( const bool print_warning ) const
 }
 
 //___________________________________________________________________
-unsigned int TPixHit::GetAddress( const bool print_warning ) const
+unsigned int TPixHit::GetAddress() const
 {
-    if ( print_warning ) {
+    if ( GetVerboseLevel() >= kINFINITE ) {
         if ( fAddress > common::MAX_ADDR ) {
             cerr << "TPixHit::GetAddress() - Warning, address > 1023" << endl;
         }
@@ -165,9 +168,9 @@ unsigned int TPixHit::GetAddress( const bool print_warning ) const
 }
 
 //___________________________________________________________________
-TPixFlag TPixHit::GetPixFlag( const bool print_warning ) const
+TPixFlag TPixHit::GetPixFlag() const
 {
-    if ( print_warning ) {
+    if ( GetVerboseLevel() >= kINFINITE ) {
         if ( fFlag == TPixFlag::kBAD_ADDRESS ) {
             cerr << "TPixHit::GetPixFlag() - Warning, TPixFlag::kBAD_ADDRESS" << endl;
         }
@@ -188,9 +191,9 @@ TPixFlag TPixHit::GetPixFlag( const bool print_warning ) const
 }
 
 //___________________________________________________________________
-bool TPixHit::IsPixHitCorrupted( const bool print_warning ) const
+bool TPixHit::IsPixHitCorrupted() const
 {
-    if ( (int)GetPixFlag( print_warning ) ) {
+    if ( (int)GetPixFlag() ) {
         return true;
     }
     return false;
@@ -199,14 +202,17 @@ bool TPixHit::IsPixHitCorrupted( const bool print_warning ) const
 //___________________________________________________________________
 void TPixHit::DumpPixHit()
 {
+    int buffer_verbosity = GetVerboseLevel();
+    SetVerboseLevel( kSILENT );
     cout << "\t TPixHit::DumpPixHit()" << endl;
     cout << "\t hit board.receiver/chip/region.dcol.add (flag) " << std::dec
     << GetBoardIndex() << "."
     << GetBoardReceiver() << "/"
-    << GetChipId( false ) << "/"
-    << GetRegion( false ) << "."
-    << GetDoubleColumn( false ) << "."
-    << GetAddress( false ) << " (" ;
+    << GetChipId() << "/"
+    << GetRegion() << "."
+    << GetDoubleColumn() << "."
+    << GetAddress() << " (" ;
+    SetVerboseLevel( buffer_verbosity );
     if ( fFlag == TPixFlag::kBAD_ADDRESS ) {
         cout << "TPixFlag::kBAD_ADDRESS" << ") " << endl;
         return;

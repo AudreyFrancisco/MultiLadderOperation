@@ -6,14 +6,23 @@
  *
  * \brief Simple container for the full address of a "hit" (responding) pixel
  *
- * The "hit" (responding) pixel is identified thanks to the following coordinates:
- * chip id, double colum id, index (address) of the pixel in the double 
- * column. 
- * The container also store the board index and the board receiver id that are
- * collecting the data from the chip.
+ * \author Andry Rakotozafindrabe
+ *
+ * The "hit" (i.e. responding) pixel is identified thanks to the following coordinates:
+ * chip id, double column id, index (address) of the pixel in the double
+ * column. The region id is also stored.
+ *
+ * The container also store the board index and the board receiver id used to
+ * collect the data from the chip.
+ *
+ * Sanity checks are always run on the validity of the chip id, the region id, the
+ * double column id and the address. They are used to put a quality flag on the pixel 
+ * hit. If the pixel hit is bad in many ways, only one of them can be stored since
+ * the flag can only be chosen among a simple enum.
  */
 
 #include "Common.h"
+#include "TVerbosity.h"
 #include <memory>
 
 enum class TPixFlag {
@@ -26,7 +35,7 @@ enum class TPixFlag {
     kUNKNOWN = 6
 };
 
-class TPixHit {
+class TPixHit : public TVerbosity {
 
     /// id of the board that read the chip to which belong the hit pixel
     unsigned int fBoardIndex;
@@ -81,12 +90,12 @@ public:
 
     inline unsigned int GetBoardIndex() const { return fBoardIndex; }
     inline unsigned int GetBoardReceiver() const { return fBoardReceiver; }
-    unsigned int GetChipId( const bool print_warning = false ) const;
-    unsigned int GetRegion( const bool print_warning = false ) const;
-    unsigned int GetDoubleColumn( const bool print_warning = false ) const;
-    unsigned int GetAddress( const bool print_warning = false ) const;
-    TPixFlag GetPixFlag( const bool print_warning = false ) const;
-    bool IsPixHitCorrupted( const bool print_warning = false ) const;
+    unsigned int GetChipId() const;
+    unsigned int GetRegion() const;
+    unsigned int GetDoubleColumn() const;
+    unsigned int GetAddress() const;
+    TPixFlag GetPixFlag() const;
+    bool IsPixHitCorrupted() const;
     
 #pragma mark - other
     
