@@ -2,9 +2,7 @@
  * \brief This executable runs the digital scan test for all enabled chips in the device.
  *
  * \remark
- * The TAlpideDecoder does not seem to work properly for the moment (to be fixed in
- * subsequent versions). Only empty frames are detected, which is not the case with 
- * the low level software from Giuseppe.
+ * Missing: list of dead pixels.
  *
  * \note
  * The default configuration file for this test for a MFT ladder is 
