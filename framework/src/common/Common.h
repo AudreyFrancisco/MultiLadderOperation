@@ -1,5 +1,10 @@
-// NAMESPACE CONTAINING TYPES AND FUNTIONS
-// FOR COMMON USE IN ANALYSIS AND SCAN CLASSES.
+/**
+ * \namespace Common
+ *
+ * \brief Contain types, constants and functions for common use in manager classes.
+ *
+ */
+
 
 #ifndef COMMON_H
 #define COMMON_H
@@ -10,12 +15,15 @@ class TPixHit;
 
 namespace common {
     
+    /// \typedef TChipIndex
+    /// Struct gathers info to uniquely identify a chip (board id, receiver id, chip id)
     typedef struct {
         unsigned int boardIndex;
         unsigned int dataReceiver;
         unsigned int chipId;
     } TChipIndex;
     
+    /// Function that helps to generate part of the filename from TChipIndex
     extern std::string GetFileName( TChipIndex aChipIndex,
                                    std::string suffix );
     
