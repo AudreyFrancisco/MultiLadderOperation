@@ -175,7 +175,7 @@ void TDeviceDigitalScan::Go()
         } else {
             DoConfigureMaskStage( fNPixPerRegion, istage );
         }
-        DoActivateReadoutMode();
+        //DoActivateReadoutMode();
         
         
         //uint16_t Value;
@@ -334,6 +334,10 @@ void TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
             // decode readout board event
             shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( iboard );
             fBoardDecoder->SetBoardType( boardConfig->GetBoardType() );
+            if ( boardConfig->GetBoardType() == TBoardType::kBOARD_MOSAIC ) {
+                shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( iboard ));
+                fBoardDecoder->SetFirmwareVersion( myMOSAIC->GetFwIdString() );
+            }
             fBoardDecoder->DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
             if ( fBoardDecoder->GetMosaicDecoder10b8bError() ) {
                 fErrorCounter->IncrementN8b10b();

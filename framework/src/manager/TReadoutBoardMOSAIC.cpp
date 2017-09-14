@@ -50,6 +50,8 @@
 #include "TAlpide.h"
 #include "mexception.h"
 #include "pexception.h"
+#include "mservice.h"
+
 
 using namespace std;
 std::vector<unsigned char> fDebugBuffer;
@@ -62,7 +64,10 @@ fBoardConfig( weak_ptr<TBoardConfigMOSAIC>() ),
 fDataGenerator( nullptr ),
 fI2cBus( nullptr ),
 fPulser( nullptr ),
-fDummyReceiver( nullptr )
+fDummyReceiver( nullptr ),
+fTheVersionId(""),
+fTheVersionMaj( 0 ),
+fTheVersionMin( 0 )
 { }
 
 //___________________________________________________________________
@@ -71,7 +76,10 @@ TReadoutBoardMOSAIC::TReadoutBoardMOSAIC( shared_ptr<TBoardConfigMOSAIC> boardCo
     fDataGenerator( nullptr ),
     fI2cBus( nullptr ),
     fPulser( nullptr ),
-    fDummyReceiver( nullptr )
+    fDummyReceiver( nullptr ),
+    fTheVersionId(""),
+    fTheVersionMaj( 0 ),
+    fTheVersionMin( 0 )
 {
     init();
 }
@@ -256,6 +264,8 @@ void TReadoutBoardMOSAIC::init()
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
     setIPaddress(spBoardConfig->GetIPaddress(), spBoardConfig->GetTCPport());
     
+    std::cout << "TReadoutBoardMOSAIC::init() - MOSAIC firmware version: " << getFirmwareVersion() << std::endl;
+
     // Data Generator
     fDataGenerator = make_shared<MDataGenerator>( mIPbus, WbbBaseAddress::dataGenerator );
     
@@ -328,6 +338,27 @@ void TReadoutBoardMOSAIC::init()
     
     return;
 }
+
+//___________________________________________________________________
+std::string TReadoutBoardMOSAIC::getFirmwareVersion()
+{
+    char *theIPAddr;
+    shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
+    theIPAddr = spBoardConfig->GetIPaddress();
+    
+    MService::fw_info_t MOSAICinfo;
+    MService *endPoint = new MService();
+    endPoint->setIPaddress( theIPAddr );
+    endPoint->readFWinfo(&MOSAICinfo);
+    
+    fTheVersionMaj = MOSAICinfo.ver_maj;
+    fTheVersionMin = MOSAICinfo.ver_min;
+
+    std::string word( MOSAICinfo.fw_identity );
+    fTheVersionId = word;
+    return fTheVersionId;
+}
+
 
 // ============================== DATA receivers private methods =======================================
 

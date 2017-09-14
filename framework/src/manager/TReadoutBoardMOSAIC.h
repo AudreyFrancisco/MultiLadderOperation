@@ -93,8 +93,13 @@ public:
     
     virtual void SetVerboseLevel( const int level );
 
+    inline std::string GetFwIdString() const { return fTheVersionId; }
+    inline int   GetFwMajVersion() const { return fTheVersionMaj; }
+    inline int   GetFwMinVersion() const { return fTheVersionMin; }
+
 private:
 	void init();
+    std::string getFirmwareVersion();
 	void enableDefinedReceivers();
 	void setPhase(int APhase, int ACii = 0) {
 			fControlInterface[ACii]->setPhase(APhase);
@@ -126,7 +131,11 @@ private:
     std::shared_ptr<ControlInterface> fControlInterface[BoardConfigMOSAIC::MAX_MOSAICCTRLINT];
     std::shared_ptr<ALPIDErcv>	fAlpideRcv[BoardConfigMOSAIC::MAX_MOSAICTRANRECV];
     TAlpideDataParser* fAlpideDataParser[BoardConfigMOSAIC::MAX_MOSAICTRANRECV];
-	//TBoardHeader 		theHeaderOfReadData;  // This will host the info catch from Packet header/trailer
+	//TBoardHeader 		theHeaderOfReadData;  // This will host the info catch from Packet header/trailer YCM: FIXME, not used
+    std::string fTheVersionId;  // Version properties
+    int	fTheVersionMaj;
+    int	fTheVersionMin;
+
 
 private:
 	// status register bits

@@ -11,8 +11,9 @@ using namespace std;
 //___________________________________________________________________
 TBoardDecoder::TBoardDecoder() : TVerbosity(),
 fBoardType( TBoardType::kBOARD_UNKNOWN ),
-fFirmwareVersion( 0x247E0611 ),
-fHeaderType( 1 ),
+fDAQ_firmwareVersion( 0x247E0611 ),
+fDAQ_headerType( 1 ),
+fMOSAIC_firmwareVersion( "unknown" ),
 fMOSAIC_channel( -1 ),
 fMOSAIC_eoeCount( 0 ),
 fMOSAIC_timeout( false ),
@@ -41,15 +42,11 @@ TBoardDecoder::~TBoardDecoder()
 }
 
 //___________________________________________________________________
-void TBoardDecoder::SetBoardType(const TBoardType type,
-                                 const uint32_t firmwareVersion,
-                                 const int headerType )
+void TBoardDecoder::SetBoardType(const TBoardType type )
 {
     fBoardType = type;
-    fFirmwareVersion = firmwareVersion;
-    fHeaderType = headerType;
     if ( GetVerboseLevel() > kTERSE ) {
-        cout << "TBoardDecoder::SetBoardType() - board type = " ;
+        cout << "TBoardDecoder::SetBoardType() - board type = " << std::dec;
         switch ( (int)fBoardType ) {
             case (int)TBoardType::kBOARD_DAQ :
                 cout << "DAQ board" << endl;
@@ -61,8 +58,27 @@ void TBoardDecoder::SetBoardType(const TBoardType type,
                 cout << "UNKNOWN board !!!" << endl;
                 break;
         }
-        cout << "TBoardDecoder::SetBoardType() - firmware version = " << fFirmwareVersion << endl;
-        cout << "TBoardDecoder::SetBoardType() - header type = " << fHeaderType << endl;
+    }
+}
+
+//___________________________________________________________________
+void TBoardDecoder::SetFirmwareVersion( const std::uint32_t DAQfirmwareVersion,
+                                       const int DAQheaderType )
+{
+    fDAQ_firmwareVersion = DAQfirmwareVersion;
+    fDAQ_headerType = DAQheaderType;
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TBoardDecoder::SetFirmwareVersion() - DAQ board firmware version = " << std::hex << fDAQ_firmwareVersion << endl;
+        cout << "TBoardDecoder::SetFirmwareVersion() - DAQ board header type = " << std::dec << fDAQ_headerType << endl;
+    }
+}
+
+//___________________________________________________________________
+void TBoardDecoder::SetFirmwareVersion( string MOSAICfirmwareVersion )
+{
+    fMOSAIC_firmwareVersion = MOSAICfirmwareVersion;
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TBoardDecoder::SetFirmwareVersion() - MOSAIC board firmware version = "  << fMOSAIC_firmwareVersion << endl;
     }
 }
 
@@ -123,7 +139,7 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
                                   int &nBytesTrailer )
 {
 
-  nBytesHeader = DAQBoardDecoder::GetDAQEventHeaderLength( fFirmwareVersion, fHeaderType );
+  nBytesHeader = DAQBoardDecoder::GetDAQEventHeaderLength( fDAQ_firmwareVersion, fDAQ_headerType );
   nBytesTrailer = DAQBoardDecoder::GetDAQEventTrailerLength();
 
   // ------ HEADER
@@ -162,7 +178,7 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   int TrigCountDAQbusy  = -1;
   int ExtTrigCounter    = -1;
   if (header_length==3) {
-    switch( fFirmwareVersion ) {
+    switch( fDAQ_firmwareVersion ) {
       case 0x257E0602:
       case 0x247E0602:
         Event_ID         = (uint64_t)Header[0] & 0x7fffffff;
