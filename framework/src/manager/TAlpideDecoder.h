@@ -74,7 +74,7 @@ public:
     /// destructor
     ~TAlpideDecoder();
 
-    /// set the pointer to the map to histograms of hit pixels
+    /// set the pointer to the map containing histograms of hit pixels vs chip index
     void SetScanHisto( std::shared_ptr<TScanHisto> aScanHisto );
     
     /// get the number of priority encoder errors for the current event
@@ -86,10 +86,10 @@ public:
     /// write hit data to a text file
     void WriteDataToFile( const char *fName, bool Recreate = true );
     
-    /// compute the total number of hits
+    /// compute the total number of hits over the full extent of the digital scan
     unsigned int GetNHits() const;
     
-    /// dump the list of corrupted hit pixels
+    /// dump the list of corrupted hit pixels over the full extent of the digital scan
     void DumpCorruptedHits();
 
     /// the sole purpose of this class : decode each event read by the readout board
@@ -121,7 +121,7 @@ private:
     bool DecodeDataWord( unsigned char* data,
                         bool datalong );
     
-    /// fill the histogram with the list of hit pixels extracted from the current event
+    /// fill the histogram with good quality pixel hits extracted from the current event
     void FillHistoWithEvent();
     
     /// check if there is any hit for the requested chip index

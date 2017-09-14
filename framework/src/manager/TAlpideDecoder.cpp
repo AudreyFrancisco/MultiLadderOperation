@@ -399,6 +399,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
                                     bool datalong )
 {
     auto hit = make_shared<TPixHit>();
+    hit->SetVerboseLevel( this->GetVerboseLevel() );
     
     int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
@@ -499,7 +500,9 @@ void TAlpideDecoder::FillHistoWithEvent()
                 cout << "TAlpideDecoder::FillHistoEvent() - bad pixel coordinates, skipping hit" << endl;
                 (fHits.at(i))->DumpPixHit();
             }
-            shared_ptr<TPixHit> badHit( new TPixHit( fHits.at(i) ) );
+            // TODO: check if a shallow copy is enough or if a deep copy is needed
+            auto badHit( fHits.at(i) ); // shallow copy
+            //shared_ptr<TPixHit> badHit( new TPixHit( fHits.at(i) ) ); // deep copy
             fCorruptedHits.push_back( move(badHit) );
             
         } else {
