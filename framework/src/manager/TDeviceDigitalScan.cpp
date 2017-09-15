@@ -204,10 +204,11 @@ void TDeviceDigitalScan::Go()
         }
         
         nHitsTot = fChipDecoder->GetNHits() - nHitsLastStage;
-        if ( GetVerboseLevel() > kVERBOSE ) {
+        if ( GetVerboseLevel() > kSILENT ) {
             cout << "TDeviceDigitalScan::Go() - stage "
                  << std::dec << istage << " , found n hits = " << nHitsTot << endl;
         }
+        usleep(200);
     }
 }
 
@@ -286,7 +287,7 @@ void TDeviceDigitalScan::ConfigureChips()
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
+unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
 {
     unsigned char buffer[1024*4000];
     int n_bytes_data, n_bytes_header, n_bytes_trailer;
@@ -377,6 +378,7 @@ void TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
             itrg++;
         }
     }
+    return itrg;
 }
 
 

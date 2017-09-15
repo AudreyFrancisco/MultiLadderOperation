@@ -105,7 +105,7 @@ protected:
     virtual void ConfigureChips();
     
     /// read data from a given readout board
-    void ReadEventData( const unsigned int iboard );
+    unsigned int ReadEventData( const unsigned int iboard );
     
 };
 
