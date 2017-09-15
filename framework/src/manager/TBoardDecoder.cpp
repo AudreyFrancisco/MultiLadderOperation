@@ -45,7 +45,7 @@ TBoardDecoder::~TBoardDecoder()
 void TBoardDecoder::SetBoardType(const TBoardType type )
 {
     fBoardType = type;
-    if ( GetVerboseLevel() > kTERSE ) {
+    if ( GetVerboseLevel() > kCHATTY ) {
         cout << "TBoardDecoder::SetBoardType() - board type = " << std::dec;
         switch ( (int)fBoardType ) {
             case (int)TBoardType::kBOARD_DAQ :
@@ -67,7 +67,7 @@ void TBoardDecoder::SetFirmwareVersion( const std::uint32_t DAQfirmwareVersion,
 {
     fDAQ_firmwareVersion = DAQfirmwareVersion;
     fDAQ_headerType = DAQheaderType;
-    if ( GetVerboseLevel() > kTERSE ) {
+    if ( GetVerboseLevel() > kCHATTY ) {
         cout << "TBoardDecoder::SetFirmwareVersion() - DAQ board firmware version = " << std::hex << fDAQ_firmwareVersion << endl;
         cout << "TBoardDecoder::SetFirmwareVersion() - DAQ board header type = " << std::dec << fDAQ_headerType << endl;
     }
@@ -77,7 +77,7 @@ void TBoardDecoder::SetFirmwareVersion( const std::uint32_t DAQfirmwareVersion,
 void TBoardDecoder::SetFirmwareVersion( string MOSAICfirmwareVersion )
 {
     fMOSAIC_firmwareVersion = MOSAICfirmwareVersion;
-    if ( GetVerboseLevel() > kTERSE ) {
+    if ( GetVerboseLevel() > kCHATTY ) {
         cout << "TBoardDecoder::SetFirmwareVersion() - MOSAIC board firmware version = "  << fMOSAIC_firmwareVersion << endl;
     }
 }
