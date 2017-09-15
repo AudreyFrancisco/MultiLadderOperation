@@ -84,7 +84,7 @@ void TAlpideDecoder::WriteDataToFile( const char *fName, bool Recreate )
         common::TChipIndex aChipIndex = fScanHisto->GetChipIndex( ichip );
         
         if ( !HasData( aChipIndex ) ) {
-            if ( GetVerboseLevel() > kTERSE ) {
+            if ( GetVerboseLevel() > kSILENT ) {
                 cout << "TAlpideDecoder::WriteDataToFile() - Chip ID "
                 << aChipIndex.chipId << " : no data, skipped." <<  endl;
             }
@@ -428,26 +428,6 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
     
     unsigned int address = (data_field & 0x03ff);
 
-    if ( (fHits.size() > 0) && (!fNewEvent) ) {
-        if ( (hit->GetRegion() == (fHits.back())->GetRegion())
-            && ( hit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
-            && (address == (fHits.back())->GetAddress()) ) {
-            cout << "TAlpideDecoder::DecodeDataWord() - Warning (chip "<< fChipId << "): received pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn()
-                << "/" << address <<  " twice." << endl;
-            fPrioErrors++;
-            hit->SetPixFlag( TPixFlag::kSTUCK );
-        }
-        else if ( (hit->GetRegion() == (fHits.back())->GetRegion() )
-                 && (hit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
-                 && (address < (fHits.back())->GetAddress()) ) {
-            cout << "TAlpideDecoder::DecodeDataWord() - Warning (chip "<< fChipId << "): address of pixel " << hit->GetRegion() << "/" << hit->GetDoubleColumn() << "/" << address <<  " is lower than previous one ("
-                << (fHits.back())->GetAddress()
-                << ") in same double column." << endl;
-            fPrioErrors++;
-            hit->SetPixFlag( TPixFlag::kSTUCK );
-        }
-    }
-
     int hitmap_length;
     
     if ( datalong ) {
@@ -456,15 +436,39 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
         hitmap_length = 0;
     }
 
-    TPixFlag pixFlag = hit->GetPixFlag();
     for ( int i = -1; i < hitmap_length; i ++ ) {
+        
         if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;
-        //auto singleHit = make_shared<TPixHit>();
-        shared_ptr<TPixHit> singleHit( new TPixHit( hit ) );
+        shared_ptr<TPixHit> singleHit( new TPixHit( hit ) ); // deep copy
         singleHit->SetAddress( address + (i + 1) ); // set hit address on the new shared ptr, can generate a bad address flag
-        if ( pixFlag == TPixFlag::kSTUCK) { // keep stuck flag, higher priority than bad address flag
-            singleHit->SetPixFlag( TPixFlag::kSTUCK );
+        
+        if ( (fHits.size() > 0) && (!fNewEvent) ) {
+            if ( (singleHit->GetRegion() == (fHits.back())->GetRegion())
+                && ( singleHit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
+                && (singleHit->GetAddress() == (fHits.back())->GetAddress()) ) {
+                cout << "TAlpideDecoder::DecodeDataWord() - Warning : received pixel twice." << endl;
+                fPrioErrors++;
+                singleHit->SetPixFlag( TPixFlag::kSTUCK );
+                (fHits.back())->SetPixFlag( TPixFlag::kSTUCK );
+                cout << "\t -- current hit pixel :" << endl;
+                singleHit->DumpPixHit();
+                cout << "\t -- previous hit pixel :" << endl;
+                (fHits.back())->DumpPixHit();
+            }
+            else if ( (singleHit->GetRegion() == (fHits.back())->GetRegion() )
+                     && (singleHit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
+                     && (singleHit->GetAddress() < (fHits.back())->GetAddress()) ) {
+                cout << "TAlpideDecoder::DecodeDataWord() - Warning : address of pixel is lower than previous one in same double column." << endl;
+                fPrioErrors++;
+                singleHit->SetPixFlag( TPixFlag::kSTUCK );
+                (fHits.back())->SetPixFlag( TPixFlag::kSTUCK );
+                cout << "\t -- current hit pixel :" << endl;
+                singleHit->DumpPixHit();
+                cout << "\t -- previous hit pixel :" << endl;
+                (fHits.back())->DumpPixHit();
+            }
         }
+        
         if ( singleHit->GetPixFlag() == TPixFlag::kUNKNOWN ) { // nothing bad detected, the flag still has its initialization value => the pixel is ok
             singleHit->SetPixFlag( TPixFlag::kOK );
         }
@@ -477,6 +481,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
         if ( GetVerboseLevel() > kCHATTY ) {
             cout << "\t TAlpideDecoder::DecodeDataWord() - hit added in vector." << endl;
         }
+        
     }
     hit.reset();
     fNewEvent = false;
@@ -496,13 +501,11 @@ void TAlpideDecoder::FillHistoWithEvent()
 
         if ( (fHits.at(i))->IsPixHitCorrupted() ) {
 
-            if ( GetVerboseLevel() > kTERSE ) {
+            if ( GetVerboseLevel() > kSILENT ) {
                 cout << "TAlpideDecoder::FillHistoEvent() - bad pixel coordinates, skipping hit" << endl;
                 (fHits.at(i))->DumpPixHit();
             }
-            // TODO: check if a shallow copy is enough or if a deep copy is needed
-            auto badHit( fHits.at(i) ); // shallow copy
-            //shared_ptr<TPixHit> badHit( new TPixHit( fHits.at(i) ) ); // deep copy
+            shared_ptr<TPixHit> badHit( new TPixHit( fHits.at(i) ) ); // deep copy
             fCorruptedHits.push_back( move(badHit) );
             
         } else {
@@ -512,6 +515,10 @@ void TAlpideDecoder::FillHistoWithEvent()
             idx.chipId        = (fHits.at(i))->GetChipId();
             unsigned int dcol = (fHits.at(i))->GetDoubleColumn();
             unsigned int addr = (fHits.at(i))->GetAddress();
+            if ( GetVerboseLevel() > kULTRACHATTY ) {
+                cout << "TAlpideDecoder::FillHistoEvent() - add hit" << endl;
+                (fHits.at(i))->DumpPixHit();
+            }
             
             fScanHisto->Incr(idx, dcol, addr);
 
