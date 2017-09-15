@@ -249,7 +249,7 @@ void THisto::Set(unsigned int i, unsigned int j, double val)
 }
 
 //___________________________________________________________________
-void THisto::Incr (unsigned int i)
+void THisto::Incr(unsigned int i)
 {
     if (i<fDim[0]) {
         if (fSize == 1) ((unsigned char **)fHisto)[0][i]++;
@@ -260,7 +260,7 @@ void THisto::Incr (unsigned int i)
 }
 
 //___________________________________________________________________
-void THisto::Incr (unsigned int i, unsigned int j)
+void THisto::Incr(unsigned int i, unsigned int j)
 {
     if (i<fDim[0] && j<fDim[1]) {
         if (fSize == 1) ((unsigned char **)fHisto)[j][i]++;
@@ -387,7 +387,7 @@ void TScanHisto::Incr( common::TChipIndex index, unsigned int i, unsigned int j 
 }
 
 //___________________________________________________________________
-void TScanHisto::Incr ( common::TChipIndex index, unsigned int i )
+void TScanHisto::Incr( common::TChipIndex index, unsigned int i )
 {
     int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     (fHistos.at(int_index)).Incr(i);
