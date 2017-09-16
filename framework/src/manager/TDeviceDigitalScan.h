@@ -43,7 +43,7 @@ protected:
     std::shared_ptr<TScanConfig> fScanConfig;
     
     /// dedicated error counter
-    std::unique_ptr<TErrorCounter> fErrorCounter;
+    std::shared_ptr<TErrorCounter> fErrorCounter;
     
     /// chip decoder
     std::unique_ptr<TAlpideDecoder> fChipDecoder;

@@ -21,6 +21,7 @@ enum class TDataType {
 
 class TPixHit;
 class TScanHisto;
+class TErrorCounter;
 
 class TAlpideDecoder : public TVerbosity {
     
@@ -56,11 +57,12 @@ private:
     /// hit pixel list with all decoded hits for the current event
     std::vector<std::shared_ptr<TPixHit>> fHits;
 
-    /// corrupted hit pixel list
-    std::vector<std::shared_ptr<TPixHit>> fCorruptedHits;
-
     /// map to histograms (one per chip) of hit pixels, accumulating over events
     std::shared_ptr<TScanHisto> fScanHisto;
+    
+    /// error counter, accumulating over events
+    std::shared_ptr<TErrorCounter> fErrorCounter;
+
     
 public:
 
@@ -68,14 +70,18 @@ public:
     TAlpideDecoder();
     
     /// constructor that set the pointer to the map to histograms of hit pixels
-    TAlpideDecoder( std::shared_ptr<TScanHisto> aScanHisto );
+    TAlpideDecoder( std::shared_ptr<TScanHisto> aScanHisto,
+                    std::shared_ptr<TErrorCounter> anErrorCounter );
     
     /// destructor
     ~TAlpideDecoder();
 
     /// set the pointer to the map containing histograms of hit pixels vs chip index
     void SetScanHisto( std::shared_ptr<TScanHisto> aScanHisto );
-    
+
+    /// set the pointer to error container
+    void SetErrorCounter( std::shared_ptr<TErrorCounter> anErrorCounter );
+
     /// get the number of priority encoder errors for the current event
     inline int GetPrioErrors() const { return fPrioErrors; }
     
@@ -85,12 +91,9 @@ public:
     /// write hit data to a text file
     void WriteDataToFile( const char *fName, bool Recreate = true );
     
-    /// compute the total number of hits over the full extent of the digital scan
+    /// compute the total number of hits over the full extent of the scan
     unsigned int GetNHits() const;
     
-    /// dump the list of corrupted hit pixels over the full extent of the digital scan
-    void DumpCorruptedHits();
-
     /// the sole purpose of this class : decode each event read by the readout board
     bool DecodeEvent( unsigned char* data, int nBytes,
                      unsigned int boardIndex,

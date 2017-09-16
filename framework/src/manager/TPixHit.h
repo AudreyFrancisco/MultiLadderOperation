@@ -99,7 +99,7 @@ public:
     
 #pragma mark - other
     
-    void DumpPixHit();
+    void DumpPixHit( const bool with_reminder = true );
     
 };
 

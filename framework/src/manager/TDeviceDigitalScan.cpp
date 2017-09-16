@@ -8,6 +8,7 @@
 #include "TDeviceDigitalScan.h"
 #include "TErrorCounter.h"
 #include "THisto.h"
+#include "TPixHit.h"
 #include "TReadoutBoard.h"
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
@@ -32,8 +33,8 @@ fNMaskStages( 0 ),
 fNPixPerRegion( 0 )
 {
     fScanHisto = make_shared<TScanHisto>();
-    fErrorCounter = make_unique<TErrorCounter>();
-    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto );
+    fErrorCounter = make_shared<TErrorCounter>();
+    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
     fBoardDecoder = make_unique<TBoardDecoder>();
 }
 
@@ -56,8 +57,8 @@ fNPixPerRegion( 0 )
         cerr << msg.what() << endl;
         exit(0);
     }
-    fErrorCounter = make_unique<TErrorCounter>();
-    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto );
+    fErrorCounter = make_shared<TErrorCounter>();
+    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
     fBoardDecoder = make_unique<TBoardDecoder>();
 }
 
@@ -66,6 +67,7 @@ TDeviceDigitalScan::~TDeviceDigitalScan()
 {
     if ( fScanHisto ) fScanHisto.reset();
     if ( fScanConfig ) fScanConfig.reset();
+    if ( fErrorCounter ) fErrorCounter.reset();
 }
 
 //___________________________________________________________________
@@ -137,8 +139,12 @@ void TDeviceDigitalScan::Terminate()
         }
     }
     cout << endl;
+    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_CHIPID );
+    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_REGIONID );
+    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_DCOLID );
+    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_ADDRESS );
+    fErrorCounter->DumpCorruptedHits( TPixFlag::kSTUCK );
     fErrorCounter->Dump();
-    fChipDecoder->DumpCorruptedHits();
 }
 
 //___________________________________________________________________
@@ -354,7 +360,6 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
                 n_bytes_chipevent -= n_bytes_trailer;
             }
             bool isOk = fChipDecoder->DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, iboard, fBoardDecoder->GetMosaicChannel() );
-            fErrorCounter->IncrementNPrioEncoder( fChipDecoder->GetPrioErrors() );
             
             if ( !isOk ) {
                 if ( GetVerboseLevel() > kSILENT ) {
@@ -365,7 +370,7 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
                 fErrorCounter->IncrementNCorruptEvent();
                 nBad++;
                 if ( nBad > TDeviceDigitalScan::MAXNBAD ) continue;
-                FILE *fDebug = fopen ("DebugData.dat", "a");
+                FILE *fDebug = fopen ("../../data/DebugData.dat", "a");
                 for ( int iByte=0; iByte<n_bytes_data; ++iByte ) {
                     fprintf (fDebug, "%02x ", (int) buffer[iByte]);
                 }

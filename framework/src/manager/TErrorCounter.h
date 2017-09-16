@@ -18,6 +18,10 @@
  * - number of times any readout board had a timeout error
  */
 
+#include <vector>
+#include <memory>
+#include "TPixHit.h"
+
 class TErrorCounter {
     
     /// number of 8b10b encoder errors
@@ -32,6 +36,9 @@ class TErrorCounter {
     /// number of times any readout board had a timeout error
     unsigned int fNTimeout;
     
+    /// list of corrupted pixel hits
+    std::vector<std::shared_ptr<TPixHit>> fCorruptedHits;
+    
 public:
     
     /// constructor
@@ -40,8 +47,14 @@ public:
     /// destructor
     ~TErrorCounter();
     
+    /// add a corrupted pixel hit to the list
+    void AddCorruptedHit( std::shared_ptr<TPixHit> badHit );
+    
     /// print all error counters on screen
     void Dump();
+    
+    /// dump the list of corrupted pixel hits
+    void DumpCorruptedHits( const TPixFlag flag = TPixFlag::kUNKNOWN );
     
 #pragma mark - setters
 

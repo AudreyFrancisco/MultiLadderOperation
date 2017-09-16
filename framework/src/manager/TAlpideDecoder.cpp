@@ -1,6 +1,7 @@
 #include "TAlpideDecoder.h"
 #include "TPixHit.h"
 #include "THisto.h"
+#include "TErrorCounter.h"
 #include <stdint.h>
 #include <iostream>
 #include <string>
@@ -20,13 +21,16 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
     fBoardReceiver( 0 ),
     fPrioErrors( 0 ),
     fDataType( TDataType::kUNKNOWN ),
-    fScanHisto( nullptr )
+    fScanHisto( nullptr ),
+    fErrorCounter( nullptr )
 {
     
 }
 
 //___________________________________________________________________
-TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto ) : TVerbosity(),
+TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto,
+                                shared_ptr<TErrorCounter> anErrorCounter ) :
+    TVerbosity(),
     fNewEvent( false ),
     fBunchCounter( 0 ),
     fFlags( 0 ),
@@ -36,7 +40,8 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto ) : TVerbosity
     fBoardReceiver( 0 ),
     fPrioErrors( 0 ),
     fDataType( TDataType::kUNKNOWN ),
-    fScanHisto( nullptr )
+    fScanHisto( nullptr ),
+    fErrorCounter( nullptr )
 {
     try {
         SetScanHisto( aScanHisto );
@@ -44,13 +49,18 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto ) : TVerbosity
         cerr << msg.what() << endl;
         exit(0);
     }
+    try {
+        SetErrorCounter( anErrorCounter );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        exit(0);
+    }
 }
-
 
 //___________________________________________________________________
 TAlpideDecoder::~TAlpideDecoder()
 {
-    
+    fHits.clear();
 }
 
 //___________________________________________________________________
@@ -60,6 +70,15 @@ void TAlpideDecoder::SetScanHisto( shared_ptr<TScanHisto> aScanHisto )
         throw runtime_error( "TDeviceDigitalScan::SetScanHisto() - can not use a null pointer !" );
     }
     fScanHisto = aScanHisto;
+}
+
+//___________________________________________________________________
+void TAlpideDecoder::SetErrorCounter( shared_ptr<TErrorCounter> anErrorCounter )
+{
+    if ( !anErrorCounter ) {
+        throw runtime_error( "TDeviceDigitalScan::SetErrorCounter() - can not use a null pointer !" );
+    }
+    fErrorCounter = anErrorCounter;
 }
 
 //___________________________________________________________________
@@ -128,27 +147,6 @@ unsigned int TAlpideDecoder::GetNHits() const
         nHits += fScanHisto->GetChipNEntries( aChipIndex );
     }
     return nHits;
-}
-
-//___________________________________________________________________
-void TAlpideDecoder::DumpCorruptedHits()
-{
-    if( fCorruptedHits.size() ) {
-        cout << "------------------------------- TAlpideDecoder::DumpCorruptedHits() "
-             << endl;
-        cout << "board.receiver / chip / dcol.addr (flag) " << endl;
-    }
-    for ( unsigned int i = 0; i < fCorruptedHits.size(); i++ ) {
-        cout << (fCorruptedHits.at(i))->GetBoardIndex() << "."
-             << (fCorruptedHits.at(i))->GetBoardReceiver() << " / "
-             << (fCorruptedHits.at(i))->GetChipId() << " / "
-             << (fCorruptedHits.at(i))->GetDoubleColumn() << "."
-             << (fCorruptedHits.at(i))->GetAddress() << " ("
-             << (int)((fCorruptedHits.at(i))->GetPixFlag()) << ")" << endl;
-    }
-    if( fCorruptedHits.size() ) {
-        cout << "------------------------------- " << endl;
-    }
 }
 
 //___________________________________________________________________
@@ -277,6 +275,8 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
     
     FillHistoWithEvent();
     
+    fErrorCounter->IncrementNPrioEncoder( GetPrioErrors() );
+
     if ( started && finished ) {
         return (!corrupt);
     } else {
@@ -289,6 +289,7 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
             return false;
         }
     }
+    
     return (!corrupt);
 }
 
@@ -464,7 +465,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
             cerr << "\t -- current hit pixel :" << endl;
             singleHit->DumpPixHit();
         }
-        if ( singleHit->GetPixFlag() == TPixFlag::kUNKNOWN ) { // nothing bad detected, the flag still has its initialization value => the pixel hit is ok
+        if ( singleHit->GetPixFlag() == TPixFlag::kUNKNOWN ) { // nothing bad detected, it means that the flag still has its initialization value => the pixel hit is ok
             singleHit->SetPixFlag( TPixFlag::kOK );
         }
         if ( GetVerboseLevel() > kCHATTY ) {
@@ -502,7 +503,7 @@ void TAlpideDecoder::FillHistoWithEvent()
                 (fHits.at(i))->DumpPixHit();
             }
             shared_ptr<TPixHit> badHit( new TPixHit( fHits.at(i) ) ); // deep copy
-            fCorruptedHits.push_back( move(badHit) );
+            fErrorCounter->AddCorruptedHit( badHit );
             
         } else {
             

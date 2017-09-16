@@ -200,44 +200,57 @@ bool TPixHit::IsPixHitCorrupted() const
 }
 
 //___________________________________________________________________
-void TPixHit::DumpPixHit()
+void TPixHit::DumpPixHit( const bool with_reminder )
 {
     int buffer_verbosity = GetVerboseLevel();
     SetVerboseLevel( kSILENT );
-    cout << "\t TPixHit::DumpPixHit()" << endl;
-    cout << "\t hit board.receiver/chip/region.dcol.add (flag) " << std::dec
+    if ( with_reminder ) {
+        cout << "\t TPixHit::DumpPixHit()" << endl;
+        cout << "\t hit board.receiver / chip / region.dcol.add (flag) " ;
+    }
+    cout << std::dec
     << GetBoardIndex() << "."
-    << GetBoardReceiver() << "/"
-    << GetChipId() << "/"
+    << GetBoardReceiver() << " / "
+    << GetChipId() << " / "
     << GetRegion() << "."
     << GetDoubleColumn() << "."
     << GetAddress() << " (" ;
+    if ( with_reminder ) {
+        if ( fFlag == TPixFlag::kBAD_ADDRESS ) {
+            cout << "TPixFlag::kBAD_ADDRESS" << ") " << endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kBAD_DCOLID ) {
+            cout << "TPixFlag::kBAD_DCOLID" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kBAD_REGIONID ) {
+            cout << "TPixFlag::kBAD_REGIONID" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kBAD_CHIPID ) {
+            cout << "TPixFlag::kBAD_CHIPID" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kSTUCK ) {
+            cout << "TPixFlag::kSTUCK" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kUNKNOWN ) {
+            cout << "TPixFlag::kUNKNOWN" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        cout << "TPixFlag::kOK" << ") "<< endl;
+    } else {
+        cout <<  (int)GetPixFlag() << ") "<< endl;
+    }
     SetVerboseLevel( buffer_verbosity );
-    if ( fFlag == TPixFlag::kBAD_ADDRESS ) {
-        cout << "TPixFlag::kBAD_ADDRESS" << ") " << endl;
-        return;
-    }
-    if ( fFlag == TPixFlag::kBAD_DCOLID ) {
-        cout << "TPixFlag::kBAD_DCOLID" << ") "<< endl;
-        return;
-    }
-    if ( fFlag == TPixFlag::kBAD_REGIONID ) {
-        cout << "TPixFlag::kBAD_REGIONID" << ") "<< endl;
-        return;
-    }
-    if ( fFlag == TPixFlag::kBAD_CHIPID ) {
-        cout << "TPixFlag::kBAD_CHIPID" << ") "<< endl;
-        return;
-    }
-    if ( fFlag == TPixFlag::kSTUCK ) {
-        cout << "TPixFlag::kSTUCK" << ") "<< endl;
-        return;
-    }
-    if ( fFlag == TPixFlag::kUNKNOWN ) {
-        cout << "TPixFlag::kUNKNOWN" << ") "<< endl;
-        return;
-    }
-    cout << "TPixFlag::kOK" << ") "<< endl;
     return;
 }
 
