@@ -61,7 +61,6 @@ private:
 
     /// map to histograms (one per chip) of hit pixels, accumulating over events
     std::shared_ptr<TScanHisto> fScanHisto;
-
     
 public:
 
@@ -126,6 +125,9 @@ private:
     
     /// check if there is any hit for the requested chip index
     bool HasData( const common::TChipIndex& idx );
+    
+    /// check if the hit would have a legitimate chip index
+    bool IsValidChipIndex( std::shared_ptr<TPixHit> hit );
 };
 
 #endif

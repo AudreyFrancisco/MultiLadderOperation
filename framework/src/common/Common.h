@@ -27,6 +27,9 @@ namespace common {
     extern std::string GetFileName( TChipIndex aChipIndex,
                                    std::string suffix );
     
+    /// Compare two TChipIndex structures
+    extern bool SameChipIndex( TChipIndex lhs, TChipIndex rhs );
+    
     /// id of the last region of the chip
     const unsigned int MAX_REGION = 31;  // [0 .. 31] 32 regions
     

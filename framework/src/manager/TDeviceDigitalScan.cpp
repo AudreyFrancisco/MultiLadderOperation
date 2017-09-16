@@ -229,6 +229,7 @@ void TDeviceDigitalScan::AddHisto()
             fScanHisto->AddHisto( id, histo );
         }
     }
+    fScanHisto->FindChipList();
     if ( GetVerboseLevel() > kSILENT ) {
         cout << endl << "TDeviceDigitalScan::AddHisto() - generated map with " << std::dec << fScanHisto->GetSize() << " elements" << endl;
     }

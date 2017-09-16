@@ -408,6 +408,17 @@ void TScanHisto::FindChipList()
 }
 
 //___________________________________________________________________
+bool TScanHisto::IsValidChipIndex( const common::TChipIndex idx )
+{
+    for ( unsigned int i = 0; i < GetChipListSize(); i++ ) {
+        if ( SameChipIndex( idx, GetChipIndex(i) ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+//___________________________________________________________________
 void TScanHisto::Clear()
 {
     std::map<int, THisto>::iterator it;

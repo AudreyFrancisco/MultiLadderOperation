@@ -20,3 +20,14 @@ string common::GetFileName( common::TChipIndex aChipIndex, string suffix )
     return fileName;
 }
 
+//___________________________________________________________________
+bool common::SameChipIndex( common::TChipIndex lhs, common::TChipIndex rhs )
+{
+    bool equality = false;
+    if ( (lhs.boardIndex == rhs.boardIndex)
+        && (lhs.dataReceiver == rhs.dataReceiver)
+        && (lhs.chipId == rhs.chipId) ) {
+        equality = true;
+    }
+    return equality;
+}

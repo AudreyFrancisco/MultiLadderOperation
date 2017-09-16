@@ -109,7 +109,7 @@ public:
     void Incr( common::TChipIndex index, unsigned int i, unsigned int j );
     void Incr        (common::TChipIndex index, unsigned int i);
     void FindChipList();
-    
+    bool IsValidChipIndex( const common::TChipIndex idx );
     void Clear();
 };
 

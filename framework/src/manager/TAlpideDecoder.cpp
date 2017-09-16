@@ -77,8 +77,6 @@ void TAlpideDecoder::WriteDataToFile( const char *fName, bool Recreate )
     strtok( fNameTemp, "." );
     string suffix( fNameTemp );
     
-    fScanHisto->FindChipList();
-    
     for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
         
         common::TChipIndex aChipIndex = fScanHisto->GetChipIndex( ichip );
@@ -123,8 +121,6 @@ unsigned int TAlpideDecoder::GetNHits() const
     }
 
     unsigned int nHits = 0;
-
-    fScanHisto->FindChipList();
 
     for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
         
@@ -411,20 +407,9 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 
     hit->SetBoardIndex( fBoardIndex );
     hit->SetBoardReceiver( fBoardReceiver );
-    hit->SetRegion( fRegion );
-    hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 );
-
-    if ( fChipId == -1 ) {
-        cout << "TAlpideDecoder::DecodeDataWord() - Warning: found chip id -1, data word = 0x" << std::hex << (int) data_field << std::dec << endl;
-        // store one hit with the flag indicating a bad chip id
-        hit->SetAddress( 0 );
-        hit->SetChipId( 0 );
-        hit->SetPixFlag( TPixFlag::kBAD_CHIPID );
-        fNewEvent = false;
-        corrupt = true;
-        return corrupt;
-    }
-    hit->SetChipId( fChipId );
+    hit->SetChipId( fChipId ); // first basic checks on chip id done here
+    hit->SetRegion( fRegion ); // can generate a bad region flag
+    hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 ); // can generate a bad dcol flag
     
     unsigned int address = (data_field & 0x03ff);
 
@@ -433,55 +418,66 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
     if ( datalong ) {
         hitmap_length = 7; // clustering enabled
     } else {
-        hitmap_length = 0;
+        hitmap_length = 0; // clustering disabled
     }
 
     for ( int i = -1; i < hitmap_length; i ++ ) {
         
         if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;
         shared_ptr<TPixHit> singleHit( new TPixHit( hit ) ); // deep copy
-        singleHit->SetAddress( address + (i + 1) ); // set hit address on the new shared ptr, can generate a bad address flag
-        
+
+        // set hit address on the new shared ptr, can generate a bad address flag
+        singleHit->SetAddress( address + (i + 1) );
+
+        // check if pixel deserves a stuck flag
         if ( (fHits.size() > 0) && (!fNewEvent) ) {
             if ( (singleHit->GetRegion() == (fHits.back())->GetRegion())
                 && ( singleHit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
                 && (singleHit->GetAddress() == (fHits.back())->GetAddress()) ) {
-                cout << "TAlpideDecoder::DecodeDataWord() - Warning : received pixel twice." << endl;
+                cerr << "TAlpideDecoder::DecodeDataWord() - received pixel twice." << endl;
                 fPrioErrors++;
                 singleHit->SetPixFlag( TPixFlag::kSTUCK );
                 (fHits.back())->SetPixFlag( TPixFlag::kSTUCK );
-                cout << "\t -- current hit pixel :" << endl;
+                cerr << "\t -- current hit pixel :" << endl;
                 singleHit->DumpPixHit();
-                cout << "\t -- previous hit pixel :" << endl;
+                cerr << "\t -- previous hit pixel :" << endl;
                 (fHits.back())->DumpPixHit();
             }
             else if ( (singleHit->GetRegion() == (fHits.back())->GetRegion() )
                      && (singleHit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
                      && (singleHit->GetAddress() < (fHits.back())->GetAddress()) ) {
-                cout << "TAlpideDecoder::DecodeDataWord() - Warning : address of pixel is lower than previous one in same double column." << endl;
+                cerr << "TAlpideDecoder::DecodeDataWord() - address of pixel is lower than previous one in same double column." << endl;
                 fPrioErrors++;
                 singleHit->SetPixFlag( TPixFlag::kSTUCK );
                 (fHits.back())->SetPixFlag( TPixFlag::kSTUCK );
-                cout << "\t -- current hit pixel :" << endl;
+                cerr << "\t -- current hit pixel :" << endl;
                 singleHit->DumpPixHit();
-                cout << "\t -- previous hit pixel :" << endl;
+                cerr << "\t -- previous hit pixel :" << endl;
                 (fHits.back())->DumpPixHit();
             }
         }
-        
-        if ( singleHit->GetPixFlag() == TPixFlag::kUNKNOWN ) { // nothing bad detected, the flag still has its initialization value => the pixel is ok
+        // check if chip index (board id, receiver id, chip id) belongs to
+        // the list of the expected indexes for the device currently being read
+        if ( !IsValidChipIndex( singleHit ) ) {
+            cerr << "TAlpideDecoder::DecodeDataWord() - found bad chip index, data word = 0x" << std::hex << (int) data_field << std::dec << endl;
+            singleHit->SetPixFlag( TPixFlag::kBAD_CHIPID );
+            cerr << "\t -- current hit pixel :" << endl;
+            singleHit->DumpPixHit();
+        }
+        if ( singleHit->GetPixFlag() == TPixFlag::kUNKNOWN ) { // nothing bad detected, the flag still has its initialization value => the pixel hit is ok
             singleHit->SetPixFlag( TPixFlag::kOK );
         }
         if ( GetVerboseLevel() > kCHATTY ) {
             cout << "TAlpideDecoder::DecodeDataWord() - new hit found" << endl;
             singleHit->DumpPixHit();
         }
-        corrupt = singleHit->IsPixHitCorrupted();
-        fHits.push_back( move(singleHit) ); // vector owns hit with the address set
+        fHits.push_back( move(singleHit) ); // vector only owns hit with the address set
         if ( GetVerboseLevel() > kCHATTY ) {
             cout << "\t TAlpideDecoder::DecodeDataWord() - hit added in vector." << endl;
         }
         
+        // data word is corrupted if there is any bad hit found
+        corrupt = singleHit->IsPixHitCorrupted();
     }
     hit.reset();
     fNewEvent = false;
@@ -540,5 +536,17 @@ bool TAlpideDecoder::HasData( const common::TChipIndex& idx )
     return false;
 }
 
-
+//___________________________________________________________________
+bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
+{
+    bool is_valid = false;
+    common::TChipIndex idx;
+    if ( hit ) {
+        idx.boardIndex    = hit->GetBoardIndex();
+        idx.dataReceiver  = hit->GetBoardReceiver();
+        idx.chipId        = hit->GetChipId();
+        is_valid = fScanHisto->IsValidChipIndex( idx );
+    }
+    return is_valid;
+}
 
