@@ -48,9 +48,6 @@ private:
     /// id of the board data receiver that read the chip (must be given by the user)
     unsigned int fBoardReceiver;
     
-    /// number of errors from the priority encoders (double column) for the current event
-    unsigned int fPrioErrors;
-    
     /// type of the data word currently being decoded
     TDataType fDataType;
 
@@ -81,9 +78,6 @@ public:
 
     /// set the pointer to the error container
     void SetErrorCounter( std::shared_ptr<TErrorCounter> anErrorCounter );
-
-    /// get the number of priority encoder errors for the current event
-    inline int GetPrioErrors() const { return fPrioErrors; }
     
     /// get the map of histograms (one per chip) of hit pixels
     inline std::shared_ptr<TScanHisto> GetScanHisto() { return fScanHisto; }
@@ -98,7 +92,7 @@ public:
     bool DecodeEvent( unsigned char* data, int nBytes,
                      unsigned int boardIndex,
                      unsigned int boardReceiver );
-    
+        
 private:
     
     /// find the data type of the given data word

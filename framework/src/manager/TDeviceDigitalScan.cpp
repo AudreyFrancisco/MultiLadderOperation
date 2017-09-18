@@ -99,6 +99,7 @@ void TDeviceDigitalScan::Init()
     
     InitScanParameters();
     AddHisto();
+    fErrorCounter->Init( fScanHisto );
     
     try {
         TDeviceChipVisitor::Init();
@@ -138,12 +139,8 @@ void TDeviceDigitalScan::Terminate()
             myDAQBoard->PowerOff();
         }
     }
+    FindDeadPixels();
     cout << endl;
-    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_CHIPID );
-    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_REGIONID );
-    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_DCOLID );
-    fErrorCounter->DumpCorruptedHits( TPixFlag::kBAD_ADDRESS );
-    fErrorCounter->DumpCorruptedHits( TPixFlag::kSTUCK );
     fErrorCounter->Dump();
 }
 
@@ -389,4 +386,33 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
     return itrg;
 }
 
+//___________________________________________________________________
+void TDeviceDigitalScan::FindDeadPixels()
+{
+    bool isFullMatrix = (( fNMaskStages == 512 ) && ( fNPixPerRegion == 32 ));
+    
+    if ( !isFullMatrix  ) {
+        cout << "TDeviceDigitalScan::FindDeadPixels() - not implemented when only part of the pixel matrix is tested. Please test the full matrix." << endl;
+        return;
+    }
+    for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
+        
+        for (unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++) {
+            for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
+                
+                common::TChipIndex idx = fScanHisto->GetChipIndex(ichip);
+                if ( (*fScanHisto)(idx,icol,iaddr) < fNTriggers ) {
+                    if ( (*fScanHisto)(idx,icol,iaddr) == 0 ) {
+                        fErrorCounter->AddDeadPixel( idx, icol, iaddr );
+                    } else {
+                        fErrorCounter->AddAlmostDeadPixel( idx, icol, iaddr );
+                    }
+                }
+                
+            } // end of loop on iaddr
+        } // end of loop on icol
+        
+    } // end of loop on ichip
+    
+}
 

@@ -206,7 +206,7 @@ void TPixHit::DumpPixHit( const bool with_reminder )
     SetVerboseLevel( kSILENT );
     if ( with_reminder ) {
         cout << "\t TPixHit::DumpPixHit()" << endl;
-        cout << "\t hit board.receiver / chip / region.dcol.add (flag) " ;
+        cout << "\t board.receiver / chip / region.dcol.add (flag) " ;
     }
     cout << std::dec
     << GetBoardIndex() << "."
@@ -238,6 +238,16 @@ void TPixHit::DumpPixHit( const bool with_reminder )
         }
         if ( fFlag == TPixFlag::kSTUCK ) {
             cout << "TPixFlag::kSTUCK" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kDEAD ) {
+            cout << "TPixFlag::kDEAD" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kALMOST_DEAD ) {
+            cout << "TPixFlag::kALMOST_DEAD" << ") "<< endl;
             SetVerboseLevel( buffer_verbosity );
             return;
         }

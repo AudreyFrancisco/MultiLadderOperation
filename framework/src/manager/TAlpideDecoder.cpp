@@ -19,7 +19,6 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
     fRegion( -1 ),
     fBoardIndex( 0 ),
     fBoardReceiver( 0 ),
-    fPrioErrors( 0 ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
@@ -38,7 +37,6 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto,
     fRegion( -1 ),
     fBoardIndex( 0 ),
     fBoardReceiver( 0 ),
-    fPrioErrors( 0 ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
@@ -67,7 +65,7 @@ TAlpideDecoder::~TAlpideDecoder()
 void TAlpideDecoder::SetScanHisto( shared_ptr<TScanHisto> aScanHisto )
 {
     if ( !aScanHisto ) {
-        throw runtime_error( "TDeviceDigitalScan::SetScanHisto() - can not use a null pointer !" );
+        throw runtime_error( "TAlpideDecoder::SetScanHisto() - can not use a null pointer !" );
     }
     fScanHisto = aScanHisto;
 }
@@ -76,7 +74,7 @@ void TAlpideDecoder::SetScanHisto( shared_ptr<TScanHisto> aScanHisto )
 void TAlpideDecoder::SetErrorCounter( shared_ptr<TErrorCounter> anErrorCounter )
 {
     if ( !anErrorCounter ) {
-        throw runtime_error( "TDeviceDigitalScan::SetErrorCounter() - can not use a null pointer !" );
+        throw runtime_error( "TAlpideDecoder::SetErrorCounter() - can not use a null pointer !" );
     }
     fErrorCounter = anErrorCounter;
 }
@@ -162,7 +160,6 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
     fRegion = -1;
     fBoardIndex = boardIndex;
     fBoardReceiver = boardReceiver;
-    fPrioErrors = 0;
     fDataType = TDataType::kUNKNOWN;
     bool started = false; // event has started, i.e. chip header has been found
     bool finished = false; // event trailer found
@@ -274,10 +271,6 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
     }
     
     FillHistoWithEvent();
-    
-    if ( fPrioErrors ) {
-        fErrorCounter->IncrementNPrioEncoder( fPrioErrors );
-    }
     
     if ( started && finished ) {
         return (!corrupt);
@@ -438,7 +431,6 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
                 && ( singleHit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
                 && (singleHit->GetAddress() == (fHits.back())->GetAddress()) ) {
                 cerr << "TAlpideDecoder::DecodeDataWord() - received pixel twice." << endl;
-                fPrioErrors++;
                 singleHit->SetPixFlag( TPixFlag::kSTUCK );
                 (fHits.back())->SetPixFlag( TPixFlag::kSTUCK );
                 cerr << "\t -- current hit pixel :" << endl;
@@ -450,7 +442,6 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
                      && (singleHit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
                      && (singleHit->GetAddress() < (fHits.back())->GetAddress()) ) {
                 cerr << "TAlpideDecoder::DecodeDataWord() - address of pixel is lower than previous one in same double column." << endl;
-                fPrioErrors++;
                 singleHit->SetPixFlag( TPixFlag::kSTUCK );
                 (fHits.back())->SetPixFlag( TPixFlag::kSTUCK );
                 cerr << "\t -- current hit pixel :" << endl;

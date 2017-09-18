@@ -32,7 +32,9 @@ enum class TPixFlag {
     kBAD_DCOLID = 3,
     kBAD_ADDRESS = 4,
     kSTUCK = 5,
-    kUNKNOWN = 6
+    kDEAD = 6,
+    kALMOST_DEAD = 7,
+    kUNKNOWN = 8
 };
 
 class TPixHit : public TVerbosity {
