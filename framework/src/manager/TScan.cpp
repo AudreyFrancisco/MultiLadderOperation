@@ -55,10 +55,10 @@ void TScan::Next( const int loopIndex )
 //___________________________________________________________________
 void TScan::CreateScanHisto()
 {
-    TChipIndex id;
+    common::TChipIndex id;
     fHisto = make_unique<TScanHisto>();
     
-    shared_ptr<THisto> histo = CreateHisto();
+    THisto histo = CreateHisto();
     
     shared_ptr<TDevice> currentDevice = fDevice.lock();
     

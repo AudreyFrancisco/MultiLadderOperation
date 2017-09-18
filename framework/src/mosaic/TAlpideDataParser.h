@@ -33,20 +33,22 @@
 
 #include <stdint.h>
 #include "mdatareceiver.h"
-//#include "../BoardDecoder.h"
+#include "TVerbosity.h"
 
-class TAlpideDataParser : public MDataReceiver
+class TAlpideDataParser : public MDataReceiver, public TVerbosity
 {
 public:
 	TAlpideDataParser();
 	void flush() {};
 	int  ReadEventData(int &nBytes, unsigned char *buffer);
 	bool hasData() { return (numClosedData!=0); }
-	
+    inline void SetId(int i) { fId = i; }
+
 protected:
 	long parse(int numClosed);
 
 private:
+    int fId;
 	enum dataCode_e {
 		DCODE_IDLE			= 0xff,
 		DCODE_CHIP_EMPTY	= 0x0e,

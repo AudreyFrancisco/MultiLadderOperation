@@ -65,8 +65,11 @@ void TDeviceChipVisitor::SetVerboseLevel( const int level )
         cout << "TDeviceChipVisitor::SetVerboseLevel() - " << level << endl;
     }
     TVerbosity::SetVerboseLevel( level );
-    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
+    for ( unsigned int i = 0; i < fDevice->GetNChips(); i++ ) {
         fDevice->GetChip(i)->SetVerboseLevel( level );
+    }
+    for ( unsigned int i = 0; i < fDevice->GetNBoards(false); i++ ) {
+        fDevice->GetBoard(i)->SetVerboseLevel( level );
     }
 }
 
@@ -81,8 +84,7 @@ void TDeviceChipVisitor::Init()
     if ( fDevice->GetNChips() == 0 ) {
         throw runtime_error( "TDeviceChipVisitor::Init() - no chip found !" );
     }
-    shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard(0);
-    if ( !myBoard ) {
+    if ( fDevice->GetNBoards(false) == 0 ) {
         throw runtime_error( "TDeviceChipVisitor::Init() - no readout board found !" );
     }
     if ( fIsInitDone ) {
@@ -90,36 +92,46 @@ void TDeviceChipVisitor::Init()
         return;
     }
     
+    ConfigureBoards();
+
     for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
 
-        myBoard = fDevice->GetBoard( iboard );
+        shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard( iboard );
+        if ( !myBoard ) {
+            throw runtime_error( "TDeviceChipVisitor::Init() - no readout board found!" );
+        }
 
         // -- global reset chips
         
         myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
         
-        // TODO: check if this is needed ?
+        // TODO: check if AlpideOpCode::PRST is needed ?
         // -- pixel matrix reset
         // (does not affect the PULSE_EN and MASK_EN latches)
         
         myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
     }
-    
-    // -- init in-pixel registers
-    // (the pixel latches do not provide a reset mechanism,
-    // the value after power-on is unknown)
 
-    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
-        fDevice->GetChip(i)->Init();
-        // disable mask
-        fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE, false );
-        // disable pulse
-        fDevice->GetChip(i)->WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
-    }
     fIsInitDone = true;
+
+    ConfigureChips();
+    if ( GetVerboseLevel() > kSILENT ) {
+        DoDumpConfig();
+    }
 }
 
 #pragma mark - forward configure operations to each Alpide in the device
+
+//___________________________________________________________________
+void TDeviceChipVisitor::DoActivateConfigMode()
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoActivateConfigMode() - not initialized ! Please use Init() first." );
+    }
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
+        fDevice->GetChip(i)->ActivateConfigMode();
+    }
+}
 
 //___________________________________________________________________
 void TDeviceChipVisitor::DoApplyStandardDACSettings( const float backBias )
@@ -172,18 +184,9 @@ void TDeviceChipVisitor::DoBaseConfig()
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceChipVisitor::DoBaseConfig() - not initialized ! Please use Init() first." );
     }
-    shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard(0);
-    if ( !myBoard ) {
-        throw runtime_error( "TDeviceFifoTest::DoBaseConfig() - no readout board found!" );
-    }
-
-    // configure chip(s)
     for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
             fDevice->GetChip(i)->BaseConfig();
     }
-
-    // readout reset
-    myBoard->SendOpCode( (uint16_t)AlpideOpCode::RORST );
 }
 
 //___________________________________________________________________
@@ -252,3 +255,13 @@ void TDeviceChipVisitor::DoDumpConfig()
     }
 }
 
+//___________________________________________________________________
+void TDeviceChipVisitor::DoActivateReadoutMode()
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoActivateReadoutMode() - not initialized ! Please use Init() first." );
+    }
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
+        fDevice->GetChip(i)->ActivateReadoutMode();
+    }
+}

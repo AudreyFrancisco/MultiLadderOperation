@@ -25,7 +25,7 @@ protected:
     int fStep[MAXLOOPLEVEL];
     int fValue[MAXLOOPLEVEL];
     
-    virtual std::shared_ptr<THisto> CreateHisto() = 0;
+    virtual THisto CreateHisto() = 0;
     
 public:
     TScan();

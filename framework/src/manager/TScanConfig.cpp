@@ -3,7 +3,7 @@
 
 using namespace std;
 
-const int TScanConfig::NINJ           = 50;
+const int TScanConfig::NINJ           = 50; // number of injections in digital/threshold scans
 const int TScanConfig::CHARGE_START   = 0;
 const int TScanConfig::CHARGE_STOP    = 50;
 const int TScanConfig::CHARGE_STEP    = 1;

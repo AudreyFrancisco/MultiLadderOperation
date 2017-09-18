@@ -116,5 +116,6 @@ void TDeviceBuilderTelescope::InitSetup()
     }
     fCurrentDevice->FreezeSetup();
     CountEnabledChipsPerBoard();
+    PropagateVerbosityToBoards();
 }
 

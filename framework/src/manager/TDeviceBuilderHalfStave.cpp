@@ -143,4 +143,5 @@ void TDeviceBuilderHalfStave::InitSetup()
     }
     fCurrentDevice->FreezeSetup();
     CountEnabledChipsPerBoard();
+    PropagateVerbosityToBoards();
 }

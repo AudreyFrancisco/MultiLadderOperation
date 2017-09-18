@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include "TAlpide.h"
+#include "TVerbosity.h"
 
 class TChipConfig;
 class TBoardConfig;
@@ -14,7 +15,7 @@ enum class TTriggerSource;
 // abstract base class for all readout boards
 //************************************************************
 
-class TReadoutBoard {
+class TReadoutBoard : public TVerbosity {
     
 protected:
 

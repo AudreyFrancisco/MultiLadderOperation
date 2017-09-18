@@ -6,12 +6,38 @@
  *
  * \brief Simple container for the full address of a "hit" (responding) pixel
  *
- * The "hit" (responding) pixel is identified thanks to the following coordinates:
- * chip id, region id, double colum id, index (address) of the pixel in the double 
- * column.
+ * \author Andry Rakotozafindrabe
+ *
+ * The "hit" (i.e. responding) pixel is identified thanks to the following coordinates:
+ * chip id, double column id, index (address) of the pixel in the double
+ * column. The region id is also stored.
+ *
+ * The container also store the board index and the board receiver id used to
+ * collect the data from the chip.
+ *
+ * Sanity checks are always run on the validity of the chip id, the region id, the
+ * double column id and the address. They are used to put a quality flag on the pixel 
+ * hit. If the pixel hit is bad in many ways, only one of them can be stored since
+ * the flag can only be chosen among a simple enum.
  */
 
-class TPixHit {
+#include "Common.h"
+#include "TVerbosity.h"
+#include <memory>
+
+enum class TPixFlag {
+    kOK = 0 ,
+    kBAD_CHIPID = 1,
+    kBAD_REGIONID = 2,
+    kBAD_DCOLID = 3,
+    kBAD_ADDRESS = 4,
+    kSTUCK = 5,
+    kDEAD = 6,
+    kALMOST_DEAD = 7,
+    kUNKNOWN = 8
+};
+
+class TPixHit : public TVerbosity {
 
     /// id of the board that read the chip to which belong the hit pixel
     unsigned int fBoardIndex;
@@ -31,22 +57,26 @@ class TPixHit {
     /// index (address) of the pixel in the double column
     unsigned int fAddress;
     
-    /// id of the last region of the chip
-    static const unsigned int MAX_REGION = 31;  // [0 .. 31] 32 regions
-
-    /// id of the last double column in a region of the chip
-    static const unsigned int MAX_DCOL = 15;  // [0 .. 15] 16 double columns / region
-
-    /// index of the last pixel in a double column of the chip
-    static const unsigned int MAX_ADDR = 1023;  // [0 .. 1023] 1024 pixels / double column
-
+    /// flag to check the status of this hit pixel
+    TPixFlag fFlag;
+    
     /// illegal chip id, used for initialization
     static const unsigned int ILLEGAL_CHIP_ID = 15;  // i.e. 4'b1111
 
 public:
     
+    /// default constructor
     TPixHit();
+    
+    /// copy constructors
+    TPixHit( const TPixHit& obj );
+    TPixHit( const std::shared_ptr<TPixHit> obj );
+    
+    /// destructor
     virtual ~TPixHit();
+    
+    /// assignement operator
+    TPixHit& operator=(const TPixHit& obj );
 
 #pragma mark - setters
 
@@ -56,6 +86,7 @@ public:
     void SetRegion( const unsigned int value );
     void SetDoubleColumn( const unsigned int value );
     void SetAddress( const unsigned int value );
+    inline void SetPixFlag( const TPixFlag flag ) { fFlag = flag; }
 
 #pragma mark - getters
 
@@ -65,6 +96,13 @@ public:
     unsigned int GetRegion() const;
     unsigned int GetDoubleColumn() const;
     unsigned int GetAddress() const;
+    TPixFlag GetPixFlag() const;
+    bool IsPixHitCorrupted() const;
+    
+#pragma mark - other
+    
+    void DumpPixHit( const bool with_reminder = true );
+    
 };
 
 #endif

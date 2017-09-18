@@ -56,8 +56,9 @@ find_library (LIBUSB_LIBRARY
 message ("-- libusb include dir : ${LIBUSB_INCLUDE_DIR}")
 message ("-- libusb library : ${LIBUSB_LIBRARY}")
 
-include_directories ("${PROJECT_SOURCE_DIR}/src/manager")
+include_directories ("${PROJECT_SOURCE_DIR}/src/common")
 include_directories ("${PROJECT_SOURCE_DIR}/src/mosaic")
+include_directories ("${PROJECT_SOURCE_DIR}/src/manager")
 include_directories ("${LIBUSB_INCLUDE_DIR}")
 include_directories (/usr/local/include /usr/include)
 
@@ -68,8 +69,9 @@ link_directories (/usr/local/lib )
 
 #### build and install MOSAIC library
 
-add_subdirectory(src/manager)
+add_subdirectory(src/common)
 add_subdirectory(src/mosaic)
+add_subdirectory(src/manager)
 
 #### build and install the executables
 
@@ -89,8 +91,8 @@ foreach (EXECNAME
 #    template
 )
     add_executable (test_${EXECNAME} exe/main_${EXECNAME}.cpp)
-    target_link_libraries (test_${EXECNAME} LINK_PUBLIC MANAGER MOSAIC ${LIBUSB_LIBRARY})
-    add_dependencies(test_${EXECNAME} MANAGER MOSAIC)
+    target_link_libraries (test_${EXECNAME} LINK_PUBLIC COMMON MOSAIC MANAGER ${LIBUSB_LIBRARY})
+    add_dependencies(test_${EXECNAME} COMMON MOSAIC MANAGER)
     install (TARGETS test_${EXECNAME} DESTINATION ${CMAKE_SOURCE_DIR}/bin)
 endforeach (EXECNAME)
 

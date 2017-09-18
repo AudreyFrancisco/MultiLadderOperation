@@ -24,7 +24,7 @@ private:
     void ConfigureBoard ( const int iboard );
     void FillHistos     ( const int iboard );
 protected:
-    std::shared_ptr<THisto> CreateHisto();
+    THisto CreateHisto();
     friend class AlpideDecoder;
 public:
     TThresholdScan();

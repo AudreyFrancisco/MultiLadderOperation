@@ -9,9 +9,7 @@
  * \author Andry Rakotozafindrabe
  *
  * \remark
- * The TAlpideDecoder does not seem to work properly for the moment (to be fixed in
- * subsequent versions). Only empty frames are detected, which is not the case with
- * the low level software from Giuseppe.
+ * Missing: list of dead pixels.
  *
  * \note
  * Most of the code was moved from the original main_digitalscan.cpp written by ITS team.
@@ -21,33 +19,46 @@
 #include <vector>
 #include "TDeviceChipVisitor.h"
 
-class TPixHit;
+class TScanHisto;
 class TScanConfig;
+class TErrorCounter;
+class TAlpideDecoder;
+class TBoardDecoder;
 class TDevice;
-class AlpideDecoder;
 
 class TDeviceDigitalScan : public TDeviceChipVisitor {
     
-    /// number of priority encoders (double columns) in the pixel matrix
-    static const unsigned int NPRIORITY_ENCODERS = 512;
-    
-    /// number of addresses in the pixel matrix
-    static const unsigned int NADDRESSES = 1024;
-    
+protected:
+
     /// max number of trials ending with timeout for each injection for each chip
     static const unsigned int MAXTRIALS = 3;
 
     /// max number of bad chip events per chip for each injection
     static const unsigned int MAXNBAD = 10;
 
-    /// array of hit pixels [ichip][icol][iaddr]
-    int* fHitData;
+    /// map to histograms (one per chip) of hit pixels
+    std::shared_ptr<TScanHisto> fScanHisto;
     
     /// scan configuration
     std::shared_ptr<TScanConfig> fScanConfig;
     
-    /// vector of hit pixels
-    std::vector<std::shared_ptr<TPixHit>> fHits;
+    /// dedicated error counter
+    std::shared_ptr<TErrorCounter> fErrorCounter;
+    
+    /// chip decoder
+    std::unique_ptr<TAlpideDecoder> fChipDecoder;
+    
+    /// board decoder
+    std::unique_ptr<TBoardDecoder> fBoardDecoder;
+    
+    /// number of triggers
+    int fNTriggers;
+    
+    /// number of mask stages
+    int fNMaskStages;
+    
+    /// number of pixels per region
+    int fNPixPerRegion;
     
 public:
 
@@ -64,8 +75,14 @@ public:
     /// set the scan configuration
     void SetScanConfig( std::shared_ptr<TScanConfig> aScanConfig );
     
+    /// propagate the verbosity level to data members
+    virtual void SetVerboseLevel( const int level );
+    
     /// initialization
     virtual void Init();
+    
+    /// terminate
+    virtual void Terminate();
     
     /// write hit data to a text file
     void WriteDataToFile( const char *fName, bool Recreate = true );
@@ -75,22 +92,23 @@ public:
     
 protected:
     
-    friend class AlpideDecoder;
-
-private:
+    /// allocate memory for histogram of hit pixels for each enabled chip
+    void AddHisto();
     
-    /// zeroes all elements of the hit data array
-    void ClearHitData();
+    /// retrieve scan parameters from the configuration file
+    void InitScanParameters();
     
-    /// move the hit data from the vector of TPixHit to the array of hits
-    void MoveHitData();
+    /// configure readout boards
+    virtual void ConfigureBoards();
     
-    /// check if there is any hit for the requested chip index
-    bool HasData( const unsigned int ichip );
+    /// configure chips
+    virtual void ConfigureChips();
     
-    /// return the index in the array of hit pixels for a given (ichip, icol, iadd)
-    int GetHitDataIndex( const unsigned int ichip, const unsigned int icol, const unsigned int iadd );
+    /// read data from a given readout board
+    unsigned int ReadEventData( const unsigned int iboard );
     
+    /// check if there are any (almost) dead pixels and give them to the error counter
+    void FindDeadPixels();
 };
 
 #endif

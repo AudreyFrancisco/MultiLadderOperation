@@ -14,8 +14,8 @@
  * error counters per pattern per chip are displayed.
  *
  * \remark
- * It is recommended to disable Manchester encoding in the config file (CMU settings). 
- * However, this was seen to lead to ControlInterface sync error with MOSAIC board.
+ * It was recommended to disable Manchester encoding in the config file (CMU settings).
+ * However, this lead to ControlInterface sync error with MOSAIC board reading IB chip.
  * Maybe this setting applies only in the case of the DAQ board or OB master chip?
  *
  * \note
@@ -71,6 +71,9 @@ public:
     
     /// destructor
     virtual ~TDeviceFifoTest();
+        
+    /// terminate
+    virtual void Terminate();
     
     /// run the FIFO test on all chips of the device
     void Go();
@@ -98,6 +101,14 @@ private:
     
     /// id of the last DPRAM of a given region of the chip
     static const unsigned int MAX_OFFSET = 127; // [0 .. 127] 128 DPRAM per region
+    
+protected:
+    
+    /// configure readout boards
+    virtual void ConfigureBoards();
+    
+    /// configure chips
+    virtual void ConfigureChips();
 };
 
 

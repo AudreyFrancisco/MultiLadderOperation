@@ -31,11 +31,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <sstream>
+// MOSAIC includes
 #include "mboard.h"
 #include "mexception.h"
 #include "TAlpideDataParser.h"
 
-TAlpideDataParser::TAlpideDataParser()
+using namespace std;
+
+TAlpideDataParser::TAlpideDataParser() : MDataReceiver() , TVerbosity(),
+fId( -1 )
 {
 }
 
@@ -46,30 +50,90 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
 {
 	unsigned char *p = dBuffer;
 	unsigned char h;
-	int  d;
+    int lastRegion = -1, lastDataField = -1;
 
 	for (int closed=0;!closed;){
 		if (p-dBuffer > dataBufferUsed)
-			throw MDataParserError("Try to parse more bytes than received size");
+			throw MDataParserError("TAlpideDataParser::checkEvent() - Try to parse more bytes than received size");
 			
 		h = *p++;
 		if ( (h>>DSHIFT_CHIP_EMPTY) == DCODE_CHIP_EMPTY ) {
-			p++;
-			closed=1;
+            p++;
+            closed=1;
+            int d = h&0x0f;
+            int fsd = *p;
+            if ( GetVerboseLevel() >= kCHATTY ) {
+                cout << endl << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_EMPTY_FRAME ID:" << d << "  Frame Start Data:" << std::hex << fsd << endl;
+            }
+            lastRegion = -1;
+            lastDataField = -1;
 		} else if ( (h>>DSHIFT_CHIP_HEADER) == DCODE_CHIP_HEADER ) {
-			p++;
-		} else if ((h>>DSHIFT_CHIP_TRAILER) == DCODE_CHIP_TRAILER ) {			 
+            p++;
+            int d = h&0x0f;
+            int fsd = *p;
+            if ( GetVerboseLevel() >= kCHATTY ) {
+                cout << endl << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_HEADER ID:" << d << " frame start data:" << std::hex << fsd << endl;
+            }
+		} else if ((h>>DSHIFT_CHIP_TRAILER) == DCODE_CHIP_TRAILER ) {
+            int d = h&0x0f;
+            if ( GetVerboseLevel() >= kCHATTY ) {
+                cout << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_TRAILER Flags:" << d << endl;
+            }
 			closed=1;
 			// additional trailer
 			*evFlagsPtr = *p++;
+            uint16_t fsd = *evFlagsPtr;
+            if (fsd && (GetVerboseLevel() >= kCHATTY) ){
+                cout << std::dec << fId << " =================== Event with flags != 0 (0x" << std::hex << fsd << ")" << endl;
+                if (fsd & 0x01)
+                    cout << std::dec << fId << " =================== Header error" << endl;
+                if (fsd & 0x02)
+                    cout << std::dec << fId << " =================== 10b8b Decoder error" << endl;
+            }
 		} else if ((h>>DSHIFT_REGION_HEADER) == DCODE_REGION_HEADER ) {
+            int d = h&0x1f;
+            if ( GetVerboseLevel() >= kCHATTY )
+                cout << std::dec << fId << " TAlpideDataParser::checkEvent() - REGION_HEADER Region:" << d << endl;
+            if ( (d <= lastRegion) && (GetVerboseLevel() >= kCHATTY) ){
+                cout << std::dec << fId << " =================== REGION_HEADER ERROR" << endl;
+            }
+            lastRegion = d;
+            lastDataField = -1;
 		} else if ((h>>DSHIFT_DATA_SHORT) == DCODE_DATA_SHORT ) {
-			p++;	
+			p++;
+            uint16_t dShort = ((h&0x3f) << 8) | *p;
+            if ( GetVerboseLevel() >= kCHATTY )
+                cout << std::dec << fId << "  DATA_SHORT Data:" << std::hex << dShort << endl;
+            if ((lastRegion < 0) && (GetVerboseLevel() >= kCHATTY)){
+                cout << std::dec << fId << " =================== DATA_SHORT Without Region header" << endl;
+                lastRegion = 0;
+            }
+            if ((dShort < lastDataField) && (GetVerboseLevel() >= kCHATTY)){
+                cout << std::dec << fId << " =================== DATA_SHORT ERROR" << endl;
+                printf("dShort:%x lastDataField:%x\n", dShort, lastDataField);
+            }
+            lastDataField = dShort;
 		} else if ((h>>DSHIFT_DATA_LONG) == DCODE_DATA_LONG ) {
-			p+=2;
+            //p+=2;
+            // TODO: check incrementation done by next 2 lines <=> line above
+            uint16_t dShort = ((h&0x3f) << 8) | *p++;
+            uint16_t hitMap = *p++;
+            if ( GetVerboseLevel() >= kCHATTY ){
+                cout << std::dec << fId << "  DATA_LONG  Data:" << std::hex << dShort;
+                cout << " hit_map:" << std::hex << hitMap << endl;
+            }
+            if ((lastRegion < 0) && (GetVerboseLevel() >= kCHATTY)){
+                cout << std::dec << fId << " =================== DATA_LONG Without Region header" << endl;
+                lastRegion = 0;
+            }
+            if ((dShort < lastDataField) && (GetVerboseLevel() >= kCHATTY)){
+                cout << std::dec << fId << " =================== DATA_LONG ERROR" << endl;
+                printf("dShort:%x lastDataField:%x\n", dShort, lastDataField);
+            }
+            lastDataField = dShort;
 		} else {
-			d = h;
-			cout << " Unknow data header: " << std::hex << d << endl;
+			int d = h;
+			cout << std::dec << fId << " TAlpideDataParser::checkEvent() - Unknow data header: " << std::hex << d << endl;
 		}
 	}	
 	

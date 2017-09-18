@@ -2,9 +2,7 @@
  * \brief This executable runs the digital scan test for all enabled chips in the device.
  *
  * \remark
- * The TAlpideDecoder does not seem to work properly for the moment (to be fixed in
- * subsequent versions). Only empty frames are detected, which is not the case with 
- * the low level software from Giuseppe.
+ * Missing: list of dead pixels.
  *
  * \note
  * The default configuration file for this test for a MFT ladder is 
@@ -19,7 +17,7 @@
  */
 
 #include <iostream>
-#include "AlpideDictionary.h"
+#include <cstdlib>
 #include "TReadoutBoard.h"
 #include "TSetup.h"
 #include "TDevice.h"
@@ -43,33 +41,33 @@ int main(int argc, char** argv) {
     mySetup.ReadConfigFile();
     
     shared_ptr<TDevice> theDevice = (mySetup.GetDevice()).lock();
-    shared_ptr<TScanConfig> theScanConfig = (mySetup.GetScanConfig()).lock();
     
     const int nBoards = theDevice->GetNBoards( false );
     if ( !nBoards ) {
         cout << "No board found, exit!" << endl;
-        return 0;
+        return EXIT_FAILURE;
     }
     if ( nBoards != 1 ) {
         cout << "More than one board found, exit!" << endl;
-        return 0;
+        return EXIT_FAILURE;
     }
     
     const int nWorkingChips = theDevice->GetNWorkingChips();
     if ( !nWorkingChips ) {
         cout << "No working chip found, exit!" << endl;
-        return 0;
+        return EXIT_FAILURE;
     }
     
-    shared_ptr<TReadoutBoard> theBoard = theDevice->GetBoard( 0 );
+    shared_ptr<TScanConfig> theScanConfig = (mySetup.GetScanConfig()).lock();
+
+    if ( !theScanConfig ) {
+        cout << "No scan config found, exit!" << endl;
+        return EXIT_FAILURE;
+    }
     
     TDeviceDigitalScan theDeviceTestor( theDevice, theScanConfig );
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.Init();
-    theDeviceTestor.DoBaseConfig();
-    if ( mySetup.GetVerboseLevel() ) {
-        theDeviceTestor.DoDumpConfig();
-    }
     
     sleep(1);
     char Suffix[20], fName[100];
@@ -78,33 +76,12 @@ int main(int argc, char** argv) {
     struct tm *now = localtime( & t );
     sprintf(Suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 
-    if ( theDevice->GetBoardConfig(0)->GetBoardType() == TBoardType::kBOARD_DAQ ) { // DAQ board
-        
-        // for the DAQ board the delay between pulse and strobe is 12.5ns * pulse delay + 25 ns * strobe delay
-        // pulse delay cannot be 0, therefore set strobe delay to 0 and use only pulse delay
-        const bool enablePulse = true;
-        const bool enableTrigger = false;
-        const int triggerDelay = 0;
-        const int pulseDelay = 2 * theDevice->GetBoardConfig(0)->GetParamValue( "STROBEDELAYBOARD" );
-        theBoard->SetTriggerConfig( enablePulse, enableTrigger, triggerDelay, pulseDelay );
-        theBoard->SetTriggerSource( TTriggerSource::kTRIG_EXT );
-        
-    } else { // MOSAIC board
-
-        const bool enablePulse = true;
-        const bool enableTrigger = true;
-        const int triggerDelay = theDevice->GetBoardConfig(0)->GetParamValue("STROBEDELAYBOARD");
-        const int pulseDelay = theDevice->GetBoardConfig(0)->GetParamValue("PULSEDELAY");
-        theBoard->SetTriggerConfig( enablePulse, enableTrigger, triggerDelay, pulseDelay );
-        theBoard->SetTriggerSource( TTriggerSource::kTRIG_INT );
-    }
-
-    // run the digital scan
-    theDeviceTestor.Go();
+    theDeviceTestor.Go(); // run the digital scan
+    theDeviceTestor.Terminate();
     
-    sprintf(fName, "Data/digitalScan_%s.dat", Suffix);
+    sprintf(fName, "digitalScan_%s.dat", Suffix);
     const bool Recreate = true;
     theDeviceTestor.WriteDataToFile( fName, Recreate );
 
-    return 0;
+    return EXIT_SUCCESS;
 }

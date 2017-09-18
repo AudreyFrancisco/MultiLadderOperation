@@ -1,6 +1,7 @@
 #include <iostream>
 #include "TScanAnalysis.h"
 #include "THisto.h"
+#include "Common.h"
 
 TScanAnalysis::TScanAnalysis(std::deque<TScanHisto> *histoQue) 
 {
@@ -11,7 +12,7 @@ TScanAnalysis::TScanAnalysis(std::deque<TScanHisto> *histoQue)
 void TScanAnalysis::Run() 
 {
 
-  TChipIndex idx = {0, 3, 0};
+    common::TChipIndex idx = {0, 3, 0};
   while (m_histoQue->size() > 0) {
     TScanHisto histo = m_histoQue->front();
     m_histoQue->pop_front();

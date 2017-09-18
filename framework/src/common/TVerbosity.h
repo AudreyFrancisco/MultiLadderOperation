@@ -22,7 +22,9 @@ public:
         kSILENT = 0,
         kTERSE = 1,
         kVERBOSE = 3,
-        kCHATTY = 4
+        kCHATTY = 4,
+        kULTRACHATTY = 5,
+        kINFINITE = 10
     };
 
 };

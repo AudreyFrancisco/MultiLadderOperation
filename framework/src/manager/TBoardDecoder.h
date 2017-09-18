@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <string>
 #include "TVerbosity.h"
 
 enum class TBoardType;
@@ -12,8 +13,11 @@ class TBoardDecoder : public TVerbosity {
     TBoardType fBoardType;
     
     // firmware version and header type are only used for the DAQ board (so far)
-    std::uint32_t fFirmwareVersion;
-    int fHeaderType;
+    std::uint32_t fDAQ_firmwareVersion;
+    int fDAQ_headerType;
+    
+    // firmware version for MOSAIC board
+    std::string fMOSAIC_firmwareVersion;
     
     // put all header and trailer information here
     // (both for mosaic and DAQ board)
@@ -48,17 +52,16 @@ public:
     
     // setter
 
-    void SetBoardType( const TBoardType type,
-                      const std::uint32_t firmwareVersion = 0x247E0611,
-                      const int headerType = 1 );
-    
+    void SetBoardType( const TBoardType type );
+    void SetFirmwareVersion( const std::uint32_t DAQfirmwareVersion,
+                            const int DAQheaderType );
+    void SetFirmwareVersion( std::string MOSAICfirmwareVersion );
+
     // getters
     
     inline TBoardType GetBoardType() const { return fBoardType; }
-    
-    inline std::uint32_t GetFirmwareVersion() const { return fFirmwareVersion; }
-    inline int GetHeaderType() const { return fHeaderType; }
 
+    inline std::string GetMosaicFirmwareVersion() const { return fMOSAIC_firmwareVersion; }
     inline int GetMosaicChannel() const { return fMOSAIC_channel; }
     inline int GetMosaicEoeCount() const { return fMOSAIC_eoeCount; }
     inline bool GetMosaicTimeout() const { return fMOSAIC_timeout; }
@@ -67,6 +70,8 @@ public:
     inline bool GetMosaicHeaderError() const { return fMOSAIC_headerError; }
     inline bool GetMosaicDecoder10b8bError() const { return fMOSAIC_decoder10b8bError; }
     
+    inline std::uint32_t GetDaqFirmwareVersion() const { return fDAQ_firmwareVersion; }
+    inline int GetDaqHeaderType() const { return fDAQ_headerType; }
     inline bool GetDaqAlmostFull() const { return fDAQ_almostFull; }
     inline int GetDaqTrigType() const { return fDAQ_trigType; }
     inline int GetDaqBufferDepth() const { return fDAQ_bufferDepth; }

@@ -94,6 +94,7 @@ public:
     std::shared_ptr<TReadoutBoard>  GetBoard( const unsigned int iBoard );
     std::shared_ptr<TBoardConfig>   GetBoardConfig( const unsigned int iBoard );
     std::shared_ptr<TReadoutBoard>  GetBoardByChip( const unsigned int iChip );
+    unsigned int                    GetBoardIndexByChip( const unsigned int iChip );
     std::shared_ptr<TBoardConfig>   GetBoardConfigByChip( const unsigned int iChip );
     std::shared_ptr<TAlpide>        GetChip( const unsigned int iChip );
     std::shared_ptr<TAlpide>        GetChipById( const unsigned int chipId );

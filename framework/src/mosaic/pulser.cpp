@@ -31,15 +31,18 @@
 #include <stdlib.h>
 #include "pexception.h"
 #include "pulser.h"
+#include <iostream>
+#include <bitset>
 
+using namespace std;
 
-Pulser::Pulser() 
+Pulser::Pulser() : MWbbSlave(), TVerbosity()
 {
 }
 
 
 Pulser::Pulser(WishboneBus *wbbPtr, uint32_t baseAdd) : 
-			MWbbSlave(wbbPtr, baseAdd)
+			MWbbSlave(wbbPtr, baseAdd), TVerbosity()
 {
 }
 
@@ -55,6 +58,11 @@ void Pulser::setConfig(uint32_t triggerDelay, uint32_t pulseDelay, uint32_t opMo
 	if (!wbb)
 		throw PControlInterfaceError("No IPBus configured");
 
+    if ( GetVerboseLevel() > TVerbosity::kCHATTY ) {
+        cout << "Pulser::setConfig() - triggerDelay = " << std::dec << triggerDelay << endl;
+        cout << "Pulser::setConfig() - pulseDelay = " << pulseDelay << endl;
+        cout << "Pulser::setConfig() - opMode = " <<  std::bitset<32>(opMode) << std::dec << endl;
+    }
 	wbb->addWrite(baseAddress+regTriggerDelay, triggerDelay);
 	wbb->addWrite(baseAddress+regPulseDelay, pulseDelay);
 	wbb->addWrite(baseAddress+regOpMode, opMode);

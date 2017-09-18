@@ -137,6 +137,12 @@ class TAlpide : public TVerbosity {
                             const int row, const int col);
     void ApplyStandardDACSettings( const float backBias );
     void ConfigureBuffers();
+    
+    /// Put chip in configuration mode (readout disabled)
+    void ActivateConfigMode();
+    
+    /// Put chip in readout mode
+    void ActivateReadoutMode();
 
     /// Setting up of readout from config file - CMU part
     void ConfigureCMU();
@@ -238,6 +244,7 @@ private:
     
     #pragma mark - other
     
+    /// Enable the readout of all double columns (Priority Encoders) of all regions
     void EnableDoubleColumns();
     
     std::string DecomposeChipId();

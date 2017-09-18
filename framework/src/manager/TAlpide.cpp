@@ -142,6 +142,7 @@ void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* conf
     }
     if ( !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::DumpConfig() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
@@ -292,6 +293,7 @@ void TAlpide::DumpConfig()
         ii++;
     }
 
+    cout << endl;
     cout << "TAlpide::DumpConfig() - chip id = " << DecomposeChipId()  <<  endl;
     
     cout << setfill('0');
@@ -304,6 +306,7 @@ void TAlpide::DumpConfig()
     for ( uint i = 0; i < dacregs.size(); i++ ) {
         cout << fDACsRegName[i] << " \t (dec) " << std::dec << dacregs.at(i) << endl;
     }
+    cout << endl;
 }
 
 
@@ -329,6 +332,7 @@ void TAlpide::ReadRegister( const AlpideRegister address,
     }
     if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::ReadRegister() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
@@ -368,6 +372,7 @@ void TAlpide::ReadRegister( const uint16_t address,
     }
     if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::ReadRegister() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
@@ -408,6 +413,7 @@ void TAlpide::WriteRegister( const AlpideRegister address,
     }
     if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::WriteRegister() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
@@ -464,6 +470,7 @@ void TAlpide::WriteRegister( const uint16_t address,
     }
     if ( skipDisabledChip && !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::WriteRegister() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
@@ -760,6 +767,64 @@ void TAlpide::ApplyStandardDACSettings( const float backBias )
     }
 }
 
+//___________________________________________________________________
+void TAlpide::ActivateConfigMode()
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ActivateConfigMode() - chip config. not found!" );
+    }
+   if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ActivateConfigMode() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << endl;
+        cout << "TAlpide::ActivateConfigMode() - chip id = " << DecomposeChipId()  <<  endl;
+    }
+    try {
+        WriteControlReg( AlpideChipMode::CONFIG ); // set chip to config mode
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        cerr << "TAlpide::ActivateConfigMode() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ActivateConfigMode() - chip can not be set into config mode." );
+    }
+}
+
+//___________________________________________________________________
+void TAlpide::ActivateReadoutMode()
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ActivateReadoutMode() - chip config. not found!" );
+    }
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ActivateReadoutMode() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << endl;
+        cout << "TAlpide::ActivateReadoutMode() - chip id = " << DecomposeChipId()  <<  endl;
+    }
+   try {
+        if ( spConfig->GetReadoutMode() ) {
+            WriteControlReg( AlpideChipMode::CONTINUOUS );
+        } else {
+            WriteControlReg( AlpideChipMode::TRIGGERED ); // strobed readout mode
+        }
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        cerr << "TAlpide::ActivateReadoutMode() - chip id = " << DecomposeChipId() << endl;
+        throw runtime_error( "TAlpide::ActivateReadoutMode() - chip can not be set into readout mode." );
+    }
+}
+
 // Setting up of readout from config file- CMU part
 // (alpide manual, section 3.8.3, page 75)
 //___________________________________________________________________
@@ -786,6 +851,7 @@ void TAlpide::ConfigureCMU()
     cmuconfig |= (spConfig->GetEnableDdr        () ? 1:0) << 6;
     
     if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << endl;
         cout << "TAlpide::ConfigureCMU() - chip id = " << DecomposeChipId()  <<  endl;
         cout << "TAlpide::ConfigureCMU() - value = " <<  endl;
         cout << "TAlpide::ConfigureCMU() - \t (bin) " << std::bitset<16> ( cmuconfig ) << endl;
@@ -827,6 +893,7 @@ void TAlpide::ConfigureDTU_TEST1()
     config |= (spConfig->GetParamValue("DTU_TEST1_BYPASS_8B10B") ? 1 : 0) << 5;
     
     if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << endl;
         cout << "TAlpide::ConfigureDTU_TEST1() - chip id = " << DecomposeChipId()  <<  endl;
         cout << "TAlpide::ConfigureDTU_TEST1() - value = " <<  endl;
         cout << "TAlpide::ConfigureDTU_TEST1() - \t (bin) " << std::bitset<16> ( config ) << endl;
@@ -880,6 +947,7 @@ void TAlpide::ConfigureFROMU()
     fromuconfig |= (triggerDelay & 0x7)     << 8;
     
     if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << endl;
         cout << "TAlpide::ConfigureFROMU() - chip id = " << DecomposeChipId()  <<  endl;
         cout << "TAlpide::ConfigureFROMU() - value = " <<  endl;
         cout << "TAlpide::ConfigureFROMU() - \t (bin) " << std::bitset<16> ( fromuconfig ) << endl;
@@ -924,6 +992,7 @@ void TAlpide::ConfigureBuffers()
     ctrl   |= (spConfig->GetDctrlDriver  () & 0xf) << 4;
     
     if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << endl;
         cout << "TAlpide::ConfigureBuffers() - chip id = " << DecomposeChipId()  <<  endl;
         cout << "TAlpide::ConfigureBuffers() - clocks = " <<  endl;
         cout << "TAlpide::ConfigureBuffers() - \t (bin) " << std::bitset<16> ( clocks ) << endl;
@@ -955,30 +1024,62 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
 
     if ( !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::ConfigureMaskStage() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
         return iStage;
     }
-    
-    EnableDoubleColumns();
 
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,   true );
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
+    
+    // if iStage < 0, always do full row for the first N = nPix rows
+    if ( iStage < 0 ) {
+        if ( GetVerboseLevel() >= kCHATTY ) {
+            cout << endl;
+            cout << "TAlpide::ConfigureMaskStage() - chip id = "
+            << DecomposeChipId() << " , first "
+            << std::dec << nPix << " complete rows. " << endl;
+        }
+        if ( nPix > 512 ) {
+            nPix = 512;
+        }
+        if ( nPix < 0 ) {
+            nPix = 1;
+        }
+        for ( int i = 0; i < nPix; i++ ) {
+            WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE, false, i );
+            WritePixRegRow( AlpidePixConfigReg::PULSE_ENABLE, true, i );
+        }
+        return nPix;
+    }
+    
     // check that nPix is one of (1, 2, 4, 8, 16, 32)
     if ((nPix <= 0) || (nPix & (nPix - 1)) || (nPix > 32)) {
         cout << "TAlpide::ConfigureMaskStage() - Warning: bad number of pixels for mask stage (" << nPix << ", using 1 instead" << endl;
         nPix = 1;
     }
-    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,   true );
-    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
-    
-    // complete row
     if ( nPix == 32 ) {
-        WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE,   false, iStage );
+        // one complete row
+        if ( GetVerboseLevel() >= kCHATTY ) {
+            cout << endl;
+            cout << "TAlpide::ConfigureMaskStage() - chip id = "
+            << DecomposeChipId() << " , one complete row " << std::dec << iStage << endl;
+        }
+        WritePixRegRow( AlpidePixConfigReg::MASK_ENABLE, false, iStage );
         WritePixRegRow( AlpidePixConfigReg::PULSE_ENABLE, true, iStage );
         return iStage;
     } else {
+        // choose pixels
         int colStep = 32 / nPix;
         for ( int icol = 0; icol < 1024; icol += colStep ) {
+            if ( GetVerboseLevel() >= kCHATTY ) {
+                cout << endl;
+                cout << "TAlpide::ConfigureMaskStage() - chip id = "
+                    << DecomposeChipId() << " , row:col "
+                    << iStage % 512 << ":" << icol + iStage / 512 << endl;
+            }
             WritePixRegSingle( AlpidePixConfigReg::MASK_ENABLE,   false, iStage % 512, icol + iStage / 512);
             WritePixRegSingle( AlpidePixConfigReg::PULSE_ENABLE, true,  iStage % 512, icol + iStage / 512);
         }
@@ -996,13 +1097,15 @@ void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
     }
     
     if ( !(spConfig->IsEnabled()) || (spConfig->IsOBSlave()) ) {
-        // TODO for OB: is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
+        // TODO: for OB, is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
         if ( GetVerboseLevel() > kTERSE ) {
             if ( !(spConfig->IsEnabled()) ) {
+                cout << endl;
                 cout << "TAlpide::WriteControlReg() - chip id = "
                     << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
             }
             if ( spConfig->IsOBSlave() ) {
+                cout << endl;
                 cout << "TAlpide::WriteControlReg() - chip id = "
                 << DecomposeChipId()  << " : chip in OB slave mode, skipped." <<  endl;
             }
@@ -1035,6 +1138,7 @@ void TAlpide::WriteControlReg( const AlpideChipMode chipMode )
     }
     
     if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << endl;
         cout << "TAlpide::WriteControlReg() - chip id = "
         << DecomposeChipId() <<  endl;
         cout << "TAlpide::WriteControlReg() - value = " <<  endl;
@@ -1064,18 +1168,21 @@ void TAlpide::BaseConfigPLL()
 
     if ( spConfig->GetParamValue("LINKSPEED") < 0 ) {
         if ( GetVerboseLevel() > kSILENT ) {
+            cout << endl;
             cout << "TAlpide::BaseConfigPLL() - high-speed link deactivated" << endl;
         }
         return;
     }
     if ( !(spConfig->IsEnabled()) || (spConfig->IsOBSlave()) ) {
-        // TODO for OB: is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
+        // TODO: for OB, is this better than (does the OB chip have slaves? if not, no PLL config needed since it must be an OB slave chip => DTU off)
         if ( GetVerboseLevel() > kTERSE ) {
             if ( !(spConfig->IsEnabled()) ) {
+                cout << endl;
                 cout << "TAlpide::BaseConfigPLL() - chip id = "
                 << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
             }
             if ( spConfig->IsOBSlave() ) {
+                cout << endl;
                 cout << "TAlpide::BaseConfigPLL() - chip id = "
                 << DecomposeChipId()  << " : chip in OB slave mode, skipped." <<  endl;
             }
@@ -1097,6 +1204,7 @@ void TAlpide::BaseConfigPLL()
     Value = (Stages & 0x3) | 0x4 | 0x8 | ((Phase & 0xf) << 4);   // 0x4: narrow bandwidth, 0x8: PLL off
     WriteRegister( AlpideRegister::DTU_CONFIG, Value );
     if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << endl;
         cout << "TAlpide::BaseConfigPLL() - chip id = "
         << DecomposeChipId() <<  endl;
         cout << "TAlpide::BaseConfigPLL() - DTU config reg., value = " <<  endl;
@@ -1136,15 +1244,16 @@ void TAlpide::BaseConfigMask()
     shared_ptr<TChipConfig> spConfig = fConfig.lock();
     if ( !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::BaseConfigMask() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
         return;
     }
     // disable mask
-    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,  false );
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,  true );
     // enable pulse
-    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, true );
+    WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
 }
 
 //___________________________________________________________________
@@ -1157,6 +1266,7 @@ void TAlpide::BaseConfigDACs()
     
     if ( !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
             cout << "TAlpide::BaseConfigDACs() - chip id = "
             << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
         }
@@ -1164,6 +1274,7 @@ void TAlpide::BaseConfigDACs()
     }
     
     if ( GetVerboseLevel() > kVERBOSE ) {
+        cout << endl;
         cout << "TAlpide::BaseConfigDACs() - chip id = "
         << DecomposeChipId() <<  endl;
     }
@@ -1171,7 +1282,8 @@ void TAlpide::BaseConfigDACs()
     try {
         if ( GetVerboseLevel() > kVERBOSE ) {
             cout << "TAlpide::BaseConfigDACs() - \t ITHR = "
-                 <<  spConfig->GetParamValue("ITHR") << endl;
+                 <<  std::dec
+                 << spConfig->GetParamValue("ITHR") << endl;
             cout << "TAlpide::BaseConfigDACs() - \t IDB = "
                  <<  spConfig->GetParamValue("IDB") << endl;
             cout << "TAlpide::BaseConfigDACs() - \t VCASN = "
@@ -1222,30 +1334,12 @@ void TAlpide::BaseConfigDACs()
 //___________________________________________________________________
 void TAlpide::BaseConfig()
 {
-    shared_ptr<TChipConfig> spConfig = fConfig.lock();
-    if ( !spConfig ) {
-        throw runtime_error( "TAlpide::BaseConfig() - chip config. not found!" );
-    }
-
-    try {
-        WriteControlReg( AlpideChipMode::CONFIG ); // set chip to config mode
-    } catch ( exception& msg ) {
-        cerr << msg.what() << endl;
-        cerr << "TAlpide::BaseConfig() - chip id = " << DecomposeChipId() << endl;
-        throw runtime_error( "TAlpide::BaseConfig() - chip can not be set into config mode." );
-    }
-    
     ConfigureCMU();
     ConfigureFROMU();
     BaseConfigDACs();
     BaseConfigMask();
     BaseConfigPLL();
-    
-    if ( spConfig->GetReadoutMode() ) {
-        WriteControlReg( AlpideChipMode::CONTINUOUS );
-    } else {
-        WriteControlReg( AlpideChipMode::TRIGGERED ); // strobed readout mode
-    }
+    EnableDoubleColumns();
 }
 
 
@@ -1259,6 +1353,7 @@ void TAlpide::PrintDebugStream()
 
     uint16_t Value;
 
+    cout << endl;
     cout << "TAlpide::PrintDebugStream() - start" << endl;
     cout << "Debug Stream chip id " << DecomposeChipId() << ": " << endl;
     
@@ -1275,6 +1370,7 @@ void TAlpide::PrintDebugStream()
         cout << "  FROMU Debug reg word " << i << ": " << std::hex << Value << std::dec << endl;
     }
     cout << "TAlpide::PrintDebugStream() - end" << endl;
+    cout << endl;
 }
 
 #pragma mark - needed to operate with ADC or DAC
@@ -1433,13 +1529,29 @@ void TAlpide::ClearPixSelectBits( const bool clearPulseGating )
 
 #pragma mark - other
 
+// Enable the readout of all double columns (Priority Encoders) of all regions
 //___________________________________________________________________
 void TAlpide::EnableDoubleColumns()
 {
-    for ( int ireg = 0; ireg < 32; ireg ++ ) {
-        uint16_t Register = ((uint16_t)AlpideRegister::DCOL_DISABLE_BASE) | (ireg < 11);
-        WriteRegister( Register, 0x0 );
+    uint16_t address =
+    (uint16_t)AlpideRegister::PIXEL_BROADCAST
+        | (uint16_t)AlpideRegister::DCOL_DISABLE_BASE ;
+    if ( GetVerboseLevel() > kCHATTY ) {
+        cout << endl;
+        cout << "TAlpide::EnableDoubleColumns() - chip id = "
+             << DecomposeChipId()
+             << " , address = " << std::bitset<16> ( address ) << endl;
     }
+    WriteRegister( address, 0x0 );
+
+    /*
+    for ( int ireg = 0; ireg < 32; ireg ++ ) {
+        uint16_t Register = ((uint16_t)AlpideRegister::DCOL_DISABLE_BASE) | (ireg << 11);
+        if ( GetVerboseLevel() > kCHATTY ) {
+            cout << "TAlpide::EnableDoubleColumns() - " << std::bitset<16> ( Register ) << endl;
+        }
+        WriteRegister( Register, 0x0 );
+    }*/
 }
 
 //___________________________________________________________________

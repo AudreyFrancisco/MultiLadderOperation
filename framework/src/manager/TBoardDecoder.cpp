@@ -1,9 +1,7 @@
 #include <iostream>
 #include "TBoardConfig.h"
 #include "TBoardDecoder.h"
-//#include "MosaicSrc/mboard.h"
-//#include "MosaicSrc/ipbus.h"
-//#include "MosaicSrc/TAlpideDataParser.h"
+// MOSAIC includes
 #include "mboard.h"
 #include "ipbus.h"
 #include "TAlpideDataParser.h"
@@ -13,8 +11,9 @@ using namespace std;
 //___________________________________________________________________
 TBoardDecoder::TBoardDecoder() : TVerbosity(),
 fBoardType( TBoardType::kBOARD_UNKNOWN ),
-fFirmwareVersion( 0x247E0611 ),
-fHeaderType( 1 ),
+fDAQ_firmwareVersion( 0x247E0611 ),
+fDAQ_headerType( 1 ),
+fMOSAIC_firmwareVersion( "unknown" ),
 fMOSAIC_channel( -1 ),
 fMOSAIC_eoeCount( 0 ),
 fMOSAIC_timeout( false ),
@@ -43,15 +42,11 @@ TBoardDecoder::~TBoardDecoder()
 }
 
 //___________________________________________________________________
-void TBoardDecoder::SetBoardType(const TBoardType type,
-                                 const uint32_t firmwareVersion,
-                                 const int headerType )
+void TBoardDecoder::SetBoardType(const TBoardType type )
 {
     fBoardType = type;
-    fFirmwareVersion = firmwareVersion;
-    fHeaderType = headerType;
-    if ( GetVerboseLevel() > kTERSE ) {
-        cout << "TBoardDecoder::SetBoardType() - board type = " ;
+    if ( GetVerboseLevel() > kCHATTY ) {
+        cout << "TBoardDecoder::SetBoardType() - board type = " << std::dec;
         switch ( (int)fBoardType ) {
             case (int)TBoardType::kBOARD_DAQ :
                 cout << "DAQ board" << endl;
@@ -63,8 +58,27 @@ void TBoardDecoder::SetBoardType(const TBoardType type,
                 cout << "UNKNOWN board !!!" << endl;
                 break;
         }
-        cout << "TBoardDecoder::SetBoardType() - firmware version = " << fFirmwareVersion << endl;
-        cout << "TBoardDecoder::SetBoardType() - header type = " << fHeaderType << endl;
+    }
+}
+
+//___________________________________________________________________
+void TBoardDecoder::SetFirmwareVersion( const std::uint32_t DAQfirmwareVersion,
+                                       const int DAQheaderType )
+{
+    fDAQ_firmwareVersion = DAQfirmwareVersion;
+    fDAQ_headerType = DAQheaderType;
+    if ( GetVerboseLevel() > kCHATTY ) {
+        cout << "TBoardDecoder::SetFirmwareVersion() - DAQ board firmware version = " << std::hex << fDAQ_firmwareVersion << endl;
+        cout << "TBoardDecoder::SetFirmwareVersion() - DAQ board header type = " << std::dec << fDAQ_headerType << endl;
+    }
+}
+
+//___________________________________________________________________
+void TBoardDecoder::SetFirmwareVersion( string MOSAICfirmwareVersion )
+{
+    fMOSAIC_firmwareVersion = MOSAICfirmwareVersion;
+    if ( GetVerboseLevel() > kCHATTY ) {
+        cout << "TBoardDecoder::SetFirmwareVersion() - MOSAIC board firmware version = "  << fMOSAIC_firmwareVersion << endl;
     }
 }
 
@@ -104,7 +118,7 @@ bool TBoardDecoder::DecodeEventMOSAIC( unsigned char *data,
     fMOSAIC_endOfRun    = blockFlags & MBoard::flagCloseRun;
     fMOSAIC_timeout     = blockFlags & MBoard::flagTimeout;
     fMOSAIC_eoeCount    = 1;
-    fMOSAIC_channel     = MOSAICBoardDecoder::EndianAdjust(data+12);
+    fMOSAIC_channel     = MOSAICBoardDecoder::EndianAdjust(data+12)-1; // (-1) because of addDataReceiver(i+1, fAlpideDataParser[i]) in TReadoutBoardMOSAIC::init() 
     nBytesHeader        = MosaicIPbus::HEADER_SIZE; // #define MOSAIC_HEADER_LENGTH 64
     nBytesTrailer       = 1; // #define The MOSAIC trailer length
     
@@ -125,7 +139,7 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
                                   int &nBytesTrailer )
 {
 
-  nBytesHeader = DAQBoardDecoder::GetDAQEventHeaderLength( fFirmwareVersion, fHeaderType );
+  nBytesHeader = DAQBoardDecoder::GetDAQEventHeaderLength( fDAQ_firmwareVersion, fDAQ_headerType );
   nBytesTrailer = DAQBoardDecoder::GetDAQEventTrailerLength();
 
   // ------ HEADER
@@ -148,8 +162,8 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   // all header words are supposed to have a zero MSB
   for (int i=0; i<header_length; ++i) {
     if (0x80000000 & Header[i]) {
-      std::cout << "Corrupt header data, MSB of header word active!" << std::endl;
-      std::cout << std::hex << "0x" << Header[i] << "\t0x" << (0x80000000 & Header[i]) << std::dec << std::endl;
+      cerr << "Corrupt header data, MSB of header word active!" << endl;
+      cerr << std::hex << "0x" << Header[i] << "\t0x" << (0x80000000 & Header[i]) << std::dec << endl;
       return false;
     }
   }
@@ -164,7 +178,7 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   int TrigCountDAQbusy  = -1;
   int ExtTrigCounter    = -1;
   if (header_length==3) {
-    switch( fFirmwareVersion ) {
+    switch( fDAQ_firmwareVersion ) {
       case 0x257E0602:
       case 0x247E0602:
         Event_ID         = (uint64_t)Header[0] & 0x7fffffff;
@@ -193,15 +207,15 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
 
     // few consistency checks:
     if ((Header[0] & 0xfffe03bf) != 0x8) {
-      std::cout << "Corrupt header word 0: 0x" << std::hex << Header[0] << std::dec << std::endl;
+      cerr << "Corrupt header word 0: 0x" << std::hex << Header[0] << std::dec << endl;
       return false;
     }
     if ((Header[1] & 0xff000000) || (Header[2] & 0xff000000) || (Header[3] & 0xff000000)) {
-      std::cout << "Corrupt header, missing at least one of the leading 0s in word 1-4" << std::endl;
+      cerr << "Corrupt header, missing at least one of the leading 0s in word 1-4" << endl;
       return false;
     }
     if ((TrigType < 1) || (TrigType > 2)) {
-      std::cout << "Bad Trigger Type " << TrigType << std::endl;
+      cerr << "Bad Trigger Type " << TrigType << endl;
       return false;
     }
   }  
@@ -241,7 +255,7 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   //    return DecodeEventTrailer(Trailer, AHeader);
   //bool TDAQBoard::DecodeEventTrailer (int * Trailer, TEventHeader *ATrailer) {
     if (Trailer[1] != (int)DAQBoardDecoder::TRAILER_WORD) {
-        std::cout << "Corrupt trailer, expecting 0x " << std::hex << DAQBoardDecoder::TRAILER_WORD << ", found 0x" << Trailer[1] << std::dec << std::endl;
+        cerr << "Corrupt trailer, expecting 0x " << std::hex << DAQBoardDecoder::TRAILER_WORD << ", found 0x" << Trailer[1] << std::dec << endl;
     return false;
   }
   int EventSize = Trailer[0];
