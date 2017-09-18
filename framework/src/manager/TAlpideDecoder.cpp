@@ -275,8 +275,10 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
     
     FillHistoWithEvent();
     
-    fErrorCounter->IncrementNPrioEncoder( GetPrioErrors() );
-
+    if ( fPrioErrors ) {
+        fErrorCounter->IncrementNPrioEncoder( fPrioErrors );
+    }
+    
     if ( started && finished ) {
         return (!corrupt);
     } else {
@@ -472,13 +474,12 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
             cout << "TAlpideDecoder::DecodeDataWord() - new hit found" << endl;
             singleHit->DumpPixHit();
         }
+        // data word is corrupted if there is any bad hit found
+        corrupt = corrupt | singleHit->IsPixHitCorrupted();
         fHits.push_back( move(singleHit) ); // vector only owns hit with the address set
         if ( GetVerboseLevel() > kCHATTY ) {
             cout << "\t TAlpideDecoder::DecodeDataWord() - hit added in vector." << endl;
         }
-        
-        // data word is corrupted if there is any bad hit found
-        corrupt = singleHit->IsPixHitCorrupted();
     }
     hit.reset();
     fNewEvent = false;
