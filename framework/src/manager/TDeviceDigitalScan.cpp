@@ -370,16 +370,18 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
                 fErrorCounter->IncrementNCorruptEvent();
                 nBad++;
                 if ( nBad > TDeviceDigitalScan::MAXNBAD ) continue;
-                FILE *fDebug = fopen ("../../data/DebugData.dat", "a");
-                for ( int iByte=0; iByte<n_bytes_data; ++iByte ) {
-                    fprintf (fDebug, "%02x ", (int) buffer[iByte]);
+                FILE* fDebug = fopen ("../../data/DebugData.dat", "a");
+                if ( fDebug ) {
+                    for ( int iByte=0; iByte<n_bytes_data; ++iByte ) {
+                        fprintf (fDebug, "%02x ", (int) buffer[iByte]);
+                    }
+                    fprintf(fDebug, "\nFull Event:\n");
+                    for (unsigned int ibyte = 0; ibyte < fDebugBuffer.size(); ibyte ++) {
+                        fprintf (fDebug, "%02x ", (int) fDebugBuffer.at(ibyte));
+                    }
+                    fprintf(fDebug, "\n\n");
+                    fclose( fDebug );
                 }
-                fprintf(fDebug, "\nFull Event:\n");
-                for (unsigned int ibyte = 0; ibyte < fDebugBuffer.size(); ibyte ++) {
-                    fprintf (fDebug, "%02x ", (int) fDebugBuffer.at(ibyte));
-                }
-                fprintf(fDebug, "\n\n");
-                fclose( fDebug );
             }
             itrg++;
         }
