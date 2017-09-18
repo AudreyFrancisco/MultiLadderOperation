@@ -69,7 +69,7 @@ public:
     /// default constructor
     TAlpideDecoder();
     
-    /// constructor that set the pointer to the map to histograms of hit pixels
+    /// constructor that sets pointers to map of hit pixel histograms and to error counter
     TAlpideDecoder( std::shared_ptr<TScanHisto> aScanHisto,
                     std::shared_ptr<TErrorCounter> anErrorCounter );
     
@@ -79,7 +79,7 @@ public:
     /// set the pointer to the map containing histograms of hit pixels vs chip index
     void SetScanHisto( std::shared_ptr<TScanHisto> aScanHisto );
 
-    /// set the pointer to error container
+    /// set the pointer to the error container
     void SetErrorCounter( std::shared_ptr<TErrorCounter> anErrorCounter );
 
     /// get the number of priority encoder errors for the current event

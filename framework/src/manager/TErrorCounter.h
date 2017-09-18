@@ -4,7 +4,7 @@
 /**
  * \class TErrorCounter
  *
- * \brief Simple container for various types of readout errors
+ * \brief Simple container for various types of readout errors + bad pixel hit list
  *
  * \author Andry Rakotozafindrabe
  *
@@ -16,6 +16,8 @@
  * - number of priority encoder errors (stuck pixel hits), i.e. a subset of corrupted
  *   events
  * - number of times any readout board had a timeout error
+ * This class also collect the bad pixel hits and can print them to screen, with a 
+ * possible selection on the type of flaw.
  */
 
 #include <vector>
