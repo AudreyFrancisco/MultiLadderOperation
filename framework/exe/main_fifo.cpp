@@ -5,8 +5,7 @@
  * It is recommended to disable Manchester encoding in the config file (CMU settings).
  * However, this was seen to lead to ControlInterface sync error with MOSAIC board.
  * Maybe this setting applies only in the case of the DAQ board or OB master chip?
- * See the class TDeviceFifoTest. See below for more details on the CMU settings
- * that were recommended for FIFO test (disabling Manchester encoding).
+ * See the class TDeviceFifoTest.
  *
  * \note
  * The default configuration file for this test for a MFT ladder is
