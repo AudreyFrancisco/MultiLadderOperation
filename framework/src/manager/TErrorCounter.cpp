@@ -36,6 +36,9 @@ void TErrorCounter::Init( shared_ptr<TScanHisto> aScanHisto )
 //___________________________________________________________________
 void TErrorCounter::AddCorruptedHit( std::shared_ptr<TPixHit> badHit )
 {
+    if ( !fChipList.size() ) {
+        throw runtime_error( "TErrorCounter::AddCorruptedHit() - no chip in the list ! Please use Init() first." );
+    }
     common::TChipIndex idx;
     idx.boardIndex    = badHit->GetBoardIndex();
     idx.dataReceiver  = badHit->GetBoardReceiver();
@@ -58,7 +61,7 @@ void TErrorCounter::AddAlmostDeadPixel( common::TChipIndex idx,
                                        unsigned int icol, unsigned int iaddr )
 {
     if ( !fChipList.size() ) {
-        throw runtime_error( "TErrorCounter::AddDeadPixel() - no chip in the list ! Please use Init() first." );
+        throw runtime_error( "TErrorCounter::AddAlmostDeadPixel() - no chip in the list ! Please use Init() first." );
     }
     (fCounterCollection.at( GetMapIntIndex(idx) )).AddAlmostDeadPixel( idx, icol, iaddr );
 }
@@ -67,7 +70,7 @@ void TErrorCounter::AddAlmostDeadPixel( common::TChipIndex idx,
 void TErrorCounter::IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, const unsigned int value )
 {
     if ( !fChipList.size() ) {
-        throw runtime_error( "TErrorCounter::AddDeadPixel() - no chip in the list ! Please use Init() first." );
+        throw runtime_error( "TErrorCounter::IncrementNPrioEncoder() - no chip in the list ! Please use Init() first." );
     }
     common::TChipIndex idx;
     idx.boardIndex    = badHit->GetBoardIndex();
