@@ -206,7 +206,7 @@ void TPixHit::DumpPixHit( const bool with_reminder )
     SetVerboseLevel( kSILENT );
     if ( with_reminder ) {
         cout << "\t TPixHit::DumpPixHit()" << endl;
-        cout << "\t board.receiver / chip / region.dcol.add (flag) " << endl;
+        cout << "\t board.receiver / chip / region.dcol.add (flag) \n" ;
     }
     cout << std::dec << "\t"
     << GetBoardIndex() << "."

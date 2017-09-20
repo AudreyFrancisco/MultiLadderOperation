@@ -227,12 +227,14 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                     cout << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
                     corrupt = true;
                 } else {
-                    if ( fChipId == -1 ) {
-                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: found chip id -1, TDataType::kDATASHORT" << endl;
-                        for ( int i = 0; i < nBytes; i++ ) {
-                            printf("%02x ", data[i]);
+                    if ( !IsValidChipId() ) {
+                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATASHORT" << endl;
+                        if ( GetVerboseLevel() > kCHATTY ) {
+                            for ( int i = 0; i < nBytes; i++ ) {
+                                printf("%02x ", data[i]);
+                            }
+                            printf("\n");
                         }
-                        printf("\n");
                     }
                     bool corrupted = DecodeDataWord( data + byte, false );
                     if ( corrupted ) {
@@ -250,12 +252,14 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                     cerr << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
                     corrupt = true;
                 } else {
-                    if ( fChipId == -1 ) {
-                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: found chip id -1, TDataType::kDATALONG" << endl;
-                        for ( int i = 0; i < nBytes; i++ ) {
-                            printf("%02x ", data[i]);
+                    if ( !IsValidChipId() ) {
+                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATALONG" << endl;
+                        if ( GetVerboseLevel() > kCHATTY ) {
+                            for ( int i = 0; i < nBytes; i++ ) {
+                                printf("%02x ", data[i]);
+                            }
+                            printf("\n");
                         }
-                        printf("\n");
                     }
                     bool corrupted = DecodeDataWord( data + byte, true );
                     if (corrupted) {
@@ -504,12 +508,13 @@ void TAlpideDecoder::FillHistoWithEvent()
             idx.chipId        = (fHits.at(i))->GetChipId();
             unsigned int dcol = (fHits.at(i))->GetDoubleColumn();
             unsigned int addr = (fHits.at(i))->GetAddress();
+
+            fScanHisto->Incr(idx, dcol, addr);
+            
             if ( GetVerboseLevel() > kULTRACHATTY ) {
                 cout << "TAlpideDecoder::FillHistoEvent() - add hit" << endl;
                 (fHits.at(i))->DumpPixHit();
             }
-            
-            fScanHisto->Incr(idx, dcol, addr);
 
         }
     }
@@ -520,6 +525,9 @@ void TAlpideDecoder::FillHistoWithEvent()
 //___________________________________________________________________
 bool TAlpideDecoder::HasData( const common::TChipIndex& idx )
 {
+    if ( !fScanHisto->IsValidChipIndex( idx ) ) {
+        return false;
+    }
     for (unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++) {
         for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
             if ((*fScanHisto)(idx,icol,iaddr) > 0) return true;
@@ -543,3 +551,16 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
     return is_valid;
 }
 
+//___________________________________________________________________
+bool TAlpideDecoder::IsValidChipId()
+{
+    bool is_valid = false;
+    for ( unsigned int i = 0 ; i < fScanHisto->GetChipListSize(); i++ ) {
+        int legitimateChipId = (int)((fScanHisto->GetChipIndex(i)).chipId);
+        if ( fChipId == legitimateChipId ) {
+            is_valid = true;
+            return is_valid;
+        }
+    }
+    return is_valid;
+}

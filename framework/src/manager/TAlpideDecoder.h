@@ -125,6 +125,10 @@ private:
     
     /// check if the hit would have a legitimate chip index
     bool IsValidChipIndex( std::shared_ptr<TPixHit> hit );
+    
+    /// check if the current chip id is legitimate
+    bool IsValidChipId();
+
 };
 
 #endif

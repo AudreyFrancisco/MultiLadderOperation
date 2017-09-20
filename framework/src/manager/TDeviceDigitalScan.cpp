@@ -84,6 +84,7 @@ void TDeviceDigitalScan::SetVerboseLevel( const int level )
 {
     fChipDecoder->SetVerboseLevel( level );
     fBoardDecoder->SetVerboseLevel( level );
+    fScanHisto->SetVerboseLevel( level );
     TDeviceChipVisitor::SetVerboseLevel( level );
 }
 

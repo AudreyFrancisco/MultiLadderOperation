@@ -83,7 +83,7 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
 			// additional trailer
 			*evFlagsPtr = *p++;
             uint16_t fsd = *evFlagsPtr;
-            if (fsd && (GetVerboseLevel() >= kCHATTY) ){
+            if (fsd && (GetVerboseLevel() > kTERSE) ){
                 cout << std::dec << fId << " =================== Event with flags != 0 (0x" << std::hex << fsd << ")" << endl;
                 if (fsd & 0x01)
                     cout << std::dec << fId << " =================== Header error" << endl;

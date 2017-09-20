@@ -40,12 +40,16 @@ class TErrorCounter {
     
     /// number of corrupted events
     unsigned int fNCorruptEvent;
-
+    
     /// list of chips
     std::vector<common::TChipIndex> fChipList;
     
     /// error counter (one per chip index)
     std::map<int, TChipErrorCounter> fCounterCollection;
+
+    /// list of hits with bad chip id flag
+    std::vector<std::shared_ptr<TPixHit>> fBadChipIdHits;
+
     
 public:
     
@@ -57,7 +61,7 @@ public:
     
     /// add a corrupted pixel hit to the list
     void AddCorruptedHit( std::shared_ptr<TPixHit> badHit );
-    
+
     /// add a dead pixel to the list
     void AddDeadPixel( common::TChipIndex idx,
                        unsigned int icol, unsigned int iaddr );
