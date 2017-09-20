@@ -100,6 +100,15 @@ void TDeviceBuilder::SetVerboseLevel( const int level )
     TVerbosity::SetVerboseLevel( level );
 }
 
+//___________________________________________________________________
+void TDeviceBuilder::SetDeviceNickName( const string name )
+{
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TDeviceBuilder::SetDeviceNickName() - " << name << endl;
+    }
+        fCurrentDevice->SetNickName( name );
+}
+
 #pragma mark - protected methods
 
 //___________________________________________________________________

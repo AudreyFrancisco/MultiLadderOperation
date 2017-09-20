@@ -24,7 +24,8 @@ TDevice::TDevice() : TVerbosity(),
     fNModules( 0 ),
     fStartChipId( 0 ),
     fBoardType( TBoardType::kBOARD_UNKNOWN ),
-    fDeviceType( TDeviceType::kUNKNOWN )
+    fDeviceType( TDeviceType::kUNKNOWN ),
+    fNickName( "" )
 { }
 
 //___________________________________________________________________
@@ -89,6 +90,16 @@ void TDevice::SetDeviceType( const TDeviceType dt )
      fDeviceType = dt;
 }
 
+//___________________________________________________________________
+void TDevice::SetNickName( const std::string name )
+{
+    if ( IsSetupFrozen() ) {
+        cerr << "TDevice::SetNickName() - not allowed: setup already done !" << endl;
+        return;
+    }
+    fNickName = name;
+}
+
 #pragma mark - add an item to one of the vectors
 
 //___________________________________________________________________
@@ -146,7 +157,7 @@ void TDevice::AddChipConfig( std::shared_ptr<TChipConfig> newChipConfig )
 //___________________________________________________________________
 void TDevice::IncrementWorkingChipCounter()
 {
-    if ( fInitialisedSetup ) {
+    if ( IsSetupFrozen() ) {
         return;
     }
     fNWorkingChips++;
