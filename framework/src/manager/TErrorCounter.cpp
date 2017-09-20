@@ -16,7 +16,7 @@ fNCorruptEvent( 0 )
 //___________________________________________________________________
 TErrorCounter::~TErrorCounter()
 {
-
+    fBadChipIdHits.clear();
 }
 
 //___________________________________________________________________
@@ -34,13 +34,25 @@ void TErrorCounter::Init( shared_ptr<TScanHisto> aScanHisto )
 }
 
 //___________________________________________________________________
-void TErrorCounter::AddCorruptedHit( std::shared_ptr<TPixHit> badHit )
+void TErrorCounter::AddCorruptedHit( shared_ptr<TPixHit> badHit )
 {
-    common::TChipIndex idx;
-    idx.boardIndex    = badHit->GetBoardIndex();
-    idx.dataReceiver  = badHit->GetBoardReceiver();
-    idx.chipId        = badHit->GetChipId();
-    (fCounterCollection.at( GetMapIntIndex(idx) )).AddCorruptedHit( badHit );
+    if ( badHit ) {
+        
+        if ( badHit->GetPixFlag() != TPixFlag::kBAD_CHIPID ) {
+            common::TChipIndex idx;
+            idx.boardIndex    = badHit->GetBoardIndex();
+            idx.dataReceiver  = badHit->GetBoardReceiver();
+            idx.chipId        = badHit->GetChipId();
+            try {
+                (fCounterCollection.at( GetMapIntIndex(idx) )).AddCorruptedHit( badHit );
+            } catch ( exception& msg ) {
+                cerr << "TErrorCounter::AddCorruptedHit() - " << msg.what() << endl;
+            }
+        } else {
+            fBadChipIdHits.push_back( move(badHit) );
+        }
+        
+    }
 }
 
 //___________________________________________________________________
@@ -50,7 +62,11 @@ void TErrorCounter::AddDeadPixel( common::TChipIndex idx,
     if ( !fChipList.size() ) {
         throw runtime_error( "TErrorCounter::AddDeadPixel() - no chip in the list ! Please use Init() first." );
     }
-    (fCounterCollection.at( GetMapIntIndex(idx) )).AddDeadPixel( idx, icol, iaddr );
+    try {
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddDeadPixel( idx, icol, iaddr );
+    } catch ( exception& msg ) {
+        cerr << "TErrorCounter::AddDeadPixel() - " << msg.what() << endl;
+    }
 }
 
 //___________________________________________________________________
@@ -60,7 +76,11 @@ void TErrorCounter::AddAlmostDeadPixel( common::TChipIndex idx,
     if ( !fChipList.size() ) {
         throw runtime_error( "TErrorCounter::AddDeadPixel() - no chip in the list ! Please use Init() first." );
     }
-    (fCounterCollection.at( GetMapIntIndex(idx) )).AddAlmostDeadPixel( idx, icol, iaddr );
+    try {
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddAlmostDeadPixel( idx, icol, iaddr );
+    } catch ( exception& msg ) {
+        cerr << "TErrorCounter::AddAlmostDeadPixel() - " << msg.what() << endl;
+    }
 }
 
 //___________________________________________________________________
@@ -73,7 +93,11 @@ void TErrorCounter::IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, cons
     idx.boardIndex    = badHit->GetBoardIndex();
     idx.dataReceiver  = badHit->GetBoardReceiver();
     idx.chipId        = badHit->GetChipId();
-    (fCounterCollection.at( GetMapIntIndex(idx) )).IncrementNPrioEncoder( value );
+    try {
+        (fCounterCollection.at( GetMapIntIndex(idx) )).IncrementNPrioEncoder( value );
+    } catch ( exception& msg ) {
+        cerr << "TErrorCounter::IncrementNPrioEncoder() - " << msg.what() << endl;
+    }
 }
 
 //___________________________________________________________________
@@ -93,6 +117,8 @@ void TErrorCounter::Dump()
     cout << "------------------------------- TErrorCounter::Dump() " << endl;
     cout << "Number of corrupted events: " << std::dec << fNCorruptEvent << endl;
     cout << "Number of timeout: " << fNTimeout << endl;
+    cout << "Number of 8b10b encoder errors: " << fN8b10b << endl;
+    cout << "Number of hits with bad chip id: " << fBadChipIdHits.size() << endl;
     cout << "-------------------------------" << endl << endl;
 }
 
