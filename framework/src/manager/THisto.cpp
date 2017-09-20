@@ -343,6 +343,10 @@ TScanHisto::~TScanHisto()
 //___________________________________________________________________
 double TScanHisto::operator() ( common::TChipIndex index, unsigned int i, unsigned int j ) const
 {
+    if ( GetVerboseLevel() > kULTRACHATTY ) {
+        std::cout << "TScanHisto::operator(idx, i, j) - B " << std::dec << index.boardIndex
+        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+    }
     int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
     return (fHistos.at(int_index))(i,j);
 }
@@ -351,6 +355,10 @@ double TScanHisto::operator() ( common::TChipIndex index, unsigned int i, unsign
 //___________________________________________________________________
 double TScanHisto::operator() ( common::TChipIndex index, unsigned int i ) const
 {
+    if ( GetVerboseLevel() > kULTRACHATTY ) {
+        std::cout << "TScanHisto::operator(idx, i) - B " << std::dec << index.boardIndex
+        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+    }
     int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     return (fHistos.at(int_index))(i);
 }
@@ -364,6 +372,10 @@ common::TChipIndex TScanHisto::GetChipIndex( const unsigned int i ) const
 //___________________________________________________________________
 unsigned int TScanHisto::GetChipNEntries( common::TChipIndex index ) const
 {
+    if ( GetVerboseLevel() > kULTRACHATTY ) {
+        std::cout << "TScanHisto::GetChipNEntries() - B " << std::dec << index.boardIndex
+        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+    }
     int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     return (fHistos.at(int_index)).GetNEntries();
 }
@@ -373,6 +385,10 @@ unsigned int TScanHisto::GetChipNEntries( common::TChipIndex index ) const
 //___________________________________________________________________
 void TScanHisto::AddHisto( common::TChipIndex index, THisto histo )
 {
+    if ( GetVerboseLevel() > kULTRACHATTY ) {
+        std::cout << "TScanHisto::AddHisto() - B " << std::dec << index.boardIndex
+        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+    }
     int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
     fHistos.insert (std::pair<int, THisto>(int_index, histo));
 }
@@ -382,14 +398,22 @@ void TScanHisto::AddHisto( common::TChipIndex index, THisto histo )
 //___________________________________________________________________
 void TScanHisto::Incr( common::TChipIndex index, unsigned int i, unsigned int j )
 {
-    int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+    if ( GetVerboseLevel() > kULTRACHATTY ) {
+        std::cout << "TScanHisto::Incr(idx, i, j) - B " << std::dec << index.boardIndex
+        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+    }
+   int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     (fHistos.at(int_index)).Incr(i,j);
 }
 
 //___________________________________________________________________
 void TScanHisto::Incr( common::TChipIndex index, unsigned int i )
 {
-    int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+    if ( GetVerboseLevel() > kULTRACHATTY ) {
+        std::cout << "TScanHisto::Incr(idx, i) - B " << std::dec << index.boardIndex
+        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+    }
+   int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     (fHistos.at(int_index)).Incr(i);
 }
 
@@ -411,7 +435,7 @@ void TScanHisto::FindChipList()
 bool TScanHisto::IsValidChipIndex( const common::TChipIndex idx )
 {
     for ( unsigned int i = 0; i < GetChipListSize(); i++ ) {
-        if ( SameChipIndex( idx, GetChipIndex(i) ) ) {
+        if ( common::SameChipIndex( idx, GetChipIndex(i) ) ) {
             return true;
         }
     }

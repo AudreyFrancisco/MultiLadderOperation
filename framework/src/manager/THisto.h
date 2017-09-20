@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "TVerbosity.h"
 
 class THisto {
     
@@ -65,7 +66,7 @@ public:
     unsigned int GetNEntries() const;
 };
 
-class TScanHisto {
+class TScanHisto : public TVerbosity {
 private:
     std::map<int, THisto> fHistos;
     int fIndex;
