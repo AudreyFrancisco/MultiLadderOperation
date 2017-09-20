@@ -19,6 +19,7 @@
  */
 
 #include <memory>
+#include <string>
 #include "TVerbosity.h"
 
 enum class TDeviceType;
@@ -45,6 +46,7 @@ public:
     virtual void CreateDeviceConfig() = 0;
     void SetDeviceParamValue( const char *Name, const char *Value, int Chip );
     virtual void SetVerboseLevel( const int level );
+    void SetDeviceNickName( const std::string name );
     virtual void InitSetup() = 0;
     
     #pragma mark - Getters

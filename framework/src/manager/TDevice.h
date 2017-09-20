@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <memory>
+#include <string>
 #include "TVerbosity.h"
 
 class TAlpide;
@@ -60,6 +61,7 @@ class TDevice : public TVerbosity {
     unsigned int fStartChipId;
     TBoardType fBoardType;
     TDeviceType fDeviceType;
+    std::string fNickName;
     std::vector<std::shared_ptr<TReadoutBoard>> fBoards;
     std::vector<std::shared_ptr<TAlpide>> fChips;
     std::vector<std::shared_ptr<TBoardConfig>> fBoardConfigs;
@@ -77,6 +79,7 @@ public:
     void SetStartChipId( const unsigned int Id );
     void SetBoardType( const TBoardType bt );
     void SetDeviceType( const TDeviceType dt );
+    void SetNickName( const std::string name );
 
     #pragma mark - toggle config creation and setup initialisation to true
     inline void FreezeConfig() { fCreatedConfig = true; }
@@ -114,6 +117,7 @@ public:
     inline bool                     IsConfigFrozen() const { return fCreatedConfig; }
     inline bool                     IsSetupFrozen() const { return fInitialisedSetup; }
     unsigned int                    GetNWorkingChipsPerBoard( const unsigned int iBoard ) const;
+    inline std::string              GetNickName() const { return fNickName; }
 
 };
 

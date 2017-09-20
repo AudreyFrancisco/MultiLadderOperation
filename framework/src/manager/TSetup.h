@@ -47,11 +47,9 @@ public:
     virtual ~TSetup();
 
     #pragma mark - setters
-    void SetConfigFileName( const std::string name );
     virtual void SetVerboseLevel( const int level );
 
     #pragma mark - getters
-    inline std::string GetConfigurationFileName() const { return fConfigFileName; }
     std::weak_ptr<TDevice> GetDevice() { return fDevice; }
     std::weak_ptr<TScanConfig> GetScanConfig() { return fScanConfig; }
     
@@ -67,10 +65,12 @@ private:
     void ParseLine( const char* Line, char* Param, char* Rest, int* Chip );
     TDeviceType ReadDeviceType( const char* deviceName );
     void InitDeviceBuilder( TDeviceType dt );
-
+    void SetConfigFileName( const std::string name );
+    void SetDeviceNickName( const std::string name );
     
 private:
     std::string fConfigFileName;
+    std::string fDeviceNickName;
     FILE* fConfigFile;
     std::shared_ptr<TDeviceBuilder> fDeviceBuilder;
     std::shared_ptr<TDevice> fDevice;
