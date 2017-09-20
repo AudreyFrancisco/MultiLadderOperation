@@ -40,9 +40,6 @@ class TChipErrorCounter {
     /// number of hits with bad region id flag
     unsigned int fNBadRegionIdFlag;
     
-    /// number of hits with bad chip id flag
-    unsigned int fNBadChipIdFlag;
-    
     /// number of hits with stuck pixel flag
     unsigned int fNStuckPixelFlag;
 

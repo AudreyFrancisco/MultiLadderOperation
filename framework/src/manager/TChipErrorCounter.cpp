@@ -10,7 +10,6 @@ fNPrioEncoder( 0 ),
 fNBadAddressIdFlag( 0 ),
 fNBadColIdFlag( 0 ),
 fNBadRegionIdFlag( 0 ),
-fNBadChipIdFlag( 0 ),
 fNStuckPixelFlag( 0 ),
 fNDeadPixels( 0 ),
 fNAlmostDeadPixels( 0 )
@@ -67,7 +66,6 @@ void TChipErrorCounter::AddAlmostDeadPixel( common::TChipIndex idx,
 //___________________________________________________________________
 void TChipErrorCounter::DumpCorruptedHits()
 {
-    DumpCorruptedHits( TPixFlag::kBAD_CHIPID );
     DumpCorruptedHits( TPixFlag::kBAD_REGIONID );
     DumpCorruptedHits( TPixFlag::kBAD_DCOLID );
     DumpCorruptedHits( TPixFlag::kBAD_ADDRESS );
@@ -86,7 +84,6 @@ void TChipErrorCounter::Dump( common::TChipIndex idx )
          << idx.dataReceiver << " / " << idx.chipId << endl;
     cout << "Number of priority encoder errors: " << fNPrioEncoder << endl;
     if ( fCorruptedHits.size() ) {
-        cout << "Number of hits with bad chip id flag: " << fNBadChipIdFlag << endl;
         cout << "Number of hits with bad region id flag: " << fNBadRegionIdFlag << endl;
         cout << "Number of hits with bad col id flag: " << fNBadColIdFlag << endl;
         cout << "Number of hits with bad address flag: " << fNBadAddressIdFlag << endl;
@@ -115,6 +112,8 @@ void TChipErrorCounter::DumpCorruptedHits( const TPixFlag flag )
                 break;
             case (int)TPixFlag::kOK : // nothing to display, since all hits in the vector are bad
                 break;
+            case (int)TPixFlag::kBAD_CHIPID : // nothing to display, since a bad chip id can not be attached (and hence found) to (in) a given TChipErrorCounter
+                break;
             default: // dump bad hits with the requested flag
                 bool first = true;
                 unsigned int counter = 0;
@@ -137,10 +136,6 @@ void TChipErrorCounter::DumpCorruptedHits( const TPixFlag flag )
                 if ( flag == TPixFlag::kBAD_REGIONID ) {
                     cout << "TPixFlag::kBAD_REGIONID" << endl;
                     fNBadRegionIdFlag = counter;
-                }
-                if ( flag == TPixFlag::kBAD_CHIPID ) {
-                    cout << "TPixFlag::kBAD_CHIPID" << endl;
-                    fNBadChipIdFlag = counter;
                 }
                 if ( flag == TPixFlag::kSTUCK ) {
                     cout << "TPixFlag::kSTUCK" << endl;
