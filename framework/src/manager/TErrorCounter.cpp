@@ -26,10 +26,8 @@ void TErrorCounter::Init( shared_ptr<TScanHisto> aScanHisto )
         throw runtime_error( "TErrorCounter::CreateCounterCollection() - can not use a null pointer !" );
     }
     for ( unsigned int i = 0; i < aScanHisto->GetChipListSize(); i++ ) {
-        fChipList.push_back( aScanHisto->GetChipIndex(i) );
-    }
-    for ( unsigned int i = 0; i < fChipList.size() ; i++ ) {
-        AddChipErrorCounter( fChipList.at(i) );
+        common::TChipIndex aChipIndex = aScanHisto->GetChipIndex(i) ;
+        AddChipErrorCounter( aChipIndex );
     }
 }
 
@@ -51,7 +49,6 @@ void TErrorCounter::AddCorruptedHit( shared_ptr<TPixHit> badHit )
         } else {
             fBadChipIdHits.push_back( move(badHit) );
         }
-        
     }
 }
 
@@ -59,11 +56,11 @@ void TErrorCounter::AddCorruptedHit( shared_ptr<TPixHit> badHit )
 void TErrorCounter::AddDeadPixel( common::TChipIndex idx,
                                  unsigned int icol, unsigned int iaddr )
 {
-    if ( !fChipList.size() ) {
+    if ( !fCounterCollection.size() ) {
         throw runtime_error( "TErrorCounter::AddDeadPixel() - no chip in the list ! Please use Init() first." );
     }
     try {
-        (fCounterCollection.at( GetMapIntIndex(idx) )).AddDeadPixel( idx, icol, iaddr );
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddDeadPixel( icol, iaddr );
     } catch ( exception& msg ) {
         cerr << "TErrorCounter::AddDeadPixel() - " << msg.what() << endl;
     }
@@ -73,20 +70,29 @@ void TErrorCounter::AddDeadPixel( common::TChipIndex idx,
 void TErrorCounter::AddAlmostDeadPixel( common::TChipIndex idx,
                                        unsigned int icol, unsigned int iaddr )
 {
-    if ( !fChipList.size() ) {
+    if ( !fCounterCollection.size() ) {
         throw runtime_error( "TErrorCounter::AddAlmostDeadPixel() - no chip in the list ! Please use Init() first." );
     }
     try {
-        (fCounterCollection.at( GetMapIntIndex(idx) )).AddAlmostDeadPixel( idx, icol, iaddr );
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddAlmostDeadPixel( icol, iaddr );
     } catch ( exception& msg ) {
         cerr << "TErrorCounter::AddAlmostDeadPixel() - " << msg.what() << endl;
     }
 }
 
 //___________________________________________________________________
+void TErrorCounter::SetVerboseLevel( const int level )
+{
+    for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
+        ((*it).second).SetVerboseLevel( level );
+    }
+    TVerbosity::SetVerboseLevel( level );
+}
+
+//___________________________________________________________________
 void TErrorCounter::IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, const unsigned int value )
 {
-    if ( !fChipList.size() ) {
+    if ( !fCounterCollection.size() ) {
         throw runtime_error( "TErrorCounter::IncrementNPrioEncoder() - no chip in the list ! Please use Init() first." );
     }
     common::TChipIndex idx;
@@ -103,16 +109,10 @@ void TErrorCounter::IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, cons
 //___________________________________________________________________
 void TErrorCounter::Dump()
 {
+    for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
+        ((*it).second).Dump();
+    }
 
-    for ( unsigned int i = 0; i < fChipList.size() ; i++ ) {
-        common::TChipIndex idx = fChipList.at(i);
-        (fCounterCollection.at( GetMapIntIndex(idx) )).DumpCorruptedHits();
-    }
-    for ( unsigned int i = 0; i < fChipList.size() ; i++ ) {
-        common::TChipIndex idx = fChipList.at(i);
-        (fCounterCollection.at( GetMapIntIndex(idx) )).Dump( idx );
-    }
-    
     cout << endl;
     cout << "------------------------------- TErrorCounter::Dump() " << endl;
     cout << "Number of corrupted events: " << std::dec << fNCorruptEvent << endl;
@@ -123,10 +123,26 @@ void TErrorCounter::Dump()
 }
 
 //___________________________________________________________________
+void TErrorCounter::FindCorruptedHits()
+{
+    for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
+        ((*it).second).FindCorruptedHits();
+    }
+}
+
+//___________________________________________________________________
+void TErrorCounter::WriteCorruptedHitsToFile( const char *fName, bool Recreate )
+{
+    for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
+        ((*it).second).WriteCorruptedHitsToFile( fName, Recreate );
+    }
+}
+
+//___________________________________________________________________
 void TErrorCounter::AddChipErrorCounter( common::TChipIndex idx )
 {
     int int_index = GetMapIntIndex( idx );
-    TChipErrorCounter chipCounter;
+    TChipErrorCounter chipCounter( idx );
     fCounterCollection.insert( std::pair<int, TChipErrorCounter>(int_index, chipCounter));
 }
 

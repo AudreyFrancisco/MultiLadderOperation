@@ -30,7 +30,7 @@
 
 class TScanHisto;
 
-class TErrorCounter {
+class TErrorCounter : public TVerbosity {
     
     /// number of times any readout board had a timeout error
     unsigned int fNTimeout;
@@ -40,9 +40,6 @@ class TErrorCounter {
     
     /// number of corrupted events
     unsigned int fNCorruptEvent;
-    
-    /// list of chips
-    std::vector<common::TChipIndex> fChipList;
     
     /// error counter (one per chip index)
     std::map<int, TChipErrorCounter> fCounterCollection;
@@ -76,6 +73,12 @@ public:
     /// print all error counters on screen
     void Dump();
     
+    /// count bad hits for each type of flag and for each chip
+    void FindCorruptedHits();
+    
+    /// write list of hit pixels with a bad flag in an output file for each chip
+    void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+    
 #pragma mark - setters
 
     /// set the number of timeout errors to the given value
@@ -86,6 +89,9 @@ public:
 
     /// set the number of 8b10b encoder errors to the given value
     inline void SetN8b10b( const unsigned int value ) { fN8b10b = value; }
+    
+    /// propagate the verbosity level to data members
+    virtual void SetVerboseLevel( const int level );
     
 #pragma mark - increment
 
