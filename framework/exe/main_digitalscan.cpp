@@ -67,8 +67,8 @@ int main(int argc, char** argv) {
     }
     
     TDeviceDigitalScan theDeviceTestor( theDevice, theScanConfig );
-    theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.Init();
+    theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     
     sleep(1);
     char hicName[20], suffix[20], fName[100];
@@ -80,15 +80,16 @@ int main(int argc, char** argv) {
     theDeviceTestor.Go(); // run the digital scan
     theDeviceTestor.Terminate();
     
+    const bool Recreate = true;
+
     if ( !(theDevice->GetNickName()).empty() ) {
         sprintf( hicName, "%s", (theDevice->GetNickName()).c_str() );
         sprintf(fName, "digitalScan_%s_%s.dat", hicName, suffix);
     } else {
         sprintf(fName, "digitalScan_%s.dat", suffix);
     }
-    
-    const bool Recreate = true;
     theDeviceTestor.WriteDataToFile( fName, Recreate );
-
+    theDeviceTestor.WriteCorruptedHitsToFile( fName, Recreate );
+    
     return EXIT_SUCCESS;
 }
