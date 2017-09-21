@@ -87,6 +87,9 @@ public:
     /// write hit data to a text file
     void WriteDataToFile( const char *fName, bool Recreate = true );
 
+    /// write list of hit pixels with a bad flag in a text file
+    void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+
     /// perform the digital scan of the device
     void Go();
     
