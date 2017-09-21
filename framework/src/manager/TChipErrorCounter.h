@@ -16,8 +16,8 @@
  * - number of priority encoder errors (stuck pixel hits), i.e. a subset of corrupted
  *   events
  * - number of times any readout board had a timeout error
- * This class also collect the bad pixel hits and can print them to screen, with a
- * possible selection on the type of flaw.
+ * This class also collect the bad pixel hits and can print them to screen or 
+ * to output files, with a possible selection on the type of flaw.
  */
 
 
@@ -26,7 +26,7 @@
 #include <memory>
 #include <vector>
 
-class TChipErrorCounter {
+class TChipErrorCounter : public TVerbosity {
     
     /// number of priority encoder errors
     unsigned int fNPrioEncoder;
@@ -49,15 +49,23 @@ class TChipErrorCounter {
     /// number of almost dead pixels
     unsigned int fNAlmostDeadPixels;
     
+    /// boolean to check if the error counters have been filled with values
+    bool fFilledErrorCounters;
+    
+    /// index of the chip for which we collect errors
+    common::TChipIndex fIdx;
+
     /// list of corrupted pixel hits
     std::vector<std::shared_ptr<TPixHit>> fCorruptedHits;
-    
 
 public:
     
     /// default constructor
     TChipErrorCounter();
-    
+
+    /// constructor that sets the chip index
+    TChipErrorCounter( const common::TChipIndex aChipIndex );
+
     /// destructor
     ~TChipErrorCounter();
     
@@ -65,19 +73,20 @@ public:
     void AddCorruptedHit( std::shared_ptr<TPixHit> badHit );
     
     /// add a dead pixel to the list
-    void AddDeadPixel( common::TChipIndex idx,
-                      unsigned int icol, unsigned int iaddr );
+    void AddDeadPixel( unsigned int icol, unsigned int iaddr );
     
     /// add an almost dead pixel to the list
-    void AddAlmostDeadPixel( common::TChipIndex idx,
-                            unsigned int icol, unsigned int iaddr );
+    void AddAlmostDeadPixel( unsigned int icol, unsigned int iaddr );
     
-    /// dump the list of bad hits
-    void DumpCorruptedHits();
+    /// count bad hits for each type of flag
+    void FindCorruptedHits();
     
     /// dump all errors
-    void Dump( common::TChipIndex idx );
+    void Dump();
     
+    /// write list of hit pixels with a bad flag in an output file
+    void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+
 #pragma mark - setters
     
     /// set the number of priority encoder errors to the given value
@@ -92,8 +101,12 @@ public:
     
 private:
     
-    /// dump the list of bad hits
-    void DumpCorruptedHits( const TPixFlag flag );
+    /// find the bad hits based on a given flag
+    void FindCorruptedHits( const TPixFlag flag );
+    
+    /// write list of corrupted hits in an output file for a given flag
+    void WriteCorruptedHitsToFile( const TPixFlag flag, const char *fName,
+                                  bool Recreate = true );
 
 };
 

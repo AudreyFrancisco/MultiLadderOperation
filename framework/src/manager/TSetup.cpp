@@ -66,7 +66,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
 {
     int c;
     
-    while ((c = getopt (argc, argv, "hv:c:")) != -1)
+    while ((c = getopt (argc, argv, "hv:c:n:")) != -1)
         switch (c) {
             case 'h':  // prints the Help of usage
                 cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> -n <nick_name>"<< endl;
@@ -90,7 +90,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 SetDeviceNickName( string(DeviceName) );
                 break;
             case '?':
-                if (optopt == 'c') {
+                if (optopt == 'c' | optopt == 'n' ) {
                     cerr << "Option -" << optopt << " requires an argument." << endl;
                 } else {
                     if (isprint (optopt)) {

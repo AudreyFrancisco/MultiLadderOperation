@@ -85,6 +85,7 @@ void TDeviceDigitalScan::SetVerboseLevel( const int level )
     fChipDecoder->SetVerboseLevel( level );
     fBoardDecoder->SetVerboseLevel( level );
     fScanHisto->SetVerboseLevel( level );
+    fErrorCounter->SetVerboseLevel( level );
     TDeviceChipVisitor::SetVerboseLevel( level );
 }
 
@@ -142,7 +143,9 @@ void TDeviceDigitalScan::Terminate()
     }
     FindDeadPixels();
     cout << endl;
+    fErrorCounter->FindCorruptedHits();
     fErrorCounter->Dump();
+    fIsTerminated = true;
 }
 
 //___________________________________________________________________
@@ -151,7 +154,22 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - not initialized ! Please use Init() first." );
     }
+    if ( !fIsTerminated ) {
+        throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - not terminated ! Please use Terminate() first." );
+    }
     fChipDecoder->WriteDataToFile( fName, Recreate );
+}
+
+//___________________________________________________________________
+void TDeviceDigitalScan::WriteCorruptedHitsToFile( const char *fName, bool Recreate )
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceDigitalScan::WriteCorruptedHitsToFile() - not initialized ! Please use Init() first." );
+    }
+    if ( !fIsTerminated ) {
+        throw runtime_error( "TDeviceDigitalScan::WriteCorruptedHitsToFile() - not terminated ! Please use Terminate() first." );
+    }
+    fErrorCounter->WriteCorruptedHitsToFile( fName, Recreate );
 }
 
 //___________________________________________________________________
