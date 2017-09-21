@@ -26,6 +26,7 @@ protected:
 
     std::shared_ptr<TDevice> fDevice;
     bool fIsInitDone;
+    bool fIsTerminated;
 
     #pragma mark - readout board configuration
     virtual void ConfigureBoards() = 0;
