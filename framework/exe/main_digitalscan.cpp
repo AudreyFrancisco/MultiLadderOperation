@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include "TReadoutBoard.h"
 #include "TSetup.h"
 #include "TDevice.h"
@@ -70,16 +71,22 @@ int main(int argc, char** argv) {
     theDeviceTestor.Init();
     
     sleep(1);
-    char Suffix[20], fName[100];
+    char hicName[20], suffix[20], fName[100];
     
     time_t       t = time(0);   // get time now
     struct tm *now = localtime( & t );
-    sprintf(Suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
+    sprintf(suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 
     theDeviceTestor.Go(); // run the digital scan
     theDeviceTestor.Terminate();
     
-    sprintf(fName, "digitalScan_%s.dat", Suffix);
+    if ( !(theDevice->GetNickName()).empty() ) {
+        sprintf( hicName, "%s", (theDevice->GetNickName()).c_str() );
+        sprintf(fName, "digitalScan_%s_%s.dat", hicName, suffix);
+    } else {
+        sprintf(fName, "digitalScan_%s.dat", suffix);
+    }
+    
     const bool Recreate = true;
     theDeviceTestor.WriteDataToFile( fName, Recreate );
 
