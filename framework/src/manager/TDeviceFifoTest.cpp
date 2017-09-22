@@ -59,6 +59,7 @@ void TDeviceFifoTest::Terminate()
             myDAQBoard->PowerOff();
         }
     }
+    fIsTerminated = true;
 }
 
 //___________________________________________________________________
