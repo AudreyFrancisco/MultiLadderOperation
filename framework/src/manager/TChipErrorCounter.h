@@ -46,8 +46,11 @@ class TChipErrorCounter : public TVerbosity {
     /// number of dead pixels
     unsigned int fNDeadPixels;
 
-    /// number of almost dead pixels
-    unsigned int fNAlmostDeadPixels;
+    /// number of inefficient pixels
+    unsigned int fNInefficientPixels;
+    
+    /// number of hot pixels
+    unsigned int fNHotPixels;
     
     /// boolean to check if the error counters have been filled with values
     bool fFilledErrorCounters;
@@ -75,9 +78,12 @@ public:
     /// add a dead pixel to the list
     void AddDeadPixel( unsigned int icol, unsigned int iaddr );
     
-    /// add an almost dead pixel to the list
-    void AddAlmostDeadPixel( unsigned int icol, unsigned int iaddr );
-    
+    /// add an inefficient pixel to the list
+    void AddInefficientPixel( unsigned int icol, unsigned int iaddr );
+
+    /// add a hot pixel to the list
+    void AddHotPixel( unsigned int icol, unsigned int iaddr );
+
     /// count bad hits for each type of flag
     void FindCorruptedHits();
     

@@ -63,9 +63,13 @@ public:
     void AddDeadPixel( common::TChipIndex idx,
                        unsigned int icol, unsigned int iaddr );
 
-    /// add an almost dead pixel to the list
-    void AddAlmostDeadPixel( common::TChipIndex idx,
+    /// add an inefficient pixel to the list
+    void AddInefficientPixel( common::TChipIndex idx,
                              unsigned int icol, unsigned int iaddr );
+
+    /// add a hot pixel to the list
+    void AddHotPixel( common::TChipIndex idx,
+                      unsigned int icol, unsigned int iaddr );
 
     /// create the collection of chip error counters from the map of histograms
     void Init( std::shared_ptr<TScanHisto> aScanHisto );

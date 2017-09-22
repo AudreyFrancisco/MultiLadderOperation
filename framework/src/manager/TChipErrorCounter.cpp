@@ -15,7 +15,8 @@ fNBadColIdFlag( 0 ),
 fNBadRegionIdFlag( 0 ),
 fNStuckPixelFlag( 0 ),
 fNDeadPixels( 0 ),
-fNAlmostDeadPixels( 0 ),
+fNInefficientPixels( 0 ),
+fNHotPixels( 0 ),
 fFilledErrorCounters( false )
 {
     fIdx.boardIndex = 0;
@@ -31,7 +32,8 @@ fNBadColIdFlag( 0 ),
 fNBadRegionIdFlag( 0 ),
 fNStuckPixelFlag( 0 ),
 fNDeadPixels( 0 ),
-fNAlmostDeadPixels( 0 ),
+fNInefficientPixels( 0 ),
+fNHotPixels( 0 ),
 fFilledErrorCounters( false )
 {
     fIdx.boardIndex = aChipIndex.boardIndex;
@@ -77,10 +79,10 @@ void TChipErrorCounter::AddDeadPixel( unsigned int icol, unsigned int iaddr )
 }
 
 //___________________________________________________________________
-void TChipErrorCounter::AddAlmostDeadPixel( unsigned int icol, unsigned int iaddr )
+void TChipErrorCounter::AddInefficientPixel( unsigned int icol, unsigned int iaddr )
 {
     if ( fFilledErrorCounters ) {
-        cerr << "TChipErrorCounter::AddAlmostDeadPixel() - counters filled, no more modification allowed !" << endl;
+        cerr << "TChipErrorCounter::AddInefficientPixel() - counters filled, no more modification allowed !" << endl;
         return;
     }
     auto hit = make_shared<TPixHit>();
@@ -91,7 +93,26 @@ void TChipErrorCounter::AddAlmostDeadPixel( unsigned int icol, unsigned int iadd
     hit->SetAddress( iaddr );
     float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
-    hit->SetPixFlag( TPixFlag::kALMOST_DEAD );
+    hit->SetPixFlag( TPixFlag::kINEFFICIENT );
+    fCorruptedHits.push_back( move(hit) );
+}
+
+//___________________________________________________________________
+void TChipErrorCounter::AddHotPixel( unsigned int icol, unsigned int iaddr )
+{
+    if ( fFilledErrorCounters ) {
+        cerr << "TChipErrorCounter::AddHotPixel() - counters filled, no more modification allowed !" << endl;
+        return;
+    }
+    auto hit = make_shared<TPixHit>();
+    hit->SetBoardIndex( fIdx.boardIndex );
+    hit->SetBoardReceiver( fIdx.dataReceiver );
+    hit->SetChipId( fIdx.chipId );
+    hit->SetDoubleColumn( icol );
+    hit->SetAddress( iaddr );
+    float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
+    hit->SetRegion( (unsigned int)region );
+    hit->SetPixFlag( TPixFlag::kHOT );
     fCorruptedHits.push_back( move(hit) );
 }
 
@@ -106,7 +127,8 @@ void TChipErrorCounter::FindCorruptedHits()
     FindCorruptedHits( TPixFlag::kBAD_ADDRESS );
     FindCorruptedHits( TPixFlag::kSTUCK );
     FindCorruptedHits( TPixFlag::kDEAD );
-    FindCorruptedHits( TPixFlag::kALMOST_DEAD );
+    FindCorruptedHits( TPixFlag::kINEFFICIENT );
+    FindCorruptedHits( TPixFlag::kHOT );
     fFilledErrorCounters = true;
 }
 
@@ -129,7 +151,8 @@ void TChipErrorCounter::Dump()
         cout << "Number of hits with bad address flag: " << fNBadAddressIdFlag << endl;
         cout << "Number of hits with stuck pixel flag: " << fNStuckPixelFlag << endl;
         cout << "Number of dead pixels: " << fNDeadPixels << endl;
-        cout << "Number of almost dead pixels: " << fNAlmostDeadPixels << endl;
+        cout << "Number of inefficient pixels: " << fNInefficientPixels << endl;
+        cout << "Number of hot pixels: " << fNHotPixels << endl;
     }
     cout << "-------------------------------" << endl << endl;
 }
@@ -146,7 +169,8 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const char *fName, bool Recrea
     WriteCorruptedHitsToFile( TPixFlag::kBAD_ADDRESS, fName, Recreate );
     WriteCorruptedHitsToFile( TPixFlag::kSTUCK, fName, Recreate );
     WriteCorruptedHitsToFile( TPixFlag::kDEAD, fName, Recreate );
-    WriteCorruptedHitsToFile( TPixFlag::kALMOST_DEAD, fName, Recreate );
+    WriteCorruptedHitsToFile( TPixFlag::kINEFFICIENT, fName, Recreate );
+    WriteCorruptedHitsToFile( TPixFlag::kHOT, fName, Recreate );
 }
 
 
@@ -218,11 +242,17 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
                     }
                     fNDeadPixels = counter;
                 }
-                if ( flag == TPixFlag::kALMOST_DEAD ) {
+                if ( flag == TPixFlag::kINEFFICIENT ) {
                     if ( GetVerboseLevel() > kCHATTY ) {
-                        cout << "TPixFlag::kALMOST_DEAD" << endl;
+                        cout << "TPixFlag::kINEFFICIENT" << endl;
                     }
-                    fNAlmostDeadPixels = counter;
+                    fNInefficientPixels = counter;
+                }
+                if ( flag == TPixFlag::kHOT ) {
+                    if ( GetVerboseLevel() > kCHATTY ) {
+                        cout << "TPixFlag::kHOT" << endl;
+                    }
+                    fNHotPixels = counter;
                 }
                 break;
         }
@@ -264,7 +294,10 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     if ( (flag == TPixFlag::kDEAD) && !fNDeadPixels ) {
         return;
     }
-    if ( (flag == TPixFlag::kALMOST_DEAD) && !fNAlmostDeadPixels ) {
+    if ( (flag == TPixFlag::kINEFFICIENT) && !fNInefficientPixels ) {
+        return;
+    }
+    if ( (flag == TPixFlag::kHOT) && !fNHotPixels ) {
         return;
     }
     
@@ -300,8 +333,11 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
         if ( flag == TPixFlag::kDEAD ) {
             cout << "TPixFlag::kDEAD";
         }
-        if ( flag == TPixFlag::kALMOST_DEAD ) {
-            cout << "TPixFlag::kALMOST_DEAD";
+        if ( flag == TPixFlag::kINEFFICIENT ) {
+            cout << "TPixFlag::kINEFFICIENT";
+        }
+        if ( flag == TPixFlag::kHOT ) {
+            cout << "TPixFlag::kHOT";
         }
         cout << " to file " << fNameChip << endl;
     }
