@@ -17,7 +17,8 @@ using namespace std;
 //___________________________________________________________________
 TDeviceChipVisitor::TDeviceChipVisitor() : TVerbosity(),
     fDevice( nullptr ),
-    fIsInitDone( false )
+    fIsInitDone( false ),
+    fIsTerminated( false )
 {
     
 }
@@ -25,7 +26,8 @@ TDeviceChipVisitor::TDeviceChipVisitor() : TVerbosity(),
 //___________________________________________________________________
 TDeviceChipVisitor::TDeviceChipVisitor( shared_ptr<TDevice> aDevice ) : TVerbosity(),
     fDevice( nullptr ),
-    fIsInitDone( false )
+    fIsInitDone( false ),
+    fIsTerminated( false )
 {
     try {
         SetDevice( aDevice );

@@ -5,7 +5,7 @@
 using namespace std;
 
 //___________________________________________________________________
-string common::GetFileName( common::TChipIndex aChipIndex, string suffix )
+string common::GetFileName( common::TChipIndex aChipIndex, string suffix, string optional )
 {
     string fileName = "../../data/";
     fileName+= suffix;
@@ -15,6 +15,10 @@ string common::GetFileName( common::TChipIndex aChipIndex, string suffix )
     fileName+= std::to_string( aChipIndex.dataReceiver );
     fileName+= "-chip";
     fileName+= std::to_string( aChipIndex.chipId );
+    if ( !optional.empty() ) {
+        fileName+= "-";
+        fileName+= optional;
+    }
     fileName+= ".dat";
     
     return fileName;

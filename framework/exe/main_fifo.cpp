@@ -5,8 +5,7 @@
  * It is recommended to disable Manchester encoding in the config file (CMU settings).
  * However, this was seen to lead to ControlInterface sync error with MOSAIC board.
  * Maybe this setting applies only in the case of the DAQ board or OB master chip?
- * See the class TDeviceFifoTest. See below for more details on the CMU settings
- * that were recommended for FIFO test (disabling Manchester encoding).
+ * See the class TDeviceFifoTest.
  *
  * \note
  * The default configuration file for this test for a MFT ladder is
@@ -29,7 +28,7 @@
 using namespace std;
 
 // Example of usage :
-// ./test_fifo -v 1 -c ConfigMFTladder_FIFOtest.cfg
+// ./test_fifo -v 1 -c ConfigMFTladder_FIFOtest.cfg -n hic25
 //
 // If you want to see the available options, do :
 // ./test_fifo -h

@@ -24,7 +24,8 @@ const string TSetup::NEWALPIDEVERSION = "1.0_mft";
 
 //___________________________________________________________________
 TSetup::TSetup() : TVerbosity(),
-    fConfigFileName( "ConfigSingleChipMOSAIC.cfg" ),
+    fConfigFileName( "../config/ConfigSingleChipMOSAIC.cfg" ),
+    fDeviceNickName( "" ),
     fConfigFile( nullptr ),
     fDeviceBuilder( nullptr ),
     fDevice( nullptr ),
@@ -49,27 +50,6 @@ TSetup::~TSetup()
 #pragma mark - setters
 
 //___________________________________________________________________
-void TSetup::SetConfigFileName( const string name )
-{
-    if ( name.empty() ) {
-        cout << "TSetup::SetConfigFileName() - user gave an empty file name! Default config file name will be used." << endl;
-    } else {
-        try {
-            ifstream file( name.c_str() );
-            if ( file.good() ) {
-                fConfigFileName = name;
-                file.close();
-            } else {
-                throw invalid_argument( "TSetup::SetConfigFileName() - file does not exist! Default config file name will be used." );
-            }
-        } catch ( std::invalid_argument &err ) {
-            cerr << err.what() << endl;
-            exit(0);
-        }
-    }
-}
-
-//___________________________________________________________________
 void TSetup::SetVerboseLevel( const int level )
 {
     if ( level > kSILENT ) {
@@ -86,13 +66,14 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
 {
     int c;
     
-    while ((c = getopt (argc, argv, "hv:c:")) != -1)
+    while ((c = getopt (argc, argv, "hv:c:n:")) != -1)
         switch (c) {
             case 'h':  // prints the Help of usage
-                cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> "<< endl;
+                cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> -n <nick_name>"<< endl;
                 cout << "-h  :  Display this message" << endl;
                 cout << "-v <level> : Sets the verbosity level (partly implemented)" << endl;
                 cout << "-c <configuration_file> : Sets the configuration file used" << endl << endl;
+                cout << "-n <nick_name> : Sets the nick name of the device" << endl << endl;
                 exit(0);
                 break;
             case 'v':  // sets the verbose level
@@ -103,8 +84,13 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 strncpy(ConfigurationFileName, optarg, 1023);
                 SetConfigFileName( string(ConfigurationFileName) );
                 break;
+            case 'n':  // sets the hic name (or chip name if single chip on carrier board)
+                char DeviceName[1024];
+                strncpy(DeviceName, optarg, 1023);
+                SetDeviceNickName( string(DeviceName) );
+                break;
             case '?':
-                if (optopt == 'c') {
+                if (optopt == 'c' | optopt == 'n' ) {
                     cerr << "Option -" << optopt << " requires an argument." << endl;
                 } else {
                     if (isprint (optopt)) {
@@ -372,6 +358,39 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
         cerr << err.what() << endl;
         exit(0);
     }
+    if ( !fDeviceNickName.empty() ) {
+        fDeviceBuilder->SetDeviceNickName( fDeviceNickName );
+    }
     fDevice = fDeviceBuilder->GetCurrentDevice();
 }
 
+//___________________________________________________________________
+void TSetup::SetConfigFileName( const string name )
+{
+    if ( name.empty() ) {
+        cout << "TSetup::SetConfigFileName() - user gave an empty file name! Default config file name will be used." << endl;
+    } else {
+        try {
+            ifstream file( name.c_str() );
+            if ( file.good() ) {
+                fConfigFileName = name;
+                file.close();
+            } else {
+                throw invalid_argument( "TSetup::SetConfigFileName() - file does not exist! Default config file name will be used." );
+            }
+        } catch ( std::invalid_argument &err ) {
+            cerr << err.what() << endl;
+            exit(0);
+        }
+    }
+}
+
+//___________________________________________________________________
+void TSetup::SetDeviceNickName( const string name )
+{
+    if ( name.empty() ) {
+        cout << "TSetup::SetDeviceNickName() - user gave an empty devive nick name! The device will remain un-named." << endl;
+    } else {
+        fDeviceNickName = name;
+    }
+}

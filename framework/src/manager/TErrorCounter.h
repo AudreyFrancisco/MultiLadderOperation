@@ -30,19 +30,13 @@
 
 class TScanHisto;
 
-class TErrorCounter {
+class TErrorCounter : public TVerbosity {
     
     /// number of times any readout board had a timeout error
     unsigned int fNTimeout;
     
-    /// number of 8b10b encoder errors
-    unsigned int fN8b10b;
-    
     /// number of corrupted events
     unsigned int fNCorruptEvent;
-    
-    /// list of chips
-    std::vector<common::TChipIndex> fChipList;
     
     /// error counter (one per chip index)
     std::map<int, TChipErrorCounter> fCounterCollection;
@@ -66,15 +60,25 @@ public:
     void AddDeadPixel( common::TChipIndex idx,
                        unsigned int icol, unsigned int iaddr );
 
-    /// add an almost dead pixel to the list
-    void AddAlmostDeadPixel( common::TChipIndex idx,
+    /// add an inefficient pixel to the list
+    void AddInefficientPixel( common::TChipIndex idx,
                              unsigned int icol, unsigned int iaddr );
+
+    /// add a hot pixel to the list
+    void AddHotPixel( common::TChipIndex idx,
+                      unsigned int icol, unsigned int iaddr );
 
     /// create the collection of chip error counters from the map of histograms
     void Init( std::shared_ptr<TScanHisto> aScanHisto );
     
     /// print all error counters on screen
     void Dump();
+    
+    /// count bad hits for each type of flag and for each chip
+    void FindCorruptedHits();
+    
+    /// write list of hit pixels with a bad flag in an output file for each chip
+    void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
     
 #pragma mark - setters
 
@@ -84,8 +88,8 @@ public:
     /// set the number of corrupted events to the given value
     inline void SetNCorruptEvent( const unsigned int value ) { fNCorruptEvent = value; }
 
-    /// set the number of 8b10b encoder errors to the given value
-    inline void SetN8b10b( const unsigned int value ) { fN8b10b = value; }
+    /// propagate the verbosity level to data members
+    virtual void SetVerboseLevel( const int level );
     
 #pragma mark - increment
 
@@ -98,8 +102,7 @@ public:
     { fNCorruptEvent += value; }
 
     /// increment the number of 8b10b encoder errors by the given value
-    inline void IncrementN8b10b( const unsigned int value = 1 )
-    { fN8b10b += value; }
+    void IncrementN8b10b( unsigned int boardReceiver, const unsigned int value = 1 );
     
     /// increment the number of priority encoder errors by the given value
     void IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, const unsigned int value = 1 );
@@ -111,9 +114,6 @@ public:
 
     /// return the number of corrupted events
     inline unsigned int GetNCorruptEvent() const { return fNCorruptEvent; }
-
-    /// return the number of 8b10b encoder errors
-    inline unsigned int GetN8b10b() const { return fN8b10b; }
 
 private:
     

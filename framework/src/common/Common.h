@@ -25,7 +25,7 @@ namespace common {
     
     /// Function that helps to generate part of the filename from TChipIndex
     extern std::string GetFileName( TChipIndex aChipIndex,
-                                   std::string suffix );
+                                   std::string suffix, std::string optional = "" );
     
     /// Compare two TChipIndex structures
     extern bool SameChipIndex( TChipIndex lhs, TChipIndex rhs );

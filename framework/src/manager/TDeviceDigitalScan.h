@@ -87,6 +87,9 @@ public:
     /// write hit data to a text file
     void WriteDataToFile( const char *fName, bool Recreate = true );
 
+    /// write list of hit pixels with a bad flag in a text file
+    void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+
     /// perform the digital scan of the device
     void Go();
     
@@ -107,8 +110,8 @@ protected:
     /// read data from a given readout board
     unsigned int ReadEventData( const unsigned int iboard );
     
-    /// check if there are any (almost) dead pixels and give them to the error counter
-    void FindDeadPixels();
+    /// look for any inefficient, dead or hot pixels and give them to the error counter
+    void CollectDiscordantPixels();
 };
 
 #endif
