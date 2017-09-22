@@ -28,7 +28,7 @@
 using namespace std;
 
 // Example of usage :
-// ./test_fifo -v 1 -c ConfigMFTladder_FIFOtest.cfg
+// ./test_fifo -v 1 -c ConfigMFTladder_FIFOtest.cfg -n hic25
 //
 // If you want to see the available options, do :
 // ./test_fifo -h

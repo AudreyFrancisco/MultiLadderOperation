@@ -29,7 +29,7 @@
 using namespace std;
 
 // Example of usage :
-// ./test_digital -v 1 -c ConfigMFTladder_DigitalScan.cfg
+// ./test_digital -v 1 -c ConfigMFTladder_DigitalScan.cfg -n hic25
 //
 // If you want to see the available options, do :
 // ./test_digital -h

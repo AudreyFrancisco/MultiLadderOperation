@@ -26,7 +26,10 @@
 using namespace std;
 
 // Example of usage :
-// ./test_mosaic -v 1 -c ConfigMFTladderMOSAIC.cfg
+// ./test_mosaic -v 1 -c ConfigMFTladderMOSAIC.cfg -n hic25
+//
+// If you want to see the available options, do :
+// ./test_digital -h
 //
 
 int main(int argc, char** argv) {
