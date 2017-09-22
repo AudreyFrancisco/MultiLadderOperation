@@ -111,7 +111,7 @@ protected:
     unsigned int ReadEventData( const unsigned int iboard );
     
     /// look for any inefficient, dead or hot pixels and give them to the error counter
-    void FindDiscordantPixels();
+    void CollectDiscordantPixels();
 };
 
 #endif

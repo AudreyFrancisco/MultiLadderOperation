@@ -141,7 +141,7 @@ void TDeviceDigitalScan::Terminate()
             myDAQBoard->PowerOff();
         }
     }
-    FindDiscordantPixels();
+    CollectDiscordantPixels();
     cout << endl;
     fErrorCounter->FindCorruptedHits();
     fErrorCounter->Dump();
@@ -364,7 +364,7 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
             }
             fBoardDecoder->DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
             if ( fBoardDecoder->GetMosaicDecoder10b8bError() ) {
-                fErrorCounter->IncrementN8b10b();
+                fErrorCounter->IncrementN8b10b( fBoardDecoder->GetMosaicChannel() );
             }
             if ( fBoardDecoder->GetMosaicTimeout() ) {
                 fErrorCounter->IncrementNTimeout();
@@ -406,12 +406,12 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::FindDiscordantPixels()
+void TDeviceDigitalScan::CollectDiscordantPixels()
 {
     bool isFullMatrix = (( fNMaskStages == 512 ) && ( fNPixPerRegion == 32 ));
     
     if ( !isFullMatrix  ) {
-        cout << "TDeviceDigitalScan::FindDiscordantPixels() - not implemented when only part of the pixel matrix is tested. Please test the full matrix." << endl;
+        cout << "TDeviceDigitalScan::CollectDiscordantPixels() - not implemented when only part of the pixel matrix is tested. Please test the full matrix." << endl;
         return;
     }
     for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
@@ -420,15 +420,15 @@ void TDeviceDigitalScan::FindDiscordantPixels()
             for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
                 
                 common::TChipIndex idx = fScanHisto->GetChipIndex(ichip);
-                if ( (*fScanHisto)(idx,icol,iaddr) != fNTriggers ) {
-                    if ( (*fScanHisto)(idx,icol,iaddr) == 0 ) {
-                        fErrorCounter->AddDeadPixel( idx, icol, iaddr );
-                    }
+                if ( (*fScanHisto)(idx,icol,iaddr) == 0 ) {
+                    fErrorCounter->AddDeadPixel( idx, icol, iaddr );
+                } else {
                     if ( (*fScanHisto)(idx,icol,iaddr) < fNTriggers ) {
                         fErrorCounter->AddInefficientPixel( idx, icol, iaddr );
-                    }
-                    if ( (*fScanHisto)(idx,icol,iaddr) > fNTriggers ) {
-                        fErrorCounter->AddHotPixel( idx, icol, iaddr );
+                    } else {
+                        if ( (*fScanHisto)(idx,icol,iaddr) > fNTriggers ) {
+                            fErrorCounter->AddHotPixel( idx, icol, iaddr );
+                        }
                     }
                 }
                 
