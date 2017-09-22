@@ -35,9 +35,6 @@ class TErrorCounter : public TVerbosity {
     /// number of times any readout board had a timeout error
     unsigned int fNTimeout;
     
-    /// number of 8b10b encoder errors
-    unsigned int fN8b10b;
-    
     /// number of corrupted events
     unsigned int fNCorruptEvent;
     
@@ -91,9 +88,6 @@ public:
     /// set the number of corrupted events to the given value
     inline void SetNCorruptEvent( const unsigned int value ) { fNCorruptEvent = value; }
 
-    /// set the number of 8b10b encoder errors to the given value
-    inline void SetN8b10b( const unsigned int value ) { fN8b10b = value; }
-    
     /// propagate the verbosity level to data members
     virtual void SetVerboseLevel( const int level );
     
@@ -108,8 +102,7 @@ public:
     { fNCorruptEvent += value; }
 
     /// increment the number of 8b10b encoder errors by the given value
-    inline void IncrementN8b10b( const unsigned int value = 1 )
-    { fN8b10b += value; }
+    void IncrementN8b10b( unsigned int boardReceiver, const unsigned int value = 1 );
     
     /// increment the number of priority encoder errors by the given value
     void IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, const unsigned int value = 1 );
@@ -121,9 +114,6 @@ public:
 
     /// return the number of corrupted events
     inline unsigned int GetNCorruptEvent() const { return fNCorruptEvent; }
-
-    /// return the number of 8b10b encoder errors
-    inline unsigned int GetN8b10b() const { return fN8b10b; }
 
 private:
     

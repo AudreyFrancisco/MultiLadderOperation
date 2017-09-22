@@ -7,7 +7,6 @@ using namespace std;
 //___________________________________________________________________
 TErrorCounter::TErrorCounter() :
 fNTimeout( 0 ),
-fN8b10b( 0 ),
 fNCorruptEvent( 0 )
 {
     
@@ -121,6 +120,14 @@ void TErrorCounter::IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, cons
 }
 
 //___________________________________________________________________
+void TErrorCounter::IncrementN8b10b( unsigned int boardReceiver, const unsigned int value )
+{
+    for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
+        ((*it).second).IncrementN8b10b( boardReceiver, value );
+    }
+}
+
+//___________________________________________________________________
 void TErrorCounter::Dump()
 {
     for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
@@ -131,7 +138,6 @@ void TErrorCounter::Dump()
     cout << "------------------------------- TErrorCounter::Dump() " << endl;
     cout << "Number of corrupted events: " << std::dec << fNCorruptEvent << endl;
     cout << "Number of timeout: " << fNTimeout << endl;
-    cout << "Number of 8b10b encoder errors: " << fN8b10b << endl;
     cout << "Number of hits with bad chip id: " << fBadChipIdHits.size() << endl;
     cout << "-------------------------------" << endl << endl;
 }

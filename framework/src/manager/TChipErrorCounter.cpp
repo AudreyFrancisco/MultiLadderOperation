@@ -17,6 +17,7 @@ fNStuckPixelFlag( 0 ),
 fNDeadPixels( 0 ),
 fNInefficientPixels( 0 ),
 fNHotPixels( 0 ),
+fN8b10b( 0 ),
 fFilledErrorCounters( false )
 {
     fIdx.boardIndex = 0;
@@ -34,6 +35,7 @@ fNStuckPixelFlag( 0 ),
 fNDeadPixels( 0 ),
 fNInefficientPixels( 0 ),
 fNHotPixels( 0 ),
+fN8b10b( 0 ),
 fFilledErrorCounters( false )
 {
     fIdx.boardIndex = aChipIndex.boardIndex;
@@ -117,6 +119,15 @@ void TChipErrorCounter::AddHotPixel( unsigned int icol, unsigned int iaddr )
 }
 
 //___________________________________________________________________
+void TChipErrorCounter::IncrementN8b10b( const unsigned int boardReceiver,
+                                         const unsigned int value )
+{
+    if ( boardReceiver == fIdx.dataReceiver ) {
+        fN8b10b += value;
+    }
+}
+
+//___________________________________________________________________
 void TChipErrorCounter::FindCorruptedHits()
 {
     if ( fFilledErrorCounters ) {
@@ -145,6 +156,7 @@ void TChipErrorCounter::Dump()
          << std::dec << fIdx.boardIndex << " . "
          << fIdx.dataReceiver << " / " << fIdx.chipId << endl;
     cout << "Number of priority encoder errors: " << fNPrioEncoder << endl;
+    cout << "Number of 8b10b encoder errors: " << fN8b10b << endl;
     if ( fCorruptedHits.size() ) {
         cout << "Number of hits with bad region id flag: " << fNBadRegionIdFlag << endl;
         cout << "Number of hits with bad col id flag: " << fNBadColIdFlag << endl;
@@ -308,7 +320,7 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     sprintf( fNameTemp,"%s", fName);
     strtok( fNameTemp, "." );
     string suffix( fNameTemp );
-    stringstream flag_name; flag_name << "-Error" << (int)flag;
+    stringstream flag_name; flag_name << "Error" << (int)flag;
     
     string filename = common::GetFileName( fIdx, suffix, flag_name.str() );
     if ( GetVerboseLevel() > kSILENT ) {
