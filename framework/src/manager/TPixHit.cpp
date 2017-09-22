@@ -186,6 +186,18 @@ TPixFlag TPixHit::GetPixFlag() const
         if ( fFlag == TPixFlag::kSTUCK ) {
             cerr << "TPixHit::GetPixFlag() - Warning, TPixFlag::kSTUCK" << endl;
         }
+        if ( fFlag == TPixFlag::kDEAD ) {
+            cerr << "TPixHit::GetPixFlag() - Warning, TPixFlag::kDEAD" << endl;
+        }
+        if ( fFlag == TPixFlag::kINEFFICIENT ) {
+            cerr << "TPixHit::GetPixFlag() - Warning, TPixFlag::kINEFFICIENT" << endl;
+        }
+        if ( fFlag == TPixFlag::kHOT ) {
+            cerr << "TPixHit::GetPixFlag() - Warning, TPixFlag::kHOT" << endl;
+        }
+        if ( fFlag == TPixFlag::kUNKNOWN ) {
+            cerr << "TPixHit::GetPixFlag() - Warning, TPixFlag::kUNKNOWN" << endl;
+        }
     }
     return fFlag;
 }
@@ -246,8 +258,13 @@ void TPixHit::DumpPixHit( const bool with_reminder )
             SetVerboseLevel( buffer_verbosity );
             return;
         }
-        if ( fFlag == TPixFlag::kALMOST_DEAD ) {
-            cout << "TPixFlag::kALMOST_DEAD" << ") "<< endl;
+        if ( fFlag == TPixFlag::kINEFFICIENT ) {
+            cout << "TPixFlag::kINEFFICIENT" << ") "<< endl;
+            SetVerboseLevel( buffer_verbosity );
+            return;
+        }
+        if ( fFlag == TPixFlag::kHOT ) {
+            cout << "TPixFlag::kHOT" << ") "<< endl;
             SetVerboseLevel( buffer_verbosity );
             return;
         }
