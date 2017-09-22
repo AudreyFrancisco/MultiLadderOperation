@@ -110,8 +110,8 @@ protected:
     /// read data from a given readout board
     unsigned int ReadEventData( const unsigned int iboard );
     
-    /// check if there are any (almost) dead pixels and give them to the error counter
-    void FindDeadPixels();
+    /// look for any inefficient, dead or hot pixels and give them to the error counter
+    void FindDiscordantPixels();
 };
 
 #endif

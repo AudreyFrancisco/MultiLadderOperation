@@ -67,16 +67,30 @@ void TErrorCounter::AddDeadPixel( common::TChipIndex idx,
 }
 
 //___________________________________________________________________
-void TErrorCounter::AddAlmostDeadPixel( common::TChipIndex idx,
+void TErrorCounter::AddInefficientPixel( common::TChipIndex idx,
                                        unsigned int icol, unsigned int iaddr )
 {
     if ( !fCounterCollection.size() ) {
-        throw runtime_error( "TErrorCounter::AddAlmostDeadPixel() - no chip in the list ! Please use Init() first." );
+        throw runtime_error( "TErrorCounter::AddInefficientPixel() - no chip in the list ! Please use Init() first." );
     }
     try {
-        (fCounterCollection.at( GetMapIntIndex(idx) )).AddAlmostDeadPixel( icol, iaddr );
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddInefficientPixel( icol, iaddr );
     } catch ( exception& msg ) {
-        cerr << "TErrorCounter::AddAlmostDeadPixel() - " << msg.what() << endl;
+        cerr << "TErrorCounter::AddInefficientPixel() - " << msg.what() << endl;
+    }
+}
+
+//___________________________________________________________________
+void TErrorCounter::AddHotPixel( common::TChipIndex idx,
+                                 unsigned int icol, unsigned int iaddr )
+{
+    if ( !fCounterCollection.size() ) {
+        throw runtime_error( "TErrorCounter::AddHotPixel() - no chip in the list ! Please use Init() first." );
+    }
+    try {
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddHotPixel( icol, iaddr );
+    } catch ( exception& msg ) {
+        cerr << "TErrorCounter::AddHotPixel() - " << msg.what() << endl;
     }
 }
 

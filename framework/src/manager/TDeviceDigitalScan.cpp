@@ -141,7 +141,7 @@ void TDeviceDigitalScan::Terminate()
             myDAQBoard->PowerOff();
         }
     }
-    FindDeadPixels();
+    FindDiscordantPixels();
     cout << endl;
     fErrorCounter->FindCorruptedHits();
     fErrorCounter->Dump();
@@ -406,12 +406,12 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::FindDeadPixels()
+void TDeviceDigitalScan::FindDiscordantPixels()
 {
     bool isFullMatrix = (( fNMaskStages == 512 ) && ( fNPixPerRegion == 32 ));
     
     if ( !isFullMatrix  ) {
-        cout << "TDeviceDigitalScan::FindDeadPixels() - not implemented when only part of the pixel matrix is tested. Please test the full matrix." << endl;
+        cout << "TDeviceDigitalScan::FindDiscordantPixels() - not implemented when only part of the pixel matrix is tested. Please test the full matrix." << endl;
         return;
     }
     for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
@@ -420,11 +420,15 @@ void TDeviceDigitalScan::FindDeadPixels()
             for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
                 
                 common::TChipIndex idx = fScanHisto->GetChipIndex(ichip);
-                if ( (*fScanHisto)(idx,icol,iaddr) < fNTriggers ) {
+                if ( (*fScanHisto)(idx,icol,iaddr) != fNTriggers ) {
                     if ( (*fScanHisto)(idx,icol,iaddr) == 0 ) {
                         fErrorCounter->AddDeadPixel( idx, icol, iaddr );
-                    } else {
-                        fErrorCounter->AddAlmostDeadPixel( idx, icol, iaddr );
+                    }
+                    if ( (*fScanHisto)(idx,icol,iaddr) < fNTriggers ) {
+                        fErrorCounter->AddInefficientPixel( idx, icol, iaddr );
+                    }
+                    if ( (*fScanHisto)(idx,icol,iaddr) > fNTriggers ) {
+                        fErrorCounter->AddHotPixel( idx, icol, iaddr );
                     }
                 }
                 
