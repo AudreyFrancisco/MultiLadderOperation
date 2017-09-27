@@ -44,7 +44,11 @@ message ("    Link flags : ${LINKFLAGS}")
 
 #### package(s) and include directories
 
-find_package(Threads REQUIRED)
+list (APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+find_package (ROOT REQUIRED COMPONENTS Gpad Graf Hist MathCore Minuit RIO Postscript)
+include (${ROOT_USE_FILE})
+
+find_package (Threads REQUIRED)
 
 find_path (LIBUSB_INCLUDE_DIR
     NAMES libusb.h
@@ -79,6 +83,7 @@ foreach (EXECNAME
     mosaic
     fifo
     digitalscan
+    roottest
 #    threshold
 #    scantest
 #    dacscan
@@ -91,7 +96,7 @@ foreach (EXECNAME
 #    template
 )
     add_executable (test_${EXECNAME} exe/main_${EXECNAME}.cpp)
-    target_link_libraries (test_${EXECNAME} LINK_PUBLIC COMMON MOSAIC MANAGER ${LIBUSB_LIBRARY})
+    target_link_libraries (test_${EXECNAME} LINK_PUBLIC COMMON MOSAIC MANAGER ${LIBUSB_LIBRARY} ${ROOT_LIBRARIES})
     add_dependencies(test_${EXECNAME} COMMON MOSAIC MANAGER)
     install (TARGETS test_${EXECNAME} DESTINATION ${CMAKE_SOURCE_DIR}/bin)
 endforeach (EXECNAME)
