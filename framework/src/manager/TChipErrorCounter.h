@@ -86,13 +86,13 @@ public:
     void AddCorruptedHit( std::shared_ptr<TPixHit> badHit );
     
     /// add a dead pixel to the list
-    void AddDeadPixel( unsigned int icol, unsigned int iaddr );
+    void AddDeadPixel( const unsigned int icol, const unsigned int iaddr );
     
     /// add an inefficient pixel to the list
-    void AddInefficientPixel( unsigned int icol, unsigned int iaddr );
+    void AddInefficientPixel( const unsigned int icol, const unsigned int iaddr );
 
     /// add a hot pixel to the list
-    void AddHotPixel( unsigned int icol, unsigned int iaddr );
+    void AddHotPixel( const unsigned int icol, const unsigned int iaddr );
 
     /// count bad hits for each type of flag
     void FindCorruptedHits();
@@ -125,7 +125,7 @@ private:
     
     /// write list of corrupted hits in an output file for a given flag
     void WriteCorruptedHitsToFile( const TPixFlag flag, const char *fName,
-                                  bool Recreate = true );
+                                  const bool Recreate = true );
 
 };
 

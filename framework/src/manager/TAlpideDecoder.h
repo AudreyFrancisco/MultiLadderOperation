@@ -48,6 +48,9 @@ private:
     /// id of the board data receiver that read the chip (must be given by the user)
     unsigned int fBoardReceiver;
     
+    /// id of the ladder to which belong the chip
+    unsigned int fLadderId;
+    
     /// type of the data word currently being decoded
     TDataType fDataType;
 
@@ -91,7 +94,8 @@ public:
     /// the sole purpose of this class : decode each event read by the readout board
     bool DecodeEvent( unsigned char* data, int nBytes,
                      unsigned int boardIndex,
-                     unsigned int boardReceiver );
+                     unsigned int boardReceiver,
+                     unsigned int ladderId = 0 );
         
 private:
     

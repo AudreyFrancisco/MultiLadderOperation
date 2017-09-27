@@ -67,10 +67,12 @@ private:
     void InitDeviceBuilder( TDeviceType dt );
     void SetConfigFileName( const std::string name );
     void SetDeviceNickName( const std::string name );
+    void SetLadderId( const unsigned int number );
     
 private:
     std::string fConfigFileName;
     std::string fDeviceNickName;
+    unsigned int fLadderId;
     FILE* fConfigFile;
     std::shared_ptr<TDeviceBuilder> fDeviceBuilder;
     std::shared_ptr<TDevice> fDevice;

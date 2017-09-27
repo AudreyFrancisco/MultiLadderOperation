@@ -9,6 +9,7 @@ using namespace std;
 
 //___________________________________________________________________
 TChipErrorCounter::TChipErrorCounter() :
+TVerbosity() ,
 fNPrioEncoder( 0 ),
 fNBadAddressIdFlag( 0 ),
 fNBadColIdFlag( 0 ),
@@ -22,11 +23,13 @@ fFilledErrorCounters( false )
 {
     fIdx.boardIndex = 0;
     fIdx.dataReceiver = 0;
+    fIdx.ladderId = 0;
     fIdx.chipId = 0;
 }
 
 //___________________________________________________________________
 TChipErrorCounter::TChipErrorCounter( const common::TChipIndex aChipIndex ) :
+TVerbosity(),
 fNPrioEncoder( 0 ),
 fNBadAddressIdFlag( 0 ),
 fNBadColIdFlag( 0 ),
@@ -40,6 +43,7 @@ fFilledErrorCounters( false )
 {
     fIdx.boardIndex = aChipIndex.boardIndex;
     fIdx.dataReceiver = aChipIndex.dataReceiver;
+    fIdx.ladderId = aChipIndex.ladderId;
     fIdx.chipId = aChipIndex.chipId;
 }
 
@@ -62,7 +66,7 @@ void TChipErrorCounter::AddCorruptedHit( shared_ptr<TPixHit> badHit )
 }
 
 //___________________________________________________________________
-void TChipErrorCounter::AddDeadPixel( unsigned int icol, unsigned int iaddr )
+void TChipErrorCounter::AddDeadPixel( const unsigned int icol, const unsigned int iaddr )
 {
     if ( fFilledErrorCounters ) {
         cerr << "TChipErrorCounter::AddDeadPixel() - counters filled, no more modification allowed !" << endl;
@@ -71,6 +75,7 @@ void TChipErrorCounter::AddDeadPixel( unsigned int icol, unsigned int iaddr )
     auto hit = make_shared<TPixHit>();
     hit->SetBoardIndex( fIdx.boardIndex );
     hit->SetBoardReceiver( fIdx.dataReceiver );
+    hit->SetLadderId( fIdx.ladderId );
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
@@ -81,7 +86,8 @@ void TChipErrorCounter::AddDeadPixel( unsigned int icol, unsigned int iaddr )
 }
 
 //___________________________________________________________________
-void TChipErrorCounter::AddInefficientPixel( unsigned int icol, unsigned int iaddr )
+void TChipErrorCounter::AddInefficientPixel( const unsigned int icol,
+                                             const unsigned int iaddr )
 {
     if ( fFilledErrorCounters ) {
         cerr << "TChipErrorCounter::AddInefficientPixel() - counters filled, no more modification allowed !" << endl;
@@ -90,6 +96,7 @@ void TChipErrorCounter::AddInefficientPixel( unsigned int icol, unsigned int iad
     auto hit = make_shared<TPixHit>();
     hit->SetBoardIndex( fIdx.boardIndex );
     hit->SetBoardReceiver( fIdx.dataReceiver );
+    hit->SetLadderId( fIdx.ladderId );
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
@@ -100,7 +107,7 @@ void TChipErrorCounter::AddInefficientPixel( unsigned int icol, unsigned int iad
 }
 
 //___________________________________________________________________
-void TChipErrorCounter::AddHotPixel( unsigned int icol, unsigned int iaddr )
+void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int iaddr )
 {
     if ( fFilledErrorCounters ) {
         cerr << "TChipErrorCounter::AddHotPixel() - counters filled, no more modification allowed !" << endl;
@@ -109,6 +116,7 @@ void TChipErrorCounter::AddHotPixel( unsigned int icol, unsigned int iaddr )
     auto hit = make_shared<TPixHit>();
     hit->SetBoardIndex( fIdx.boardIndex );
     hit->SetBoardReceiver( fIdx.dataReceiver );
+    hit->SetLadderId( fIdx.ladderId );
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
@@ -152,9 +160,15 @@ void TChipErrorCounter::Dump()
     }
     cout << endl;
     cout << "------------------------------- TChipErrorCounter::Dump() " << endl;
-    cout << "Board . receiver / chip: "
-         << std::dec << fIdx.boardIndex << " . "
-         << fIdx.dataReceiver << " / " << fIdx.chipId << endl;
+    if ( fIdx.ladderId ) {
+        cout << "Board . receiver . ladder / chip: "
+        << std::dec << fIdx.boardIndex << " . "
+        << fIdx.dataReceiver << " . " << fIdx.ladderId << " / " << fIdx.chipId << endl;
+    } else {
+        cout << "Board . receiver / chip: "
+        << std::dec << fIdx.boardIndex << " . "
+        << fIdx.dataReceiver << " / " << fIdx.chipId << endl;
+    }
     cout << "Number of priority encoder errors: " << fNPrioEncoder << endl;
     cout << "Number of 8b10b encoder errors: " << fN8b10b << endl;
     if ( fCorruptedHits.size() ) {
@@ -274,7 +288,7 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
 //___________________________________________________________________
 void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
                                                   const char *fName,
-                                                  bool Recreate )
+                                                  const bool Recreate )
 {
     // excluded flags
     
@@ -324,7 +338,11 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     
     string filename = common::GetFileName( fIdx, suffix, flag_name.str() );
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - Chip ID = "<< fIdx.chipId << endl;
+        cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - Chip ID = " << fIdx.chipId ;
+        if ( fIdx.ladderId ) {
+            cout << " , Ladder ID = " << fIdx.ladderId;
+        }
+        cout << endl;
     }
     strcpy( fNameChip, filename.c_str() );
     

@@ -66,14 +66,15 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
 {
     int c;
     
-    while ((c = getopt (argc, argv, "hv:c:n:")) != -1)
+    while ((c = getopt (argc, argv, "hv:c:n:l")) != -1)
         switch (c) {
             case 'h':  // prints the Help of usage
                 cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> -n <nick_name>"<< endl;
                 cout << "-h  :  Display this message" << endl;
-                cout << "-v <level> : Sets the verbosity level (partly implemented)" << endl;
+                cout << "-v <level> : Sets the verbosity level (integer)" << endl;
                 cout << "-c <configuration_file> : Sets the configuration file used" << endl << endl;
-                cout << "-n <nick_name> : Sets the nick name of the device" << endl << endl;
+                cout << "-n <nick_name> : Sets the nick name of the single chip on carrier board" << endl << endl;
+                cout << "-l <ladder_id> : Sets the ladder id (unsigned integer)" << endl;
                 exit(0);
                 break;
             case 'v':  // sets the verbose level
@@ -84,10 +85,13 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 strncpy(ConfigurationFileName, optarg, 1023);
                 SetConfigFileName( string(ConfigurationFileName) );
                 break;
-            case 'n':  // sets the hic name (or chip name if single chip on carrier board)
+            case 'n':  // sets device name, only useful if single chip on carrier board
                 char DeviceName[1024];
                 strncpy(DeviceName, optarg, 1023);
                 SetDeviceNickName( string(DeviceName) );
+                break;
+            case 'l':  // sets the ladder id
+                SetLadderId( (unsigned int)atoi(optarg) );
                 break;
             case '?':
                 if (optopt == 'c' | optopt == 'n' ) {
@@ -358,10 +362,15 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
         cerr << err.what() << endl;
         exit(0);
     }
-    if ( !fDeviceNickName.empty() ) {
+    fDevice = fDeviceBuilder->GetCurrentDevice();
+    if ( (!fDeviceNickName.empty()) && (fDevice->GetNChips() == 1) ) {
+        // restricted to single chips on carrier board
         fDeviceBuilder->SetDeviceNickName( fDeviceNickName );
     }
-    fDevice = fDeviceBuilder->GetCurrentDevice();
+    if ( dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder) ) {
+        // restricted to MFT ladders
+        dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder)->SetLadderId( fLadderId );
+    }
 }
 
 //___________________________________________________________________
@@ -394,3 +403,10 @@ void TSetup::SetDeviceNickName( const string name )
         fDeviceNickName = name;
     }
 }
+
+//___________________________________________________________________
+void TSetup::SetLadderId( const unsigned int number )
+{
+    fLadderId = number;
+}
+

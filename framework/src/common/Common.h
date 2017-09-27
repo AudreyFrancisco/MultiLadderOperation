@@ -16,10 +16,11 @@ class TPixHit;
 namespace common {
     
     /// \typedef TChipIndex
-    /// Struct gathers info to uniquely identify a chip (board id, receiver id, chip id)
+    /// Struct gathers info to uniquely identify a chip
     typedef struct {
         unsigned int boardIndex;
         unsigned int dataReceiver;
+        unsigned int ladderId;
         unsigned int chipId;
     } TChipIndex;
     
