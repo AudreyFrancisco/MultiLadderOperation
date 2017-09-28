@@ -5,6 +5,8 @@
 #include <string>
 #include <stdexcept>
 
+#include "THitMapDiscordant.h"
+
 using namespace std;
 
 //___________________________________________________________________
@@ -19,7 +21,8 @@ fNDeadPixels( 0 ),
 fNInefficientPixels( 0 ),
 fNHotPixels( 0 ),
 fN8b10b( 0 ),
-fFilledErrorCounters( false )
+fFilledErrorCounters( false ),
+fHitMap( nullptr )
 {
     fIdx.boardIndex = 0;
     fIdx.dataReceiver = 0;
@@ -28,7 +31,8 @@ fFilledErrorCounters( false )
 }
 
 //___________________________________________________________________
-TChipErrorCounter::TChipErrorCounter( const common::TChipIndex aChipIndex ) :
+TChipErrorCounter::TChipErrorCounter( const common::TChipIndex aChipIndex,
+                                      const unsigned int nInjections ) :
 TVerbosity(),
 fNPrioEncoder( 0 ),
 fNBadAddressIdFlag( 0 ),
@@ -39,18 +43,30 @@ fNDeadPixels( 0 ),
 fNInefficientPixels( 0 ),
 fNHotPixels( 0 ),
 fN8b10b( 0 ),
-fFilledErrorCounters( false )
+fFilledErrorCounters( false ),
+fHitMap( nullptr )
 {
     fIdx.boardIndex = aChipIndex.boardIndex;
     fIdx.dataReceiver = aChipIndex.dataReceiver;
     fIdx.ladderId = aChipIndex.ladderId;
     fIdx.chipId = aChipIndex.chipId;
+    fHitMap = make_shared<THitMapDiscordant>( aChipIndex, nInjections );
+    fHitMap->BuildCanvas();
 }
 
 //___________________________________________________________________
 TChipErrorCounter::~TChipErrorCounter()
 {
     fCorruptedHits.clear();
+}
+
+//___________________________________________________________________
+void TChipErrorCounter::SetVerboseLevel( const int level )
+{
+    if ( fHitMap ) {
+        fHitMap->SetVerboseLevel( level );
+    }
+    TVerbosity::SetVerboseLevel( level );
 }
 
 //___________________________________________________________________
@@ -82,12 +98,14 @@ void TChipErrorCounter::AddDeadPixel( const unsigned int icol, const unsigned in
     float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kDEAD );
+    fHitMap->AddDeadPixel( hit );
     fCorruptedHits.push_back( move(hit) );
 }
 
 //___________________________________________________________________
 void TChipErrorCounter::AddInefficientPixel( const unsigned int icol,
-                                             const unsigned int iaddr )
+                                            const unsigned int iaddr,
+                                            const double nhits )
 {
     if ( fFilledErrorCounters ) {
         cerr << "TChipErrorCounter::AddInefficientPixel() - counters filled, no more modification allowed !" << endl;
@@ -103,11 +121,13 @@ void TChipErrorCounter::AddInefficientPixel( const unsigned int icol,
     float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kINEFFICIENT );
+    fHitMap->AddInefficientPixel( hit, nhits );
     fCorruptedHits.push_back( move(hit) );
 }
 
 //___________________________________________________________________
-void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int iaddr )
+void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int iaddr,
+                                    const double nhits )
 {
     if ( fFilledErrorCounters ) {
         cerr << "TChipErrorCounter::AddHotPixel() - counters filled, no more modification allowed !" << endl;
@@ -123,6 +143,7 @@ void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int
     float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kHOT );
+    fHitMap->AddInefficientPixel( hit, nhits );
     fCorruptedHits.push_back( move(hit) );
 }
 
@@ -199,13 +220,42 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const char *fName, bool Recrea
     WriteCorruptedHitsToFile( TPixFlag::kHOT, fName, Recreate );
 }
 
+//___________________________________________________________________
+void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
+{
+    if ( !fCorruptedHits.size() ) {
+        cout << "TChipErrorCounter::DrawAndSaveToFile() - no bad hits => no file will be written !" << endl;
+        return;
+    }
+
+    char  fNameChip[100];
+    FILE *fp;
+    
+    char fNameTemp[100];
+    sprintf( fNameTemp,"%s", fName);
+    strtok( fNameTemp, "." );
+    string suffix( fNameTemp );
+    
+    string filename = common::GetFileName( fIdx, suffix, "ErrMap", ".pdf" );
+    if ( GetVerboseLevel() > kSILENT ) {
+        cout << "TChipErrorCounter::DrawAndSaveToFile() - Chip ID = " << fIdx.chipId ;
+        if ( fIdx.ladderId ) {
+            cout << " , Ladder ID = " << fIdx.ladderId;
+        }
+        cout << endl;
+    }
+    strcpy( fNameChip, filename.c_str() );
+    fHitMap->Draw();
+    fHitMap->SaveToFile( fNameChip );
+}
+
 
 //___________________________________________________________________
 void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
 {
     if( fCorruptedHits.size() ) {
  
-        if ( GetVerboseLevel() > kCHATTY) {
+        if ( GetVerboseLevel() > kCHATTY ) {
             cout << endl;
             cout << "------------------------------- TChipErrorCounter::FindCorruptedHits() "
             << endl;

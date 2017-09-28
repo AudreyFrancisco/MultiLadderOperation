@@ -44,7 +44,6 @@ class TErrorCounter : public TVerbosity {
     /// list of hits with bad chip id flag
     std::vector<std::shared_ptr<TPixHit>> fBadChipIdHits;
 
-    
 public:
     
     /// default constructor
@@ -62,14 +61,17 @@ public:
 
     /// add an inefficient pixel to the list
     void AddInefficientPixel( const common::TChipIndex idx,
-                             const unsigned int icol, const unsigned int iaddr );
+                             const unsigned int icol, const unsigned int iaddr,
+                             const double nhits );
 
     /// add a hot pixel to the list
     void AddHotPixel( const common::TChipIndex idx,
-                      const unsigned int icol, const unsigned int iaddr );
+                      const unsigned int icol, const unsigned int iaddr,
+                      const double nhits);
 
     /// create the collection of chip error counters from the map of histograms
-    void Init( std::shared_ptr<TScanHisto> aScanHisto );
+    void Init( std::shared_ptr<TScanHisto> aScanHisto,
+               const unsigned int nInjections );
     
     /// print all error counters on screen
     void Dump();
@@ -79,6 +81,9 @@ public:
     
     /// write list of hit pixels with a bad flag in an output file for each chip
     void WriteCorruptedHitsToFile( const char *fName, const bool Recreate = true );
+    
+    /// draw and save hit map of bad pixels and their firing frequency distribution
+    void DrawAndSaveToFile( const char *fName );
     
 #pragma mark - setters
 
@@ -119,7 +124,8 @@ public:
 private:
     
     /// add an error counter for a given chip index
-    void AddChipErrorCounter( const common::TChipIndex idx );
+    void AddChipErrorCounter( const common::TChipIndex idx,
+                              const unsigned int nInjections );
     
     /// return the integer that indexes the TChipIndex in the map of TChipErrorCounters
     int GetMapIntIndex( const common::TChipIndex idx ) const;

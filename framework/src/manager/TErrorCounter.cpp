@@ -1,5 +1,6 @@
 #include "TErrorCounter.h"
 #include "THisto.h"
+
 #include <iostream>
 
 using namespace std;
@@ -19,14 +20,15 @@ TErrorCounter::~TErrorCounter()
 }
 
 //___________________________________________________________________
-void TErrorCounter::Init( shared_ptr<TScanHisto> aScanHisto )
+void TErrorCounter::Init( shared_ptr<TScanHisto> aScanHisto,
+                         const unsigned int nInjections )
 {
     if ( !aScanHisto ) {
         throw runtime_error( "TErrorCounter::CreateCounterCollection() - can not use a null pointer !" );
     }
     for ( unsigned int i = 0; i < aScanHisto->GetChipListSize(); i++ ) {
         common::TChipIndex aChipIndex = aScanHisto->GetChipIndex(i) ;
-        AddChipErrorCounter( aChipIndex );
+        AddChipErrorCounter( aChipIndex, nInjections );
     }
 }
 
@@ -68,13 +70,14 @@ void TErrorCounter::AddDeadPixel( const common::TChipIndex idx,
 
 //___________________________________________________________________
 void TErrorCounter::AddInefficientPixel( const common::TChipIndex idx,
-                                       const unsigned int icol, const unsigned int iaddr )
+                                        const unsigned int icol, const unsigned int iaddr,
+                                        const double nhits )
 {
     if ( !fCounterCollection.size() ) {
         throw runtime_error( "TErrorCounter::AddInefficientPixel() - no chip in the list ! Please use Init() first." );
     }
     try {
-        (fCounterCollection.at( GetMapIntIndex(idx) )).AddInefficientPixel( icol, iaddr );
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddInefficientPixel( icol, iaddr, nhits );
     } catch ( exception& msg ) {
         cerr << "TErrorCounter::AddInefficientPixel() - " << msg.what() << endl;
     }
@@ -82,13 +85,14 @@ void TErrorCounter::AddInefficientPixel( const common::TChipIndex idx,
 
 //___________________________________________________________________
 void TErrorCounter::AddHotPixel( const common::TChipIndex idx,
-                                 const unsigned int icol, const unsigned int iaddr )
+                                const unsigned int icol, const unsigned int iaddr,
+                                const double nhits )
 {
     if ( !fCounterCollection.size() ) {
         throw runtime_error( "TErrorCounter::AddHotPixel() - no chip in the list ! Please use Init() first." );
     }
     try {
-        (fCounterCollection.at( GetMapIntIndex(idx) )).AddHotPixel( icol, iaddr );
+        (fCounterCollection.at( GetMapIntIndex(idx) )).AddHotPixel( icol, iaddr, nhits );
     } catch ( exception& msg ) {
         cerr << "TErrorCounter::AddHotPixel() - " << msg.what() << endl;
     }
@@ -163,11 +167,21 @@ void TErrorCounter::WriteCorruptedHitsToFile( const char *fName, const bool Recr
 }
 
 //___________________________________________________________________
-void TErrorCounter::AddChipErrorCounter( const common::TChipIndex idx )
+void TErrorCounter::DrawAndSaveToFile( const char *fName )
+{
+    for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
+        ((*it).second).DrawAndSaveToFile( fName );
+    }
+}
+
+//___________________________________________________________________
+void TErrorCounter::AddChipErrorCounter( const common::TChipIndex idx,
+                                        const unsigned int nInjections )
 {
     int int_index = GetMapIntIndex( idx );
-    TChipErrorCounter chipCounter( idx );
-    fCounterCollection.insert( std::pair<int, TChipErrorCounter>(int_index, chipCounter));
+
+    TChipErrorCounter chipCounter( idx, nInjections  );
+    fCounterCollection.insert( std::pair<int, TChipErrorCounter>(int_index, chipCounter) );
 }
 
 //___________________________________________________________________

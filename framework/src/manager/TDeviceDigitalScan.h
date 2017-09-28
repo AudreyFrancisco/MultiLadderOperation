@@ -89,6 +89,9 @@ public:
 
     /// write list of hit pixels with a bad flag in a text file
     void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+    
+    /// draw and save hit map of bad pixels and their firing frequency distribution
+    void DrawAndSaveToFile( const char *fName );
 
     /// perform the digital scan of the device
     void Go();
