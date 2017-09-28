@@ -66,7 +66,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
 {
     int c;
     
-    while ((c = getopt (argc, argv, "hv:c:n:l")) != -1)
+    while ((c = getopt (argc, argv, "hv:c:n:l:")) != -1)
         switch (c) {
             case 'h':  // prints the Help of usage
                 cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> -n <nick_name>"<< endl;
@@ -80,6 +80,9 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
             case 'v':  // sets the verbose level
                 SetVerboseLevel( atoi(optarg) );
                 break;
+            case 'l':  // sets the ladder id
+                SetLadderId( atoi(optarg) );
+                break;
             case 'c':  // the name of Configuration file
                 char ConfigurationFileName[1024];
                 strncpy(ConfigurationFileName, optarg, 1023);
@@ -90,11 +93,8 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 strncpy(DeviceName, optarg, 1023);
                 SetDeviceNickName( string(DeviceName) );
                 break;
-            case 'l':  // sets the ladder id
-                SetLadderId( (unsigned int)atoi(optarg) );
-                break;
             case '?':
-                if (optopt == 'c' | optopt == 'n' ) {
+                if (optopt == 'c' | optopt == 'v'| optopt == 'n' | optopt == 'l' ) {
                     cerr << "Option -" << optopt << " requires an argument." << endl;
                 } else {
                     if (isprint (optopt)) {
@@ -400,13 +400,23 @@ void TSetup::SetDeviceNickName( const string name )
     if ( name.empty() ) {
         cout << "TSetup::SetDeviceNickName() - user gave an empty devive nick name! The device will remain un-named." << endl;
     } else {
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TSetup::SetDeviceNickName() - " << name << endl;
+        }
         fDeviceNickName = name;
     }
 }
 
 //___________________________________________________________________
-void TSetup::SetLadderId( const unsigned int number )
+void TSetup::SetLadderId( const int number )
 {
-    fLadderId = number;
+    if ( number < 0 ) {
+        cout << "TSetup::SetLadderId() - user gave an id < 0, which is forbidden. The ladder will remain the default id = 0." << endl;
+        return;
+    }
+    if ( GetVerboseLevel() > kSILENT ) {
+        cout << "TSetup::SetLadderId() - " << number << endl;
+    }
+    fLadderId = (unsigned int)number;
 }
 

@@ -67,7 +67,7 @@ private:
     void InitDeviceBuilder( TDeviceType dt );
     void SetConfigFileName( const std::string name );
     void SetDeviceNickName( const std::string name );
-    void SetLadderId( const unsigned int number );
+    void SetLadderId( const int number );
     
 private:
     std::string fConfigFileName;
