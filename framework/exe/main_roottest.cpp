@@ -45,8 +45,9 @@ int main() {
         idx.chipId = 8;
         
         const unsigned int nInjections = 50;
-        THitMapDiscordant hitmap( idx, nInjections );
-        hitmap.BuildCanvas();
+        std::shared_ptr<THitMapDiscordant> hitmap =
+            make_shared<THitMapDiscordant>( idx, nInjections );
+        hitmap->BuildCanvas();
         
         const unsigned int size = 67;
         const unsigned int dcol[] = {
@@ -63,10 +64,10 @@ int main() {
             float region = floor( ((float)dcol[ip])/((float)common::NDCOL_PER_REGION) );
             pix->SetRegion( (unsigned int)region );
             pix->SetPixFlag( TPixFlag::kDEAD );
-            hitmap.AddDeadPixel( pix );
+            hitmap->AddDeadPixel( pix );
         }
-        hitmap.Draw();
-        hitmap.SaveToFile( "plots.pdf" );
+        hitmap->Draw();
+        hitmap->SaveToFile( "plots.pdf" );
         
     }
     
