@@ -5,7 +5,10 @@
 using namespace std;
 
 //___________________________________________________________________
-string common::GetFileName( common::TChipIndex aChipIndex, string suffix, string optional )
+string common::GetFileName( common::TChipIndex aChipIndex,
+                            string suffix,
+                            string optional,
+                            string fileExtention )
 {
     string fileName = "../../data/";
     fileName+= suffix;
@@ -23,7 +26,7 @@ string common::GetFileName( common::TChipIndex aChipIndex, string suffix, string
         fileName+= "-";
         fileName+= optional;
     }
-    fileName+= ".dat";
+    fileName+= fileExtention;
     
     return fileName;
 }
