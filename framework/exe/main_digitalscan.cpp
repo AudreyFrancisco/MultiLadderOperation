@@ -26,11 +26,6 @@
 #include "TDeviceDigitalScan.h"
 #include "TBoardConfig.h"
 
-#include "THitMapDiscordant.h"
-#include "Common.h"
-#include <memory>
-
-
 using namespace std;
 
 // Example of usage : if 25 is the id of the tested ladder
