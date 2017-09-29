@@ -33,6 +33,8 @@
 #include <memory>
 #include <vector>
 
+class THitMapDiscordant;
+
 class TChipErrorCounter : public TVerbosity {
     
     /// number of priority encoder errors
@@ -70,6 +72,9 @@ class TChipErrorCounter : public TVerbosity {
 
     /// list of corrupted pixel hits
     std::vector<std::shared_ptr<TPixHit>> fCorruptedHits;
+    
+    /// class used to locate bad pixel on a hit map
+    std::shared_ptr<THitMapDiscordant> fHitMap;
 
 public:
     
@@ -77,22 +82,28 @@ public:
     TChipErrorCounter();
 
     /// constructor that sets the chip index
-    TChipErrorCounter( const common::TChipIndex aChipIndex );
+    TChipErrorCounter( const common::TChipIndex aChipIndex,
+                       const unsigned int nInjections );
 
     /// destructor
     ~TChipErrorCounter();
+    
+    /// propagate the verbosity level to data members
+    virtual void SetVerboseLevel( const int level );
     
     /// add a corrupted pixel hit to the list
     void AddCorruptedHit( std::shared_ptr<TPixHit> badHit );
     
     /// add a dead pixel to the list
-    void AddDeadPixel( unsigned int icol, unsigned int iaddr );
+    void AddDeadPixel( const unsigned int icol, const unsigned int iaddr );
     
     /// add an inefficient pixel to the list
-    void AddInefficientPixel( unsigned int icol, unsigned int iaddr );
+    void AddInefficientPixel( const unsigned int icol, const unsigned int iaddr,
+                              const double nhits );
 
     /// add a hot pixel to the list
-    void AddHotPixel( unsigned int icol, unsigned int iaddr );
+    void AddHotPixel( const unsigned int icol, const unsigned int iaddr,
+                      const double nhits );
 
     /// count bad hits for each type of flag
     void FindCorruptedHits();
@@ -102,6 +113,9 @@ public:
     
     /// write list of hit pixels with a bad flag in an output file
     void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+    
+    /// draw and save hit map of bad pixels and their firing frequency distribution
+    void DrawAndSaveToFile( const char *fName );
 
 #pragma mark - getters
 
@@ -125,7 +139,7 @@ private:
     
     /// write list of corrupted hits in an output file for a given flag
     void WriteCorruptedHitsToFile( const TPixFlag flag, const char *fName,
-                                  bool Recreate = true );
+                                  const bool Recreate = true );
 
 };
 

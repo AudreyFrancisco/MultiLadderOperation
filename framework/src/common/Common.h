@@ -16,16 +16,18 @@ class TPixHit;
 namespace common {
     
     /// \typedef TChipIndex
-    /// Struct gathers info to uniquely identify a chip (board id, receiver id, chip id)
+    /// Struct gathers info to uniquely identify a chip
     typedef struct {
         unsigned int boardIndex;
         unsigned int dataReceiver;
+        unsigned int ladderId;
         unsigned int chipId;
     } TChipIndex;
     
     /// Function that helps to generate part of the filename from TChipIndex
     extern std::string GetFileName( TChipIndex aChipIndex,
-                                   std::string suffix, std::string optional = "" );
+                                   std::string suffix, std::string optional = "",
+                                   std::string fileExtention = ".dat");
     
     /// Compare two TChipIndex structures
     extern bool SameChipIndex( TChipIndex lhs, TChipIndex rhs );

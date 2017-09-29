@@ -101,8 +101,7 @@ void TDeviceDigitalScan::Init()
     
     InitScanParameters();
     AddHisto();
-    fErrorCounter->Init( fScanHisto );
-    
+    fErrorCounter->Init( fScanHisto, fNTriggers );
     try {
         TDeviceChipVisitor::Init();
     } catch ( std::exception &err ) {
@@ -171,6 +170,19 @@ void TDeviceDigitalScan::WriteCorruptedHitsToFile( const char *fName, bool Recre
     }
     fErrorCounter->WriteCorruptedHitsToFile( fName, Recreate );
 }
+
+//___________________________________________________________________
+void TDeviceDigitalScan::DrawAndSaveToFile( const char *fName )
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceDigitalScan::DrawAndSaveToFile() - not initialized ! Please use Init() first." );
+    }
+    if ( !fIsTerminated ) {
+        throw runtime_error( "TDeviceDigitalScan::DrawAndSaveToFile() - not terminated ! Please use Terminate() first." );
+    }
+    fErrorCounter->DrawAndSaveToFile( fName );
+}
+
 
 //___________________________________________________________________
 void TDeviceDigitalScan::Go()
@@ -247,6 +259,7 @@ void TDeviceDigitalScan::AddHisto()
         if ( fDevice->GetChipConfig(ichip)->IsEnabled() ) {
             id.boardIndex   = fDevice->GetBoardIndexByChip(ichip);
             id.dataReceiver = fDevice->GetChipConfig(ichip)->GetParamValue("RECEIVER");
+            id.ladderId     = fDevice->GetLadderId();
             id.chipId       = fDevice->GetChipId(ichip);
             fScanHisto->AddHisto( id, histo );
         }
@@ -375,7 +388,10 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
             if ( fBoardDecoder->GetMosaicEoeCount() < 2) {
                 n_bytes_chipevent -= n_bytes_trailer;
             }
-            bool isOk = fChipDecoder->DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, iboard, fBoardDecoder->GetMosaicChannel() );
+            bool isOk = fChipDecoder->DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent,
+                iboard,
+                fBoardDecoder->GetMosaicChannel(),
+                fDevice->GetLadderId() );
             
             if ( !isOk ) {
                 if ( GetVerboseLevel() > kSILENT ) {
@@ -420,14 +436,15 @@ void TDeviceDigitalScan::CollectDiscordantPixels()
             for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
                 
                 common::TChipIndex idx = fScanHisto->GetChipIndex(ichip);
-                if ( (*fScanHisto)(idx,icol,iaddr) == 0 ) {
+                double nhits = (*fScanHisto)(idx,icol,iaddr);
+                if ( nhits == 0 ) {
                     fErrorCounter->AddDeadPixel( idx, icol, iaddr );
                 } else {
-                    if ( (*fScanHisto)(idx,icol,iaddr) < fNTriggers ) {
-                        fErrorCounter->AddInefficientPixel( idx, icol, iaddr );
+                    if ( nhits < fNTriggers ) {
+                        fErrorCounter->AddInefficientPixel( idx, icol, iaddr, nhits );
                     } else {
-                        if ( (*fScanHisto)(idx,icol,iaddr) > fNTriggers ) {
-                            fErrorCounter->AddHotPixel( idx, icol, iaddr );
+                        if ( nhits > fNTriggers ) {
+                            fErrorCounter->AddHotPixel( idx, icol, iaddr, nhits );
                         }
                     }
                 }

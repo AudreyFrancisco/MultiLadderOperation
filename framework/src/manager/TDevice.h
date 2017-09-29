@@ -62,6 +62,7 @@ class TDevice : public TVerbosity {
     TBoardType fBoardType;
     TDeviceType fDeviceType;
     std::string fNickName;
+    unsigned int fLadderId;
     std::vector<std::shared_ptr<TReadoutBoard>> fBoards;
     std::vector<std::shared_ptr<TAlpide>> fChips;
     std::vector<std::shared_ptr<TBoardConfig>> fBoardConfigs;
@@ -80,6 +81,7 @@ public:
     void SetBoardType( const TBoardType bt );
     void SetDeviceType( const TDeviceType dt );
     void SetNickName( const std::string name );
+    void SetLadderId( const unsigned int number );
 
     #pragma mark - toggle config creation and setup initialisation to true
     inline void FreezeConfig() { fCreatedConfig = true; }
@@ -118,6 +120,7 @@ public:
     inline bool                     IsSetupFrozen() const { return fInitialisedSetup; }
     unsigned int                    GetNWorkingChipsPerBoard( const unsigned int iBoard ) const;
     inline std::string              GetNickName() const { return fNickName; }
+    inline unsigned int             GetLadderId() const { return fLadderId; }
 
 };
 

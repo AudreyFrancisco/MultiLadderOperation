@@ -27,8 +27,8 @@ using namespace std;
 #include <TGComboBox.h>
 #include <TRootCanvas.h>
 
-#include <../classes/AliPALPIDEFSRawStreamMS.h>
-//#include <AliPALPIDEFSRawStreamMS.h>
+#include "../classes/AliPALPIDEFSRawStreamMS.h"
+//#include "AliPALPIDEFSRawStreamMS.h"
 
 class Monitoring {
 

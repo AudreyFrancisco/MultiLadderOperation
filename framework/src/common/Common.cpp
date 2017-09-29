@@ -5,7 +5,10 @@
 using namespace std;
 
 //___________________________________________________________________
-string common::GetFileName( common::TChipIndex aChipIndex, string suffix, string optional )
+string common::GetFileName( common::TChipIndex aChipIndex,
+                            string suffix,
+                            string optional,
+                            string fileExtention )
 {
     string fileName = "../../data/";
     fileName+= suffix;
@@ -13,13 +16,17 @@ string common::GetFileName( common::TChipIndex aChipIndex, string suffix, string
     fileName+= std::to_string( aChipIndex.boardIndex );
     fileName+= "-Rx";
     fileName+= std::to_string( aChipIndex.dataReceiver );
+    if ( aChipIndex.ladderId ) {
+        fileName+= "-hic";
+        fileName+= std::to_string( aChipIndex.ladderId );
+    }
     fileName+= "-chip";
     fileName+= std::to_string( aChipIndex.chipId );
     if ( !optional.empty() ) {
         fileName+= "-";
         fileName+= optional;
     }
-    fileName+= ".dat";
+    fileName+= fileExtention;
     
     return fileName;
 }
@@ -30,6 +37,7 @@ bool common::SameChipIndex( common::TChipIndex lhs, common::TChipIndex rhs )
     bool equality = false;
     if ( (lhs.boardIndex == rhs.boardIndex)
         && (lhs.dataReceiver == rhs.dataReceiver)
+        && (lhs.ladderId == rhs.ladderId)
         && (lhs.chipId == rhs.chipId) ) {
         equality = true;
     }

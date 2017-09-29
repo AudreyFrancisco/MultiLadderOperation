@@ -25,7 +25,8 @@ TDevice::TDevice() : TVerbosity(),
     fStartChipId( 0 ),
     fBoardType( TBoardType::kBOARD_UNKNOWN ),
     fDeviceType( TDeviceType::kUNKNOWN ),
-    fNickName( "" )
+    fNickName( "" ),
+    fLadderId( 0 )
 { }
 
 //___________________________________________________________________
@@ -98,6 +99,16 @@ void TDevice::SetNickName( const std::string name )
         return;
     }
     fNickName = name;
+}
+
+//___________________________________________________________________
+void TDevice::SetLadderId( const unsigned int number )
+{
+    if ( IsSetupFrozen() ) {
+        cerr << "TDevice::SetLadderId() - not allowed: setup already done !" << endl;
+        return;
+    }
+    fLadderId = number;
 }
 
 #pragma mark - add an item to one of the vectors
