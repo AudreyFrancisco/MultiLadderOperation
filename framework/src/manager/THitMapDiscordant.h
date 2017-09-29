@@ -4,9 +4,16 @@
 /**
  * \class THitMapDiscordant
  *
- * \brief Show the location of any inefficient, dead or hot pixels on the pixel matrix
+ * \brief Show the location of any bad on the pixel matrix, and their firing frequency
  *
  * \author Andry Rakotozafindrabe
+ *
+ * \note
+ * Currently the considered types of bad pixel are: 
+ * - the dead pixels
+ * - the inefficient pixels
+ * - the hot pixels.
+ * Stuck pixels should be added as well.
  *
 */
 
@@ -24,6 +31,7 @@ class TH2F;
 class TLegend;
 class TH1F;
 class TPad;
+class TPaveText;
 
 class THitMapDiscordant : public THitMap {
     
@@ -52,7 +60,7 @@ class THitMapDiscordant : public THitMap {
     TPad* fMapPadLegend;
     
     /// the legend for the hit map
-    TLegend* fMapLegend;
+    TPaveText* fMapLegend;
     
     /// the canvas dedicated to the 1D histo displaying the firing frequency of bad pixels
     TCanvas* fFireCanvas;

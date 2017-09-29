@@ -19,6 +19,9 @@
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TH1F.h"
+#include "TPaveText.h"
+#include "RtypesCore.h"
+#include "Rtypes.h"
 
 using namespace std;
 
@@ -55,7 +58,7 @@ fHistoHot( nullptr ),
 fHistoLegend( nullptr )
 {
     fFireCanvas = new TCanvas( "cvF" );
-    fHistoScale = new TH1F( "hscale", "Discordant pixels; Firing frequency; Yield", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
+    fHistoScale = new TH1F( "hscale", "Discordant pixels; Firing frequency per pixel; Yield", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
     fHistoDead = new TH1F( "hdead", "", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
     fHistoInefficient = new TH1F( "hineff", "", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
     fHistoHot =  new TH1F( "hhot", "", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
@@ -64,6 +67,11 @@ fHistoLegend( nullptr )
     fHistoDead->SetStats( kFALSE );
     fHistoInefficient->SetStats( kFALSE );
     fHistoHot->SetStats( kFALSE );
+    
+    fHistoScale->SetBit( kCanDelete );
+    fHistoDead->SetBit( kCanDelete );
+    fHistoInefficient->SetBit( kCanDelete );
+    fHistoHot->SetBit( kCanDelete );
 }
 
 //___________________________________________________________________
@@ -84,7 +92,8 @@ fHistoHot( nullptr ),
 fHistoLegend( nullptr )
 {
     fFireCanvas = new TCanvas( "cvF" );
-    fHistoScale = new TH1F( "hscale", "Discordant pixels; Firing frequency; Yield", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
+    string titleS = fHicChipName + "; Firing frequency per pixel; Yield";
+    fHistoScale = new TH1F( "hscale", titleS.c_str(), (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
     fHistoDead = new TH1F( "hdead", "", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
     fHistoInefficient = new TH1F( "hineff", "", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
     fHistoHot =  new TH1F( "hhot", "", (int)(1.5*fNInjections), -3.5, (1.5*fNInjections)+3.5 );
@@ -109,6 +118,11 @@ fHistoLegend( nullptr )
     fHistoInefficient->SetStats( kFALSE );
     fHistoHot->SetStats( kFALSE );
     
+    fHistoScale->SetBit( kCanDelete );
+    fHistoDead->SetBit( kCanDelete );
+    fHistoInefficient->SetBit( kCanDelete );
+    fHistoHot->SetBit( kCanDelete );
+    
     fHistoDead->SetFillColor( fDeadColor );
     fHistoInefficient->SetFillColor( fIneffColor );
     fHistoHot->SetFillColor( fHotColor );
@@ -122,8 +136,10 @@ fHistoLegend( nullptr )
 //___________________________________________________________________
 THitMapDiscordant::~THitMapDiscordant()
 {
-    // don't delete any pointer to ROOT object
+    // don't delete any other pointer to ROOT object
     // ROOT will take care by itself
+    fFireCanvas->Clear();
+    delete fFireCanvas;
 }
 
 //___________________________________________________________________
@@ -227,26 +243,26 @@ void THitMapDiscordant::BuildCanvas()
     fMapPadLegend->cd();
     
     // add legend
-    fMapLegend = new TLegend ( 0.0236, 0.14, 0.97, 0.45, "", "NDC" );
-    fMapLegend->SetTextSize( 0.1 );
+
+    fMapLegend = new TPaveText ( 0.0236, 0.14, 0.97, 0.45, "NDC" );
     fMapLegend->SetBorderSize(0);
     fMapLegend->SetFillColor( kWhite );
-    fMapLegend->SetFillStyle( 4000 ); // transparent
-    fMapLegend->SetHeader( fHicChipName.c_str() );
+    fMapLegend->SetTextSize( 0.1 );
+    fMapLegend->SetTextSize( 0.1 );
+    fMapLegend->SetTextFont(42);
     
     //--- firing frequency distribution of bad pixels
 
     fFireCanvas->cd();
-    
-    fHistoLegend = new TLegend( 0.65, 0.65, 0.90, 0.90 );
-    fHistoLegend->SetHeader( fHicChipName.c_str() );
+
+    fHistoLegend = new TLegend( 0.21, 0.65, 0.42, 0.90 );
     fHistoLegend->SetBorderSize(0);
     fHistoLegend->SetTextSize( 0.03 );
     fHistoLegend->SetLineColor( kBlack );
     fHistoLegend->SetLineStyle( 1 );
     fHistoLegend->SetLineWidth( 1 );
     fHistoLegend->SetFillColor( kWhite );
-    fHistoLegend->SetFillStyle( kFSolid ); // solid (used to be 1001)
+    fHistoLegend->SetFillStyle( kFSolid );
     
     fMapCanvasReady = true;
 
@@ -278,13 +294,6 @@ void THitMapDiscordant::AddDeadPixel( shared_ptr<TPixHit> pix )
     fHistoScale->Fill(0);
     fHistoDead->Fill(0);
 
-    if ( fNDeadPixels == 1 ) {
-        TMarker* markertemp = new TMarker();
-        markertemp->SetMarkerStyle( fDeadStyle );
-        markertemp->SetMarkerSize( 1. );
-        markertemp->SetMarkerColor( fDeadColor );
-        fMapLegend->AddEntry( markertemp, "Dead pixels", "P" );
-    }
     delete marker;
 }
 
@@ -313,14 +322,7 @@ void THitMapDiscordant::AddInefficientPixel( shared_ptr<TPixHit> pix,
     
     fHistoScale->Fill( nTimesFired );
     fHistoInefficient->Fill( nTimesFired );
-    
-    if ( fNInefficientPixels == 1 ) {
-        TMarker* markertemp = new TMarker();
-        markertemp->SetMarkerStyle( fIneffStyle );
-        markertemp->SetMarkerSize( 1. );
-        markertemp->SetMarkerColor( fIneffColor );
-        fMapLegend->AddEntry( markertemp, "Inefficient pixels", "P" );
-    }
+
     delete marker;
 }
 
@@ -349,15 +351,8 @@ void THitMapDiscordant::AddHotPixel( shared_ptr<TPixHit> pix,
     
     fHistoScale->Fill( nTimesFired );
     fHistoHot->Fill( nTimesFired );
-    
-    if ( fNHotPixels == 1 ) {
-        TMarker* markertemp = new TMarker();
-        markertemp->SetMarkerStyle( fHotStyle );
-        markertemp->SetMarkerSize( 1. );
-        markertemp->SetMarkerColor( fHotColor );
-        fMapLegend->AddEntry( markertemp, "Hot pixels", "P" );
-    }
-     delete marker;
+
+    delete marker;
 }
 
 //___________________________________________________________________
@@ -381,13 +376,12 @@ void THitMapDiscordant::SaveToFile( const char *fName )
         char fNameTemp[100];
         char fNameOpen[101], fNameClose[101];
         sprintf( fNameTemp,"%s", fName);
-        strtok( fNameTemp, "." );
-        sprintf( fNameOpen,"%s.pdf(", fNameTemp);
-        sprintf( fNameClose,"%s.pdf)", fNameTemp);
+        sprintf( fNameOpen,"%s(", fNameTemp);
+        sprintf( fNameClose,"%s)", fNameTemp);
         
         fMapCanvas->Print( fNameOpen, "Title:Hit map");
         fFireCanvas->Print( fNameClose, "Title:Firing frequency distribution");
-        
+
         cout << "------------------------------- " << endl;
 
     } else {
@@ -406,6 +400,31 @@ void THitMapDiscordant::FinishHitMap()
     if ( fNDeadPixels | fNInefficientPixels | fNHotPixels ) {
         
         fMapPadLegend->cd();
+        if ( fNDeadPixels ) {
+            string label = "Dead pixels (";
+            label += std::to_string( fNDeadPixels );
+            label += ")";
+            TText* textD = fMapLegend->AddText( label.c_str() );
+            textD->SetTextColor( fDeadColor );
+            textD->SetTextAlign(1);
+        }
+        if ( fNInefficientPixels ) {
+            string label = "Inefficient pixels (";
+            label += std::to_string( fNInefficientPixels );
+            label += ")";
+            TText* textI = fMapLegend->AddText( label.c_str() );
+            textI->SetTextColor( fIneffColor );
+            textI->SetTextAlign(1);
+        }
+        if ( fNHotPixels ) {
+            string label = "Hot pixels (";
+            label += std::to_string( fNHotPixels );
+            label += ")";
+            TText* textH = fMapLegend->AddText( label.c_str() );
+            textH->SetTextColor( fHotColor );
+            textH->SetTextAlign(1);
+        }
+
         fMapLegend->Draw();
         
     } else {
@@ -423,6 +442,7 @@ void THitMapDiscordant::DrawFiringFrequencyHisto()
         fFireCanvas->cd();
         
         fHistoScale->Draw("AXIS");
+        fHistoLegend->SetHeader( fHicChipName.c_str() );
         if ( fNDeadPixels ) {
             fHistoDead->Draw( "AH same" );
             fHistoLegend->AddEntry( fHistoDead->GetName(), "Dead pixels", "L"  );
