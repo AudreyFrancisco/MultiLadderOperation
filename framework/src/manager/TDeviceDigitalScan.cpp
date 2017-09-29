@@ -259,6 +259,7 @@ void TDeviceDigitalScan::AddHisto()
         if ( fDevice->GetChipConfig(ichip)->IsEnabled() ) {
             id.boardIndex   = fDevice->GetBoardIndexByChip(ichip);
             id.dataReceiver = fDevice->GetChipConfig(ichip)->GetParamValue("RECEIVER");
+            id.ladderId     = fDevice->GetLadderId();
             id.chipId       = fDevice->GetChipId(ichip);
             fScanHisto->AddHisto( id, histo );
         }
@@ -387,7 +388,10 @@ unsigned int TDeviceDigitalScan::ReadEventData( const unsigned int iboard )
             if ( fBoardDecoder->GetMosaicEoeCount() < 2) {
                 n_bytes_chipevent -= n_bytes_trailer;
             }
-            bool isOk = fChipDecoder->DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent, iboard, fBoardDecoder->GetMosaicChannel() );
+            bool isOk = fChipDecoder->DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent,
+                iboard,
+                fBoardDecoder->GetMosaicChannel(),
+                fDevice->GetLadderId() );
             
             if ( !isOk ) {
                 if ( GetVerboseLevel() > kSILENT ) {

@@ -95,7 +95,7 @@ public:
     bool DecodeEvent( unsigned char* data, int nBytes,
                      unsigned int boardIndex,
                      unsigned int boardReceiver,
-                     unsigned int ladderId = 0 );
+                     unsigned int ladderId );
         
 private:
     
