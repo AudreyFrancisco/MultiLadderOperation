@@ -28,8 +28,8 @@
 
 using namespace std;
 
-// Example of usage :
-// ./test_digital -v 1 -c ConfigMFTladder_DigitalScan.cfg -n hic25
+// Example of usage : if 25 is the id of the tested ladder
+// ./test_digital -v 1 -c ConfigMFTladder_DigitalScan.cfg -l 25
 //
 // If you want to see the available options, do :
 // ./test_digital -h
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     
     sleep(1);
-    char hicName[20], suffix[20], fName[100];
+    char chipName[20], suffix[20], fName[100];
     
     time_t       t = time(0);   // get time now
     struct tm *now = localtime( & t );
@@ -83,13 +83,14 @@ int main(int argc, char** argv) {
     const bool Recreate = true;
 
     if ( !(theDevice->GetNickName()).empty() ) {
-        sprintf( hicName, "%s", (theDevice->GetNickName()).c_str() );
-        sprintf(fName, "digitalScan_%s_%s.dat", hicName, suffix);
+        sprintf( chipName, "%s", (theDevice->GetNickName()).c_str() );
+        sprintf(fName, "digitalScan_%s_%s.dat", chipName, suffix);
     } else {
         sprintf(fName, "digitalScan_%s.dat", suffix);
     }
     theDeviceTestor.WriteDataToFile( fName, Recreate );
     theDeviceTestor.WriteCorruptedHitsToFile( fName, Recreate );
+    theDeviceTestor.DrawAndSaveToFile( fName );
     
     return EXIT_SUCCESS;
 }

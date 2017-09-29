@@ -347,7 +347,8 @@ double TScanHisto::operator() ( common::TChipIndex index, unsigned int i, unsign
         std::cout << "TScanHisto::operator(idx, i, j) - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
+    int int_index =  (index.ladderId << 12)
+        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
     return (fHistos.at(int_index))(i,j);
 }
 
@@ -359,7 +360,8 @@ double TScanHisto::operator() ( common::TChipIndex index, unsigned int i ) const
         std::cout << "TScanHisto::operator(idx, i) - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+    int int_index =  (index.ladderId << 12)
+        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     return (fHistos.at(int_index))(i);
 }
 
@@ -376,7 +378,8 @@ unsigned int TScanHisto::GetChipNEntries( common::TChipIndex index ) const
         std::cout << "TScanHisto::GetChipNEntries() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+    int int_index =  (index.ladderId << 12)
+        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     return (fHistos.at(int_index)).GetNEntries();
 }
 
@@ -389,7 +392,8 @@ void TScanHisto::AddHisto( common::TChipIndex index, THisto histo )
         std::cout << "TScanHisto::AddHisto() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
+    int int_index =  (index.ladderId << 12)
+        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
     fHistos.insert (std::pair<int, THisto>(int_index, histo));
 }
 
@@ -399,10 +403,11 @@ void TScanHisto::AddHisto( common::TChipIndex index, THisto histo )
 void TScanHisto::Incr( common::TChipIndex index, unsigned int i, unsigned int j )
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::Incr(idx, i, j) - B " << std::dec << index.boardIndex
+        std::cout << "TScanHisto::Incr() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-   int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+   int int_index =  (index.ladderId << 12)
+        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     (fHistos.at(int_index)).Incr(i,j);
 }
 
@@ -410,10 +415,11 @@ void TScanHisto::Incr( common::TChipIndex index, unsigned int i, unsigned int j 
 void TScanHisto::Incr( common::TChipIndex index, unsigned int i )
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::Incr(idx, i) - B " << std::dec << index.boardIndex
+        std::cout << "TScanHisto::Incr() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-   int int_index = (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+   int int_index = (index.ladderId << 12)
+        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
     (fHistos.at(int_index)).Incr(i);
 }
 
@@ -424,7 +430,8 @@ void TScanHisto::FindChipList()
     for (std::map<int, THisto>::iterator it = fHistos.begin(); it != fHistos.end(); ++it) {
         int        intIndex = it->first;
         common::TChipIndex index;
-        index.boardIndex   = (intIndex >> 8);
+        index.ladderId     = (intIndex >> 12);
+        index.boardIndex   = (intIndex >> 8) & 0xf;
         index.dataReceiver = (intIndex >> 4) & 0xf;
         index.chipId       =  intIndex       & 0xf;
         fChipList.push_back(index);

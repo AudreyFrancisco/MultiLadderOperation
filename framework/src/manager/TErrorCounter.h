@@ -44,7 +44,6 @@ class TErrorCounter : public TVerbosity {
     /// list of hits with bad chip id flag
     std::vector<std::shared_ptr<TPixHit>> fBadChipIdHits;
 
-    
 public:
     
     /// default constructor
@@ -57,19 +56,22 @@ public:
     void AddCorruptedHit( std::shared_ptr<TPixHit> badHit );
 
     /// add a dead pixel to the list
-    void AddDeadPixel( common::TChipIndex idx,
-                       unsigned int icol, unsigned int iaddr );
+    void AddDeadPixel( const common::TChipIndex idx,
+                       const unsigned int icol, const unsigned int iaddr );
 
     /// add an inefficient pixel to the list
-    void AddInefficientPixel( common::TChipIndex idx,
-                             unsigned int icol, unsigned int iaddr );
+    void AddInefficientPixel( const common::TChipIndex idx,
+                             const unsigned int icol, const unsigned int iaddr,
+                             const double nhits );
 
     /// add a hot pixel to the list
-    void AddHotPixel( common::TChipIndex idx,
-                      unsigned int icol, unsigned int iaddr );
+    void AddHotPixel( const common::TChipIndex idx,
+                      const unsigned int icol, const unsigned int iaddr,
+                      const double nhits);
 
     /// create the collection of chip error counters from the map of histograms
-    void Init( std::shared_ptr<TScanHisto> aScanHisto );
+    void Init( std::shared_ptr<TScanHisto> aScanHisto,
+               const unsigned int nInjections );
     
     /// print all error counters on screen
     void Dump();
@@ -78,7 +80,10 @@ public:
     void FindCorruptedHits();
     
     /// write list of hit pixels with a bad flag in an output file for each chip
-    void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+    void WriteCorruptedHitsToFile( const char *fName, const bool Recreate = true );
+    
+    /// draw and save hit map of bad pixels and their firing frequency distribution
+    void DrawAndSaveToFile( const char *fName );
     
 #pragma mark - setters
 
@@ -102,7 +107,8 @@ public:
     { fNCorruptEvent += value; }
 
     /// increment the number of 8b10b encoder errors by the given value
-    void IncrementN8b10b( unsigned int boardReceiver, const unsigned int value = 1 );
+    void IncrementN8b10b( const unsigned int boardReceiver,
+                          const unsigned int value = 1 );
     
     /// increment the number of priority encoder errors by the given value
     void IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit, const unsigned int value = 1 );
@@ -118,10 +124,11 @@ public:
 private:
     
     /// add an error counter for a given chip index
-    void AddChipErrorCounter( common::TChipIndex idx );
+    void AddChipErrorCounter( const common::TChipIndex idx,
+                              const unsigned int nInjections );
     
     /// return the integer that indexes the TChipIndex in the map of TChipErrorCounters
-    int GetMapIntIndex( common::TChipIndex idx ) const;
+    int GetMapIntIndex( const common::TChipIndex idx ) const;
 
 };
 

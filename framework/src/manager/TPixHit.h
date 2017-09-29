@@ -46,16 +46,19 @@ class TPixHit : public TVerbosity {
     /// id of the receiver on the readout board that gets the chip data
     unsigned int fBoardReceiver;
 
-    /// id of the chip to which belong the hit pixel
+    /// id of the ladder to which belong the chip
+    unsigned int fLadderId;
+
+    /// id of the chip to which belong the hit pixel ( != 15 )
     unsigned int fChipId;
     
-    /// region id
+    /// region id in the range [0, 31]
     unsigned int fRegion;
     
-    /// double column id
+    /// double column id in the range [0, 511]
     unsigned int fDcol;
     
-    /// index (address) of the pixel in the double column
+    /// index (address) of the pixel in the double column in the range [0, 1023]
     unsigned int fAddress;
     
     /// flag to check the status of this hit pixel
@@ -83,6 +86,7 @@ public:
 
     inline void SetBoardIndex( const unsigned int value ) { fBoardIndex = value; }
     inline void SetBoardReceiver( const unsigned int value ) { fBoardReceiver = value; }
+    inline void SetLadderId( const unsigned int value ) { fLadderId = value; }
     void SetChipId( const unsigned int value );
     void SetRegion( const unsigned int value );
     void SetDoubleColumn( const unsigned int value );
@@ -93,12 +97,15 @@ public:
 
     inline unsigned int GetBoardIndex() const { return fBoardIndex; }
     inline unsigned int GetBoardReceiver() const { return fBoardReceiver; }
+    inline unsigned int GetLadderId() const { return fLadderId; }
     unsigned int GetChipId() const;
     unsigned int GetRegion() const;
     unsigned int GetDoubleColumn() const;
     unsigned int GetAddress() const;
     TPixFlag GetPixFlag() const;
     bool IsPixHitCorrupted() const;
+    unsigned int GetColumn() const;
+    unsigned int GetRow() const;
     
 #pragma mark - other
     

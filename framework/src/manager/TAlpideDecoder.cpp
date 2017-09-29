@@ -19,6 +19,7 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
     fRegion( -1 ),
     fBoardIndex( 0 ),
     fBoardReceiver( 0 ),
+    fLadderId( 0 ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
@@ -37,6 +38,7 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto,
     fRegion( -1 ),
     fBoardIndex( 0 ),
     fBoardReceiver( 0 ),
+    fLadderId( 0 ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
@@ -100,14 +102,22 @@ void TAlpideDecoder::WriteDataToFile( const char *fName, bool Recreate )
         
         if ( !HasData( aChipIndex ) ) {
             if ( GetVerboseLevel() > kSILENT ) {
-                cout << "TAlpideDecoder::WriteDataToFile() - Chip ID "
-                << aChipIndex.chipId << " : no data, skipped." <<  endl;
+                cout << "TAlpideDecoder::WriteDataToFile() - Chip ID = "
+                << aChipIndex.chipId ;
+                if ( aChipIndex.ladderId ) {
+                    cout << " , Ladder ID = " << aChipIndex.ladderId;
+                }
+                cout << " : no data, skipped." <<  endl;
             }
             continue;  // write files only for chips with data
         }
         string filename = common::GetFileName( aChipIndex, suffix );
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TAlpideDecoder::WriteDataToFile() - Chip ID = "<< aChipIndex.chipId << endl;
+            cout << "TAlpideDecoder::WriteDataToFile() - Chip ID = "<< aChipIndex.chipId ;
+            if ( aChipIndex.ladderId ) {
+                cout << " , Ladder ID = " << aChipIndex.ladderId;
+            }
+            cout << endl;
         }
         strcpy( fNameChip, filename.c_str());
         if ( GetVerboseLevel() > kSILENT ) {
@@ -151,7 +161,8 @@ unsigned int TAlpideDecoder::GetNHits() const
 bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                                  int nBytes,
                                  unsigned int boardIndex,
-                                 unsigned int boardReceiver )
+                                 unsigned int boardReceiver,
+                                 unsigned int ladderId )
 {
     // refresh variables for each new event
     fBunchCounter = 0;
@@ -160,6 +171,7 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
     fRegion = -1;
     fBoardIndex = boardIndex;
     fBoardReceiver = boardReceiver;
+    fLadderId = ladderId;
     fDataType = TDataType::kUNKNOWN;
     bool started = false; // event has started, i.e. chip header has been found
     bool finished = false; // event trailer found
@@ -407,6 +419,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 
     hit->SetBoardIndex( fBoardIndex );
     hit->SetBoardReceiver( fBoardReceiver );
+    hit->SetLadderId( fLadderId );
     hit->SetChipId( fChipId ); // first basic checks on chip id done here
     hit->SetRegion( fRegion ); // can generate a bad region flag
     hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 ); // can generate a bad dcol flag
@@ -505,6 +518,7 @@ void TAlpideDecoder::FillHistoWithEvent()
             
             idx.boardIndex    = (fHits.at(i))->GetBoardIndex();
             idx.dataReceiver  = (fHits.at(i))->GetBoardReceiver();
+            idx.ladderId      = (fHits.at(i))->GetLadderId();
             idx.chipId        = (fHits.at(i))->GetChipId();
             unsigned int dcol = (fHits.at(i))->GetDoubleColumn();
             unsigned int addr = (fHits.at(i))->GetAddress();
@@ -545,6 +559,7 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
     if ( hit ) {
         idx.boardIndex    = hit->GetBoardIndex();
         idx.dataReceiver  = hit->GetBoardReceiver();
+        idx.ladderId      = hit->GetLadderId();
         idx.chipId        = hit->GetChipId();
         is_valid = fScanHisto->IsValidChipIndex( idx );
     }

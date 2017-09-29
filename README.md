@@ -35,6 +35,12 @@ Then start a new shell to have gcc 6.
 
 The minimal version is 3.4.3.
 
+#### Recent ROOT
+
+Old versions of [ROOT](https://root.cern.ch/), i.e. prior to ROOT 6, are not supported. 
+
+Linking against ROOT was successfully tested for ROOT version 6.08/04. Make sure to have your $ROOTSYS shell environment variable pointing to your working ROOT distribution, as it is used by CMake to prepare the Makefile needed to perform the compilation.
+
 ### Installing
 
 Generate the Makefile with Cmake:
@@ -58,16 +64,19 @@ So far, the avalaible tests are:
 * Test the communication with the MOSAIC board (main_mosaic.cpp)
 * FIFO scan (main_fifo.cpp)
 * Digital scan (main_digital.cpp)
+* ROOT test (main_roottest.cpp)
 
 Each main*.cpp file has a few comments explaining how to run the test. If you use the MOSAIC board, make sure its IP address matches the one in the relevant configuration file. There is one configuration file per type of device and per type of test (i.e. one for a single chip in IB mode for FIFO scan, one for a MFT ladder for FIFO scan, one for MFT ladder for digital scan, etc).
 
-### Example of FIFO scan on a MFT ladder
+Only main_rootttest.cpp does not require a redout board and a device (chip, ladder ...). Indeed, its sole purpose is to check that the linking of the sofware against ROOT librairies is working properly.
 
-Assuming your MOSAIC is seen by your computer, and the device (an MFT ladder with 2 chips) is properly powered and connected to the MOSAIC board, execute the following command on your terminal:
+### Example of digital scan on a MFT ladder
+
+Assuming your MOSAIC is seen by your computer, and the device (here it is hic 35, an MFT ladder with 2 chips) is properly powered and connected to the MOSAIC board, execute the following command on your terminal:
 
 ```
 $ cd new-alpide-software/framework/bin
-$ ./test_fifo -v 3 -c ../config/ConfigMFTladder_FIFOtest.cfg
+$ ./test_fifo -v 3 -c ../config/ConfigMFTladder_DigitalScan.cfg -l 35
 ```
 
 ## Versioning

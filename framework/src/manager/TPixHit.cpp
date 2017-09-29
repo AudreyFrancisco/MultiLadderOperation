@@ -7,6 +7,7 @@ using namespace std;
 TPixHit::TPixHit() : TVerbosity(),
     fBoardIndex( 0 ),
     fBoardReceiver( 0 ),
+    fLadderId( 0 ),
     fChipId( ILLEGAL_CHIP_ID ),
     fRegion( 0 ),
     fDcol( 0 ),
@@ -21,6 +22,7 @@ TPixHit::TPixHit( const TPixHit& obj )
 {
     fBoardIndex = obj.fBoardIndex;
     fBoardReceiver = obj.fBoardReceiver;
+    fLadderId = obj.fLadderId;
     fChipId = obj.fChipId;
     fRegion = obj.fRegion;
     fDcol = obj.fDcol;
@@ -35,6 +37,7 @@ TPixHit::TPixHit( const shared_ptr<TPixHit> obj )
     if ( obj ) {
         fBoardIndex = obj->GetBoardIndex();
         fBoardReceiver = obj->GetBoardReceiver();
+        fLadderId = obj->fLadderId;
         fChipId = obj->GetChipId();
         fRegion = obj->GetRegion();
         fDcol = obj->GetDoubleColumn();
@@ -56,6 +59,7 @@ TPixHit& TPixHit::operator=( const TPixHit& rhs)
     if ( &rhs != this ) {
         fBoardIndex = rhs.fBoardIndex;
         fBoardReceiver = rhs.fBoardReceiver;
+        fLadderId = rhs.fLadderId;
         fChipId = rhs.fChipId;
         fRegion = rhs.fRegion;
         fDcol = rhs.fDcol;
@@ -212,21 +216,59 @@ bool TPixHit::IsPixHitCorrupted() const
 }
 
 //___________________________________________________________________
+unsigned int TPixHit::GetColumn() const
+{
+    if ( (fFlag == TPixFlag::kBAD_REGIONID)
+        || (fFlag == TPixFlag::kBAD_ADDRESS)
+        || (fFlag == TPixFlag::kBAD_DCOLID) ) {
+        cerr << "TPixHit::GetColumn() - Warning, return value probably meaningless" << endl;
+    }
+    unsigned int column = fDcol * 2;
+    int leftRight = ((fAddress % 4) < 2 ? 1:0); // Left or right column within the double column
+    
+    column += leftRight;
+    
+    return column;
+}
+
+//___________________________________________________________________
+unsigned int TPixHit::GetRow() const
+{
+    if ( fFlag == TPixFlag::kBAD_ADDRESS ) {
+        cerr << "TPixHit::GetRow() - Warning, return value probably meaningless" << endl;
+    }
+    unsigned int row = fAddress / 2;         // This is OK for the top-right and the bottom-left pixel within a group of 4
+    if ((fAddress % 4) == 3) row -= 1;      // adjust the top-left pixel
+    if ((fAddress % 4) == 0) row += 1;      // adjust the bottom-right pixel
+    return row;
+}
+
+
+//___________________________________________________________________
 void TPixHit::DumpPixHit( const bool with_reminder )
 {
     int buffer_verbosity = GetVerboseLevel();
     SetVerboseLevel( kSILENT );
     if ( with_reminder ) {
         cout << "\t TPixHit::DumpPixHit()" << endl;
-        cout << "\t board.receiver / chip / region.dcol.add (flag) \n" ;
+        if ( fLadderId ) {
+            cout << "\t board.receiver.ladder / chip / region.dcol.add (flag) \n" ;
+        } else {
+            cout << "\t board.receiver / chip / region.dcol.add (flag) \n" ;
+        }
     }
     cout << std::dec << "\t"
-    << GetBoardIndex() << "."
-    << GetBoardReceiver() << " / "
-    << GetChipId() << " / "
-    << GetRegion() << "."
-    << GetDoubleColumn() << "."
-    << GetAddress() << " (" ;
+    << GetBoardIndex() << ".";
+    if ( fLadderId ) {
+        cout << GetBoardReceiver() << "."
+             << GetLadderId() << " / ";
+    } else {
+        cout << GetBoardReceiver() << " / " ;
+    }
+    cout << GetChipId() << " / "
+         << GetRegion() << "."
+         << GetDoubleColumn() << "."
+         << GetAddress() << " (" ;
     if ( with_reminder ) {
         if ( fFlag == TPixFlag::kBAD_ADDRESS ) {
             cout << "TPixFlag::kBAD_ADDRESS" << ") " << endl;
