@@ -143,7 +143,7 @@ void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int
     float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kHOT );
-    fHitMap->AddInefficientPixel( hit, nhits );
+    fHitMap->AddHotPixel( hit, nhits );
     fCorruptedHits.push_back( move(hit) );
 }
 
@@ -236,15 +236,15 @@ void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
     strtok( fNameTemp, "." );
     string suffix( fNameTemp );
     
-    string filename = common::GetFileName( fIdx, suffix, "ErrMap", ".pdf" );
+    string filename = common::GetFileName( fIdx, suffix, "Error", ".pdf" );
+    strcpy( fNameChip, filename.c_str() );
     if ( GetVerboseLevel() > kSILENT ) {
         cout << "TChipErrorCounter::DrawAndSaveToFile() - Chip ID = " << fIdx.chipId ;
         if ( fIdx.ladderId ) {
             cout << " , Ladder ID = " << fIdx.ladderId;
         }
-        cout << endl;
+        cout << " to file " << fNameChip << endl;
     }
-    strcpy( fNameChip, filename.c_str() );
     fHitMap->Draw();
     fHitMap->SaveToFile( fNameChip );
 }
