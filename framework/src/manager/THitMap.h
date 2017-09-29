@@ -102,7 +102,7 @@ protected:
     void SetBaseStyle();
     
     /// return the title of the histogram that includes hic, chip and axis names
-    std::string GetHistoTitle() const;
+    std::string GetHistoTitle( const std::string prefix ) const;
 
     /// return a string made of the prefix, the hic id and the chip id
     std::string GetName( const std::string prefix ) const;

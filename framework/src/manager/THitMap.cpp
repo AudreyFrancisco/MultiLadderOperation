@@ -9,6 +9,7 @@
 #include "TROOT.h" // useful for global ROOT pointers (such as gPad)
 #include "TCanvas.h"
 #include "TH2F.h"
+#include "RtypesCore.h"
 
 using namespace std;
 
@@ -40,6 +41,7 @@ fSaveToFileReady( false )
     fH2Dummy = new TH2F ( "h2dummy", "",
              fXNbinDummy, fXMinDummy, fXMaxDummy,
              fYNbinDummy, fYMinDummy, fYMaxDummy ),
+    fH2Dummy->SetBit( kCanDelete );
 
     SetBaseStyle();
     fMapCanvas->UseCurrentStyle();
@@ -69,6 +71,7 @@ fSaveToFileReady( false )
     fH2Dummy = new TH2F ( "h2dummy", "",
                          fXNbinDummy, fXMinDummy, fXMaxDummy,
                          fYNbinDummy, fYMinDummy, fYMaxDummy ),
+    fH2Dummy->SetBit( kCanDelete );
     
     
     SetBaseStyle();
@@ -78,7 +81,7 @@ fSaveToFileReady( false )
     
     string dummyname = GetName( "h2dummy" );
     fH2Dummy->SetName( dummyname.c_str() );
-    string title = GetHistoTitle();
+    string title = GetHistoTitle( fHicChipName );
     fH2Dummy->SetTitle( title.c_str() );
     
     string cvname = GetName( "fMapCanvas" );
@@ -88,8 +91,10 @@ fSaveToFileReady( false )
 //___________________________________________________________________
 THitMap::~THitMap()
 {
-    // don't delete any pointer to ROOT object
+    // don't delete any other pointer to ROOT object
     // ROOT will take care by itself
+    fMapCanvas->Clear();
+    delete fMapCanvas;
 }
 
 //___________________________________________________________________
@@ -135,9 +140,9 @@ void THitMap::SetBaseStyle()
 }
 
 //___________________________________________________________________
-string THitMap::GetHistoTitle() const
+string THitMap::GetHistoTitle( const std::string prefix ) const
 {
-    string title =  ";" + fXaxisTitle + ";" + fYaxisTitle;
+    string title =  prefix + ";" + fXaxisTitle + ";" + fYaxisTitle;
     return title;
 }
 
