@@ -1,9 +1,6 @@
 /**
  * \brief This executable runs the digital scan test for all enabled chips in the device.
  *
- * \remark
- * Missing: list of dead pixels.
- *
  * \note
  * The default configuration file for this test for a MFT ladder is 
  * ConfigMFTladder_DigitalScan.cfg
