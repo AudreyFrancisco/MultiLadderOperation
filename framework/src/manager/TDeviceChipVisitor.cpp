@@ -33,7 +33,7 @@ TDeviceChipVisitor::TDeviceChipVisitor( shared_ptr<TDevice> aDevice ) : TVerbosi
         SetDevice( aDevice );
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
 }
 
@@ -75,51 +75,32 @@ void TDeviceChipVisitor::SetVerboseLevel( const int level )
     }
 }
 
-#pragma mark - initialization
+#pragma mark - init / terminate
 
 //___________________________________________________________________
 void TDeviceChipVisitor::Init()
 {
-    if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::Init() - can not use a null pointer for the device !" );
+    try {
+        HardwareGlobalReset();
+    } catch ( std::exception &err ) {
+        cerr << err.what() << endl;
+        exit( EXIT_FAILURE );
     }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::Init() - no chip found !" );
-    }
-    if ( fDevice->GetNBoards(false) == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::Init() - no readout board found !" );
-    }
-    if ( fIsInitDone ) {
-        cerr << "TDeviceChipVisitor::Init() - already initialized ! Doing nothing." << endl;
-        return;
-    }
-    
-    ConfigureBoards();
-
-    for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
-
-        shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard( iboard );
-        if ( !myBoard ) {
-            throw runtime_error( "TDeviceChipVisitor::Init() - no readout board found!" );
-        }
-
-        // -- global reset chips
-        
-        myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
-        
-        // TODO: check if AlpideOpCode::PRST is needed ?
-        // -- pixel matrix reset
-        // (does not affect the PULSE_EN and MASK_EN latches)
-        
-        myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
-    }
-
     fIsInitDone = true;
 
     ConfigureChips();
     if ( GetVerboseLevel() > kSILENT ) {
         DoDumpConfig();
     }
+    
+    StartReadout();
+}
+
+//___________________________________________________________________
+void TDeviceChipVisitor::Terminate()
+{
+    StopReadout();
+    fIsTerminated = true;
 }
 
 #pragma mark - forward configure operations to each Alpide in the device
@@ -265,5 +246,45 @@ void TDeviceChipVisitor::DoActivateReadoutMode()
     }
     for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
         fDevice->GetChip(i)->ActivateReadoutMode();
+    }
+}
+
+#pragma mark - readout board and chip configuration
+
+//___________________________________________________________________
+void TDeviceChipVisitor::HardwareGlobalReset()
+{
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - can not use a null pointer for the device !" );
+    }
+    if ( fDevice->GetNChips() == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - no chip found !" );
+    }
+    if ( fDevice->GetNBoards(false) == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - no readout board found !" );
+    }
+    if ( fIsInitDone ) {
+        cerr << "TDeviceChipVisitor::HardwareGlobalReset() - already done ! Doing nothing." << endl;
+        return;
+    }
+    
+    ConfigureBoards();
+    
+    for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
+        
+        shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard( iboard );
+        if ( !myBoard ) {
+            throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - no readout board found!" );
+        }
+        
+        // -- global reset chips
+        
+        myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
+        
+        // TODO: check if AlpideOpCode::PRST is needed ?
+        // -- pixel matrix reset
+        // (does not affect the PULSE_EN and MASK_EN latches)
+        
+        myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
     }
 }
