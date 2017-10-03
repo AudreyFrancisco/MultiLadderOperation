@@ -436,7 +436,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 
     for ( int i = -1; i < hitmap_length; i ++ ) {
         
-        if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;
+        if ((i >= 0) && (!((data[2] >> i) & 0x1))) continue;
         shared_ptr<TPixHit> singleHit( new TPixHit( hit ) ); // deep copy
 
         // set hit address on the new shared ptr, can generate a bad address flag
