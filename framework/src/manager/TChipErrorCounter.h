@@ -11,7 +11,7 @@
  * For a given chip, this class collect the list of corrupted hit pixels. They can
  * be due to a stuck pixel, a bad region Id, a bad double column Id, a bad address, 
  * a dead, inefficient, or a hot pixel (see TPixHit class for the enumeration of
- * bad hits). This class also counts the number of 8b10b encoder errors and 
+ * bad hit types). This class also counts the number of 8b10b encoder errors and
  * the number of priority encoder errors for the chip.
  *
  * For a given chip, the number of occurences of the following errors are extracted 
@@ -24,7 +24,9 @@
  * - number of inefficient pixels 
  * - number of hot pixels
  * This class can also print the bad pixel hits to screen or to output files, 
- * with a possible selection on the type of flaw.
+ * with a possible selection on the type of flaw. Thanks to its data member of
+ * type THitMapDiscordant, this class also plot a hit map of the corrupted pixels
+ * and their firing frequency given the number of injected triggers per pixel.
  */
 
 
