@@ -70,7 +70,7 @@ void TDeviceFifoTest::Go()
                 cout << "TDeviceFifoTest::Go() - Chip ID "
                 << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << " : disabled chip, skipped." <<  endl;
             }
-            return;
+            continue;
         }
         if ( GetVerboseLevel() > kSILENT ) {
             cout << "TDeviceFifoTest::Go() - Testing chip ID "
