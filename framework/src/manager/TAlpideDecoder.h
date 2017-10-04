@@ -85,9 +85,6 @@ public:
     /// get the map of histograms (one per chip) of hit pixels
     inline std::shared_ptr<TScanHisto> GetScanHisto() { return fScanHisto; }
     
-    /// write hit data to a text file
-    void WriteDataToFile( const char *fName, bool Recreate = true );
-    
     /// compute the total number of hits over the full extent of the scan
     unsigned int GetNHits() const;
     
@@ -123,9 +120,6 @@ private:
     
     /// fill the histogram with good quality pixel hits extracted from the current event
     void FillHistoWithEvent();
-    
-    /// check if there is any hit for the requested chip index
-    bool HasData( const common::TChipIndex& idx );
     
     /// check if the hit would have a legitimate chip index
     bool IsValidChipIndex( std::shared_ptr<TPixHit> hit );

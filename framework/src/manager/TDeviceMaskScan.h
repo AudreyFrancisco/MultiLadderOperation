@@ -13,6 +13,7 @@
 #include <memory>
 #include <vector>
 #include "TDeviceChipVisitor.h"
+#include "Common.h"
 
 class TScanHisto;
 class TScanConfig;
@@ -30,9 +31,6 @@ protected:
     
     /// max number of bad chip events per chip for each injection
     static const unsigned int MAXNBAD = 10;
-    
-    /// map to histograms (one per chip) of hit pixels
-    std::shared_ptr<TScanHisto> fScanHisto;
     
     /// scan configuration
     std::shared_ptr<TScanConfig> fScanConfig;
@@ -62,7 +60,7 @@ public:
     
     /// constructor with a TDevice and a ScanConfig specified
     TDeviceMaskScan( std::shared_ptr<TDevice> aDevice,
-                       std::shared_ptr<TScanConfig> aScanConfig );
+                     std::shared_ptr<TScanConfig> aScanConfig );
     
     /// destructor
     virtual ~TDeviceMaskScan();
@@ -71,18 +69,21 @@ public:
     void SetScanConfig( std::shared_ptr<TScanConfig> aScanConfig );
     
     /// propagate the verbosity level to data members
-    void SetVerboseLevel( const int level );
+    virtual void SetVerboseLevel( const int level );
     
     /// initialization
-    void Init();
+    virtual void Init();
     
     /// perform the mask scan of the device
     virtual void Go() = 0;
     
+    /// write raw hit data to a text file
+    virtual void WriteDataToFile( const char *fName, bool Recreate = true ) = 0;
+    
 protected:
     
     /// allocate memory for histogram of hit pixels for each enabled chip
-    void AddHisto();
+    virtual void AddHisto() = 0;
     
     /// retrieve scan parameters from the configuration file
     virtual void InitScanParameters();
@@ -101,6 +102,10 @@ protected:
     
     /// stop the readout
     void StopReadout();
+    
+    /// check if there is any hit for the requested chip index
+    virtual bool HasData( const common::TChipIndex idx ) = 0;
+
 
 };
 

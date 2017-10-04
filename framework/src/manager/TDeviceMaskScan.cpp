@@ -2,11 +2,9 @@
 #include "AlpideDictionary.h"
 #include "TBoardDecoder.h"
 #include "TChipConfig.h"
-#include "Common.h"
 #include "TDevice.h"
 #include "TDeviceMaskScan.h"
 #include "TErrorCounter.h"
-#include "THisto.h"
 #include "TReadoutBoard.h"
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
@@ -21,7 +19,6 @@ using namespace std;
 //___________________________________________________________________
 TDeviceMaskScan::TDeviceMaskScan() :
 TDeviceChipVisitor(),
-fScanHisto( nullptr ),
 fScanConfig( nullptr ),
 fErrorCounter( nullptr ),
 fChipDecoder( nullptr ),
@@ -30,9 +27,7 @@ fNTriggers( 0 ),
 fNMaskStages( 0 ),
 fNPixPerRegion( 0 )
 {
-    fScanHisto = make_shared<TScanHisto>();
     fErrorCounter = make_shared<TErrorCounter>();
-    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
     fBoardDecoder = make_unique<TBoardDecoder>();
 }
 
@@ -40,7 +35,6 @@ fNPixPerRegion( 0 )
 TDeviceMaskScan::TDeviceMaskScan( shared_ptr<TDevice> aDevice,
                                   shared_ptr<TScanConfig> aScanConfig ) :
 TDeviceChipVisitor( aDevice ),
-fScanHisto( nullptr ),
 fScanConfig( nullptr ),
 fErrorCounter( nullptr ),
 fChipDecoder( nullptr ),
@@ -48,7 +42,6 @@ fNTriggers( 0 ),
 fNMaskStages( 0 ),
 fNPixPerRegion( 0 )
 {
-    fScanHisto = make_shared<TScanHisto>();
     try {
         SetScanConfig( aScanConfig );
     } catch ( exception& msg ) {
@@ -56,14 +49,12 @@ fNPixPerRegion( 0 )
         exit( EXIT_FAILURE );
     }
     fErrorCounter = make_shared<TErrorCounter>();
-    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
     fBoardDecoder = make_unique<TBoardDecoder>();
 }
 
 //___________________________________________________________________
 TDeviceMaskScan::~TDeviceMaskScan()
 {
-    if ( fScanHisto ) fScanHisto.reset();
     if ( fScanConfig ) fScanConfig.reset();
     if ( fErrorCounter ) fErrorCounter.reset();
 }
@@ -82,7 +73,6 @@ void TDeviceMaskScan::SetVerboseLevel( const int level )
 {
     fChipDecoder->SetVerboseLevel( level );
     fBoardDecoder->SetVerboseLevel( level );
-    fScanHisto->SetVerboseLevel( level );
     fErrorCounter->SetVerboseLevel( level );
     TDeviceChipVisitor::SetVerboseLevel( level );
 }
@@ -93,44 +83,14 @@ void TDeviceMaskScan::Init()
     if ( !fScanConfig ) {
         throw runtime_error( "TDeviceMaskScan::Init() - can not use a null pointer for the scan config !" );
     }
-    if ( !fScanHisto ) {
-        throw runtime_error( "TDeviceMaskScan::Init() - can not use a null pointer for the map of scan histo !" );
-    }
-    
     InitScanParameters();
     AddHisto();
-    fErrorCounter->Init( fScanHisto, fNTriggers );
     try {
         TDeviceChipVisitor::Init();
     } catch ( std::exception &err ) {
         cerr << err.what() << endl;
         exit( EXIT_FAILURE );
     }
-}
-
-//___________________________________________________________________
-void TDeviceMaskScan::AddHisto()
-{
-    common::TChipIndex id;
-    
-    THisto histo ("DigScanHisto", "DigScanHisto",
-                  common::MAX_DCOL+1, 0, common::MAX_DCOL,
-                  common::MAX_ADDR+1, 0, common::MAX_ADDR);
-    
-    for ( unsigned int ichip = 0; ichip < fDevice->GetNChips(); ichip++ ) {
-        if ( fDevice->GetChipConfig(ichip)->IsEnabled() ) {
-            id.boardIndex   = fDevice->GetBoardIndexByChip(ichip);
-            id.dataReceiver = fDevice->GetChipConfig(ichip)->GetParamValue("RECEIVER");
-            id.ladderId     = fDevice->GetLadderId();
-            id.chipId       = fDevice->GetChipId(ichip);
-            fScanHisto->AddHisto( id, histo );
-        }
-    }
-    fScanHisto->FindChipList();
-    if ( GetVerboseLevel() > kSILENT ) {
-        cout << endl << "TDeviceMaskScan::AddHisto() - generated map with " << std::dec << fScanHisto->GetSize() << " elements" << endl;
-    }
-    return;
 }
 
 //___________________________________________________________________

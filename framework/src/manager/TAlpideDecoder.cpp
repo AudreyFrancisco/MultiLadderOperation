@@ -82,65 +82,6 @@ void TAlpideDecoder::SetErrorCounter( shared_ptr<TErrorCounter> anErrorCounter )
 }
 
 //___________________________________________________________________
-void TAlpideDecoder::WriteDataToFile( const char *fName, bool Recreate )
-{
-    if ( !fScanHisto ) {
-        throw runtime_error( "TAlpideDecoder::WriteDataToFile() - scan histo is a null pointer !" );
-    }
-    
-    char  fNameChip[100];
-    FILE *fp;
-    
-    char fNameTemp[100];
-    sprintf( fNameTemp,"%s", fName);
-    strtok( fNameTemp, "." );
-    string suffix( fNameTemp );
-    
-    for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
-        
-        common::TChipIndex aChipIndex = fScanHisto->GetChipIndex( ichip );
-        
-        if ( !HasData( aChipIndex ) ) {
-            if ( GetVerboseLevel() > kSILENT ) {
-                cout << "TAlpideDecoder::WriteDataToFile() - Chip ID = "
-                << aChipIndex.chipId ;
-                if ( aChipIndex.ladderId ) {
-                    cout << " , Ladder ID = " << aChipIndex.ladderId;
-                }
-                cout << " : no data, skipped." <<  endl;
-            }
-            continue;  // write files only for chips with data
-        }
-        string filename = common::GetFileName( aChipIndex, suffix );
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TAlpideDecoder::WriteDataToFile() - Chip ID = "<< aChipIndex.chipId ;
-            if ( aChipIndex.ladderId ) {
-                cout << " , Ladder ID = " << aChipIndex.ladderId;
-            }
-            cout << endl;
-        }
-        strcpy( fNameChip, filename.c_str());
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TDeviceDigitalScan::WriteDataToFile() - Writing data to file "<< fNameChip << endl;
-        }
-        if ( Recreate ) fp = fopen(fNameChip, "w");
-        else            fp = fopen(fNameChip, "a");
-        if ( !fp ) {
-            throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - output file not found." );
-        }
-        for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
-            for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
-                double hits = (*fScanHisto)(aChipIndex,icol,iaddr);
-                if (hits > 0) {
-                    fprintf(fp, "%d %d %d\n", icol, iaddr, (int)hits);
-                }
-            }
-        }
-        if (fp) fclose (fp);
-    }
-}
-
-//___________________________________________________________________
 unsigned int TAlpideDecoder::GetNHits() const
 {
     if ( !fScanHisto ) {
@@ -498,7 +439,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 void TAlpideDecoder::FillHistoWithEvent()
 {
     if ( !fScanHisto ) {
-        throw runtime_error( "TDeviceDigitalScan::FillHistoEvent() - can not use a null pointer to fScanHisto !" );
+        throw runtime_error( "TAlpideDecoder::FillHistoEvent() - can not use a null pointer to fScanHisto !" );
     }
 
     common::TChipIndex idx;
@@ -534,21 +475,6 @@ void TAlpideDecoder::FillHistoWithEvent()
     }
     fHits.clear();
     return;
-}
-
-//___________________________________________________________________
-bool TAlpideDecoder::HasData( const common::TChipIndex& idx )
-{
-    if ( !fScanHisto->IsValidChipIndex( idx ) ) {
-        return false;
-    }
-    for (unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++) {
-        for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
-            if ((*fScanHisto)(idx,icol,iaddr) > 0) return true;
-        }
-    }
-    
-    return false;
 }
 
 //___________________________________________________________________

@@ -19,23 +19,55 @@ using namespace std;
 
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan() :
-TDeviceMaskScan()
+TDeviceMaskScan(),
+fScanHisto( nullptr )
 {
-
+    fScanHisto = make_shared<TScanHisto>();
+    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
 }
 
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan( shared_ptr<TDevice> aDevice,
                                        shared_ptr<TScanConfig> aScanConfig ) :
-TDeviceMaskScan( aDevice, aScanConfig )
+TDeviceMaskScan( aDevice, aScanConfig ),
+fScanHisto( nullptr )
 {
-
+    fScanHisto = make_shared<TScanHisto>();
+    try {
+        SetScanConfig( aScanConfig );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        exit( EXIT_FAILURE );
+    }
+    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
 }
 
 //___________________________________________________________________
 TDeviceDigitalScan::~TDeviceDigitalScan()
 {
+    if ( fScanHisto ) fScanHisto.reset();
+}
 
+//___________________________________________________________________
+void TDeviceDigitalScan::SetVerboseLevel( const int level )
+{
+    fScanHisto->SetVerboseLevel( level );
+    TDeviceMaskScan::SetVerboseLevel( level );
+}
+
+//___________________________________________________________________
+void TDeviceDigitalScan::Init()
+{
+    try {
+        TDeviceMaskScan::Init();
+    } catch ( std::exception &err ) {
+        cerr << err.what() << endl;
+        exit( EXIT_FAILURE );
+    }
+    if ( !fScanHisto ) {
+        throw runtime_error( "TDeviceDigitalScan::Init() - can not use a null pointer for the map of scan histo !" );
+    }
+    fErrorCounter->Init( fScanHisto, fNTriggers );
 }
 
 //___________________________________________________________________
@@ -58,7 +90,60 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
     if ( !fIsTerminated ) {
         throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - not terminated ! Please use Terminate() first." );
     }
-    fChipDecoder->WriteDataToFile( fName, Recreate );
+    if ( !fScanHisto ) {
+        throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - scan histo is a null pointer !" );
+    }
+    
+    char  fNameChip[100];
+    FILE *fp;
+    
+    char fNameTemp[100];
+    sprintf( fNameTemp,"%s", fName);
+    strtok( fNameTemp, "." );
+    string suffix( fNameTemp );
+    
+    for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
+        
+        common::TChipIndex aChipIndex = fScanHisto->GetChipIndex( ichip );
+        
+        if ( !HasData( aChipIndex ) ) {
+            if ( GetVerboseLevel() > kSILENT ) {
+                cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID = "
+                << aChipIndex.chipId ;
+                if ( aChipIndex.ladderId ) {
+                    cout << " , Ladder ID = " << aChipIndex.ladderId;
+                }
+                cout << " : no data, skipped." <<  endl;
+            }
+            continue;  // write files only for chips with data
+        }
+        string filename = common::GetFileName( aChipIndex, suffix );
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID = "<< aChipIndex.chipId ;
+            if ( aChipIndex.ladderId ) {
+                cout << " , Ladder ID = " << aChipIndex.ladderId;
+            }
+            cout << endl;
+        }
+        strcpy( fNameChip, filename.c_str());
+        if ( GetVerboseLevel() > kSILENT ) {
+            cout << "TDeviceDigitalScan::WriteDataToFile() - Writing data to file "<< fNameChip << endl;
+        }
+        if ( Recreate ) fp = fopen(fNameChip, "w");
+        else            fp = fopen(fNameChip, "a");
+        if ( !fp ) {
+            throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - output file not found." );
+        }
+        for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
+            for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
+                double hits = (*fScanHisto)(aChipIndex,icol,iaddr);
+                if (hits > 0) {
+                    fprintf(fp, "%d %d %d\n", icol, iaddr, (int)hits);
+                }
+            }
+        }
+        if (fp) fclose (fp);
+    }
 }
 
 //___________________________________________________________________
@@ -84,7 +169,6 @@ void TDeviceDigitalScan::DrawAndSaveToFile( const char *fName )
     }
     fErrorCounter->DrawAndSaveToFile( fName );
 }
-
 
 //___________________________________________________________________
 void TDeviceDigitalScan::Go()
@@ -147,6 +231,31 @@ void TDeviceDigitalScan::Go()
 }
 
 //___________________________________________________________________
+void TDeviceDigitalScan::AddHisto()
+{
+    common::TChipIndex id;
+    
+    THisto histo ("DigScanHisto", "DigScanHisto",
+                  common::MAX_DCOL+1, 0, common::MAX_DCOL,
+                  common::MAX_ADDR+1, 0, common::MAX_ADDR);
+    
+    for ( unsigned int ichip = 0; ichip < fDevice->GetNChips(); ichip++ ) {
+        if ( fDevice->GetChipConfig(ichip)->IsEnabled() ) {
+            id.boardIndex   = fDevice->GetBoardIndexByChip(ichip);
+            id.dataReceiver = fDevice->GetChipConfig(ichip)->GetParamValue("RECEIVER");
+            id.ladderId     = fDevice->GetLadderId();
+            id.chipId       = fDevice->GetChipId(ichip);
+            fScanHisto->AddHisto( id, histo );
+        }
+    }
+    fScanHisto->FindChipList();
+    if ( GetVerboseLevel() > kSILENT ) {
+        cout << endl << "TDeviceDigitalScan::AddHisto() - generated map with " << std::dec << fScanHisto->GetSize() << " elements" << endl;
+    }
+    return;
+}
+
+//___________________________________________________________________
 void TDeviceDigitalScan::CollectDiscordantPixels()
 {
     bool isFullMatrix = (( fNMaskStages == 512 ) && ( fNPixPerRegion == 32 ));
@@ -178,6 +287,23 @@ void TDeviceDigitalScan::CollectDiscordantPixels()
         } // end of loop on icol
         
     } // end of loop on ichip
-    
+}
+
+//___________________________________________________________________
+bool TDeviceDigitalScan::HasData( const common::TChipIndex idx )
+{
+    if ( !fScanHisto->IsValidChipIndex( idx ) ) {
+        return false;
+    }
+    /*
+     for (unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++) {
+     for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
+     if ((*fScanHisto)(idx,icol,iaddr) > 0) return true;
+     }
+     }
+     
+     return false;
+     */
+    return fScanHisto->HasData( idx );
 }
 

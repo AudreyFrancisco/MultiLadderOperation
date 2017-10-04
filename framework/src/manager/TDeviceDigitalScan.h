@@ -12,14 +12,16 @@
  * The code was inspired from the original main_digitalscan.cpp written by ITS team.
  */
 
-#include <memory>
-#include <vector>
 #include "TDeviceMaskScan.h"
 
 class TScanConfig;
+class TScanHisto;
 class TDevice;
 
 class TDeviceDigitalScan : public TDeviceMaskScan {
+    
+    /// map to histograms (one per chip) of hit pixels
+    std::shared_ptr<TScanHisto> fScanHisto;
     
 public:
 
@@ -33,10 +35,16 @@ public:
     /// destructor
     virtual ~TDeviceDigitalScan();
     
+    /// propagate the verbosity level to data members
+    void SetVerboseLevel( const int level );
+    
+    /// initialization
+    virtual void Init();
+
     /// terminate
     void Terminate();
     
-    /// write hit data to a text file
+    /// write raw hit data to a text file
     void WriteDataToFile( const char *fName, bool Recreate = true );
 
     /// write list of hit pixels with a bad flag in a text file
@@ -50,8 +58,15 @@ public:
     
 protected:
     
+    /// allocate memory for histogram of hit pixels for each enabled chip
+    void AddHisto();
+
     /// look for any inefficient, dead or hot pixels and give them to the error counter
     void CollectDiscordantPixels();
+    
+    /// check if there is any hit for the requested chip index
+    bool HasData( const common::TChipIndex idx );
+    
 };
 
 #endif
