@@ -64,6 +64,7 @@ public:
     double      GetMax  (int d) const {
         if (d >=0 && d <= 1) return fLim[d][1]; else return 0; }
     unsigned int GetNEntries() const;
+    bool HasData() const;
 };
 
 class TScanHisto : public TVerbosity {
@@ -103,6 +104,7 @@ public:
     inline unsigned int GetChipListSize() {return fChipList.size();}
     common::TChipIndex GetChipIndex( const unsigned int i ) const;
     unsigned int GetChipNEntries(common::TChipIndex index) const;
+    bool HasData(common::TChipIndex index) const;
 
 #pragma mark - other
     
