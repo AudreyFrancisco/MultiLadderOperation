@@ -215,6 +215,7 @@ void TDeviceDigitalScan::Go()
         if ( istage ) {
             nHitsLastStage = fChipDecoder->GetNHits();
         }
+        usleep(2000);
 
         // Read data for all boards
         for ( unsigned int ib = 0; ib < fDevice->GetNBoards(false); ib++ ) {
