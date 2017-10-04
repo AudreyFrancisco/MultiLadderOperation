@@ -249,6 +249,17 @@ void TDeviceChipVisitor::DoActivateReadoutMode()
     }
 }
 
+//___________________________________________________________________
+void TDeviceChipVisitor::DoConfigureVPulseLow( const unsigned int deltaV )
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceChipVisitor::DoConfigureVPulseLow() - not initialized ! Please use Init() first." );
+    }
+    for (unsigned int i = 0; i < fDevice->GetNChips(); i ++) {
+        fDevice->GetChip(i)->ConfigureVPulseLow( deltaV );
+    }
+}
+
 #pragma mark - readout board and chip configuration
 
 //___________________________________________________________________

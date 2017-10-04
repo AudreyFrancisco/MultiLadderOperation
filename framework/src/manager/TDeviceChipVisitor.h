@@ -59,6 +59,7 @@ public:
     void DoConfigureMaskStage( int nPix, const int iStage );
     void DoDumpConfig();
     void DoActivateReadoutMode();
+    void DoConfigureVPulseLow( const unsigned int deltaV );
     
 protected:
     

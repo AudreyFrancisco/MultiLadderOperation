@@ -162,6 +162,9 @@ class TAlpide : public TVerbosity {
     /// Configuration and start-up of the DTU
     void BaseConfigPLL();
     
+    /// For analog pulse, configure VPULSE low to be at a given deltaV w.r.t. VPULSE high
+    void ConfigureVPulseLow( const unsigned int deltaV );
+    
     void BaseConfigMask();
     void BaseConfigDACs();
     void BaseConfig();

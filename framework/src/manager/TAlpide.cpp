@@ -2,6 +2,7 @@
 #include "TAlpide.h"
 #include "TChipConfig.h"
 #include "TReadoutBoard.h"
+#include "Common.h"
 #include <bitset>
 #include <iostream>
 #include <iomanip>
@@ -1073,7 +1074,7 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
     } else {
         // choose pixels
         int colStep = 32 / nPix;
-        for ( int icol = 0; icol < 1024; icol += colStep ) {
+        for ( int icol = 0; icol < common::NPIX_PER_ROW ; icol += colStep ) {
             if ( GetVerboseLevel() >= kCHATTY ) {
                 cout << endl;
                 cout << "TAlpide::ConfigureMaskStage() - chip id = "
@@ -1342,6 +1343,23 @@ void TAlpide::BaseConfig()
     EnableDoubleColumns();
 }
 
+//___________________________________________________________________
+void TAlpide::ConfigureVPulseLow( const unsigned int deltaV )
+{
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::ConfigureVPulseLow() - chip config. not found!" );
+    }
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << "TAlpide::ConfigureVPulseLow() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    // Automatically matches max pulse = VPULSEH in config
+    WriteRegister( AlpideRegister::VPULSEL, spConfig->GetParamValue("VPULSEH") - deltaV );
+}
 
 //___________________________________________________________________
 void TAlpide::PrintDebugStream()
