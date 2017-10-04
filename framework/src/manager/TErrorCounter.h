@@ -23,7 +23,7 @@
 
 #include <map>
 #include <memory>
-#include <vector>
+#include <deque>
 #include "Common.h"
 #include "TChipErrorCounter.h"
 #include "TPixHit.h"
@@ -42,7 +42,7 @@ class TErrorCounter : public TVerbosity {
     std::map<int, TChipErrorCounter> fCounterCollection;
 
     /// list of hits with bad chip id flag
-    std::vector<std::shared_ptr<TPixHit>> fBadChipIdHits;
+    std::deque<std::shared_ptr<TPixHit>> fBadChipIdHits;
 
 public:
     
@@ -127,9 +127,6 @@ private:
     void AddChipErrorCounter( const common::TChipIndex idx,
                               const unsigned int nInjections );
     
-    /// return the integer that indexes the TChipIndex in the map of TChipErrorCounters
-    int GetMapIntIndex( const common::TChipIndex idx ) const;
-
 };
 
 #endif

@@ -30,7 +30,7 @@ namespace common {
                                    std::string fileExtention = ".dat");
     
     /// Compare two TChipIndex structures
-    extern bool SameChipIndex( TChipIndex lhs, TChipIndex rhs );
+    extern bool SameChipIndex( const TChipIndex lhs, const TChipIndex rhs );
     
     /// id of the last region of the chip
     const unsigned int MAX_REGION = 31;  // [0 .. 31] 32 regions
@@ -44,6 +44,14 @@ namespace common {
     /// index of the last pixel in a double column of the chip
     const unsigned int MAX_ADDR = 1023;  // [0 .. 1023] 1024 pixels / double column
 
+    /// number of pixels in a row of the chip
+    const unsigned int NPIX_PER_ROW = 1024;  // 1024 pixels / row
+    
+    /// return the integer that indexes the TChipIndex in the map
+    extern int GetMapIntIndex( const common::TChipIndex idx );
+    
+    /// return the TChipIndex that corresponds to the integer that is used as map index
+    extern TChipIndex GetChipIndexFromMapInt( const int intIndex );
     
 }
 

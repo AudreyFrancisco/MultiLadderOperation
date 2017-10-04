@@ -32,7 +32,7 @@ string common::GetFileName( common::TChipIndex aChipIndex,
 }
 
 //___________________________________________________________________
-bool common::SameChipIndex( common::TChipIndex lhs, common::TChipIndex rhs )
+bool common::SameChipIndex( const common::TChipIndex lhs, const common::TChipIndex rhs )
 {
     bool equality = false;
     if ( (lhs.boardIndex == rhs.boardIndex)
@@ -43,3 +43,23 @@ bool common::SameChipIndex( common::TChipIndex lhs, common::TChipIndex rhs )
     }
     return equality;
 }
+
+//___________________________________________________________________
+int common::GetMapIntIndex( const common::TChipIndex idx )
+{
+    int int_index =  (idx.ladderId << 12)
+    | (idx.boardIndex << 8) | (idx.dataReceiver << 4) | (idx.chipId & 0xf );
+    return int_index;
+}
+
+//___________________________________________________________________
+common::TChipIndex common::GetChipIndexFromMapInt( const int intIndex )
+{
+    common::TChipIndex index;
+    index.ladderId     = (intIndex >> 12);
+    index.boardIndex   = (intIndex >> 8) & 0xf;
+    index.dataReceiver = (intIndex >> 4) & 0xf;
+    index.chipId       =  intIndex       & 0xf;
+    return index;
+}
+
