@@ -75,7 +75,7 @@ void TDeviceThresholdScan::Go()
 
     unsigned int nHitsTot = 0, nHitsLastStage = 0;
     
-    for ( int istage = 0; istage < fNMaskStages; istage ++ ) { //--------- loop on pixels
+    for ( int istage = 0; istage < fNMaskStages; istage ++ ) { //---------------- loop on pixels
         
         if ( GetVerboseLevel() > kSILENT ) {
             cout << "TDeviceThresholdScan::Go() - Mask stage "
@@ -112,7 +112,7 @@ void TDeviceThresholdScan::Go()
             // next charge
             deltaV += fChargeStep;
             usleep(1000);
-        } // end of loop on VPulse low
+        } //---------------------------------------------------------- end of loop on VPulse low
     
         nHitsTot = fChipDecoder->GetNHits() - nHitsLastStage;
         if ( GetVerboseLevel() > kSILENT ) {
