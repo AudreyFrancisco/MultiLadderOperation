@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <stdexcept>
 
 #include "THitMapDiscordant.h"
@@ -229,7 +230,6 @@ void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
     }
 
     char  fNameChip[100];
-    FILE *fp;
     
     char fNameTemp[100];
     sprintf( fNameTemp,"%s", fName);

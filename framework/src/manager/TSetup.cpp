@@ -94,7 +94,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 SetDeviceNickName( string(DeviceName) );
                 break;
             case '?':
-                if (optopt == 'c' | optopt == 'v'| optopt == 'n' | optopt == 'l' ) {
+                if ( (optopt == 'c') | (optopt == 'v') | (optopt == 'n') | (optopt == 'l') ) {
                     cerr << "Option -" << optopt << " requires an argument." << endl;
                 } else {
                     if (isprint (optopt)) {

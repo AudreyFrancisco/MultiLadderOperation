@@ -149,9 +149,7 @@ unsigned int TDeviceMaskScan::ReadEventData( const unsigned int iboard )
 {
     unsigned char buffer[1024*4000];
     int n_bytes_data, n_bytes_header, n_bytes_trailer;
-    
-    unsigned int nHitsTot = 0, nHitsLastStage = 0;
-    
+        
     unsigned int itrg = 0;
     unsigned int nTrials = 0;
     

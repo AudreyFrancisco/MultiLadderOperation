@@ -1074,7 +1074,7 @@ int TAlpide::ConfigureMaskStage( int nPix, const int iStage )
     } else {
         // choose pixels
         int colStep = 32 / nPix;
-        for ( int icol = 0; icol < common::NPIX_PER_ROW ; icol += colStep ) {
+        for ( unsigned int icol = 0; icol < common::NPIX_PER_ROW ; icol += colStep ) {
             if ( GetVerboseLevel() >= kCHATTY ) {
                 cout << endl;
                 cout << "TAlpide::ConfigureMaskStage() - chip id = "

@@ -10,6 +10,8 @@
 
 using namespace std;
 
+libusb_context* TDeviceBuilderWithDAQBoards::fContext = 0;
+
 #pragma mark - Constructors/destructor
 
 //___________________________________________________________________
@@ -46,10 +48,10 @@ void TDeviceBuilderWithDAQBoards::FindDAQBoards()
     
     libusb_device **list;
     
-    if ( DeviceBuilder::fContext == 0 ) {
+    if ( fContext == 0 ) {
         throw runtime_error( "TDeviceBuilderWithDAQBoards::FindDAQBoards() - Error, libusb not initialised." );
     }
-    ssize_t cnt = libusb_get_device_list( DeviceBuilder::fContext, &list );
+    ssize_t cnt = libusb_get_device_list( fContext, &list );
     
     if ( cnt < 0 ) {
         throw runtime_error( "TDeviceBuilderWithDAQBoards::FindDAQBoards() - Error getting device list." );
@@ -77,7 +79,7 @@ void TDeviceBuilderWithDAQBoards::FindDAQBoards()
 //___________________________________________________________________
 void TDeviceBuilderWithDAQBoards::InitLibUsb()
 {
-    int err = libusb_init( &DeviceBuilder::fContext );
+    int err = libusb_init( &fContext );
     if (err) {
         cerr << "TDeviceBuilderWithDAQBoards::InitLibUsb() - Error " << err << endl;
         throw runtime_error( "TDeviceBuilderWithDAQBoards::InitLibUsb() - Error while trying to init libusb." );
