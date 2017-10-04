@@ -444,7 +444,7 @@ void TAlpideDecoder::FillHistoWithEvent()
 
     common::TChipIndex idx;
     
-    for ( int i = 0; i < fHits.size(); i++ ) {
+    for ( unsigned int i = 0; i < fHits.size(); i++ ) {
 
         if ( (fHits.at(i))->IsPixHitCorrupted() ) {
 
