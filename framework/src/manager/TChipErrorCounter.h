@@ -33,7 +33,7 @@
 #include "Common.h"
 #include "TPixHit.h"
 #include <memory>
-#include <vector>
+#include <deque>
 
 class THitMapDiscordant;
 
@@ -73,7 +73,7 @@ class TChipErrorCounter : public TVerbosity {
     common::TChipIndex fIdx;
 
     /// list of corrupted pixel hits
-    std::vector<std::shared_ptr<TPixHit>> fCorruptedHits;
+    std::deque<std::shared_ptr<TPixHit>> fCorruptedHits;
     
     /// class used to locate bad pixel on a hit map
     std::shared_ptr<THitMapDiscordant> fHitMap;

@@ -95,7 +95,7 @@ void TChipErrorCounter::AddDeadPixel( const unsigned int icol, const unsigned in
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
-    float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
+    float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kDEAD );
     fHitMap->AddDeadPixel( hit );
@@ -118,7 +118,7 @@ void TChipErrorCounter::AddInefficientPixel( const unsigned int icol,
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
-    float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
+    float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kINEFFICIENT );
     fHitMap->AddInefficientPixel( hit, nhits );
@@ -140,7 +140,7 @@ void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
-    float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
+    float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kHOT );
     fHitMap->AddHotPixel( hit, nhits );
@@ -269,7 +269,7 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
                     }
                 }
                 break;
-            case (int)TPixFlag::kOK : // nothing to do, since all hits in the vector are bad
+            case (int)TPixFlag::kOK : // nothing to do, since all hits in the deque are bad
                 break;
             case (int)TPixFlag::kBAD_CHIPID : // nothing to do, since a bad chip id can not be attached (and hence found) to (in) a given TChipErrorCounter
                 break;
