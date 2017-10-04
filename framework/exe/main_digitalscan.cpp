@@ -26,7 +26,7 @@
 using namespace std;
 
 // Example of usage : if 25 is the id of the tested ladder
-// ./test_digital -v 1 -c ConfigMFTladder_DigitalScan.cfg -l 25
+// ./test_digital -v 1 -c ../config/ConfigMFTladder_DigitalScan.cfg -l 25
 //
 // If you want to see the available options, do :
 // ./test_digital -h

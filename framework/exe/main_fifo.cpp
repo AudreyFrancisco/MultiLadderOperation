@@ -27,8 +27,8 @@
 
 using namespace std;
 
-// Example of usage :
-// ./test_fifo -v 1 -c ConfigMFTladder_FIFOtest.cfg -n hic25
+// Example of usage : if 25 is the id of the tested ladder
+// ./test_fifo -v 1 -c ../config/ConfigMFTladder_FIFOtest.cfg -l 25
 //
 // If you want to see the available options, do :
 // ./test_fifo -h
