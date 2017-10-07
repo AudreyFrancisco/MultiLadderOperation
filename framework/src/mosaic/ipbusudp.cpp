@@ -44,7 +44,7 @@ IPbusUDP::IPbusUDP(int pktSize)
 		: IPbus(pktSize)
 {
 	sockfd = -1;
-    port = -1;
+    port = MosaicIPbus::DEFAULT_UDP_PORT;
 }
 
 IPbusUDP::IPbusUDP(const char *IPaddr, int port, int pktSize) 
@@ -54,9 +54,10 @@ IPbusUDP::IPbusUDP(const char *IPaddr, int port, int pktSize)
 	setIPaddress(IPaddr, port);
 }
 
-void IPbusUDP::setIPaddress(const char *IPaddr, int port)
+void IPbusUDP::setIPaddress(const char *IPaddr, int aport)
 {
 	struct hostent *he;
+    port = aport;
 
 	if ((he=gethostbyname(IPaddr)) == NULL)   // get the host address
 		throw MIPBusUDPError("Can not resolve board IP address");
