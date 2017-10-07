@@ -113,6 +113,15 @@ void TPixHit::SetAddress( const unsigned int value )
     fAddress = value;
 }
 
+//___________________________________________________________________
+void TPixHit::SetPixChipIndex( const common::TChipIndex idx )
+{
+    SetBoardIndex( idx.boardIndex );
+    SetBoardReceiver( idx.dataReceiver );
+    SetLadderId( idx.ladderId );
+    SetChipId( idx.chipId );
+}
+
 #pragma mark - getters
 
 //___________________________________________________________________
