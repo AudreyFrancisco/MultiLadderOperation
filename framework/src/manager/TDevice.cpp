@@ -252,7 +252,7 @@ shared_ptr<TReadoutBoard> TDevice::GetBoardByChip( const unsigned int iChip )
 //___________________________________________________________________
 unsigned int TDevice::GetBoardIndexByChip( const unsigned int iChip )
 {
-    if ( (!IsSetupFrozen()) || fBoards.empty() || fChips.empty() ) {
+    if ( fBoards.empty() || fChips.empty() ) {
         throw runtime_error( "TDevice::GetBoardIndexByChip() - no chip or board defined!" );
     }
     if ( iChip >= fChips.size() ) {
