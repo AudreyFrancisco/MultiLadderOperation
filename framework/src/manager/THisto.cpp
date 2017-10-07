@@ -157,8 +157,7 @@ THisto &THisto::operator=( const THisto &h )
     if (&h == this) {
         return *this;
     } else {
-        unsigned int j;
-        for (j=0; j<fDim[1]; j++) {
+        for (unsigned int j=0; j<fDim[1]; j++) {
             if (fSize == 1) delete[] ((unsigned char **)fHisto)[j];
             if (fSize == 2) delete[] ((unsigned short int **)fHisto)[j];
             if (fSize == 4) delete[] ((float **)fHisto)[j];
@@ -339,8 +338,7 @@ fIndex( -1 )
 //___________________________________________________________________
 TScanHisto::TScanHisto( const TScanHisto &sh )
 {
-    std::map<int, THisto>::const_iterator it;
-    for (it = sh.fHistos.begin(); it != sh.fHistos.end(); ++it) {
+    for ( std::map<int, THisto>::const_iterator it = sh.fHistos.begin(); it != sh.fHistos.end(); ++it) {
         fHistos.insert(*it);
     }
     SetIndex(sh.GetIndex());
