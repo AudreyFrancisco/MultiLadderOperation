@@ -47,11 +47,11 @@ IPbusUDP::IPbusUDP(int pktSize)
     port = MosaicIPbus::DEFAULT_UDP_PORT;
 }
 
-IPbusUDP::IPbusUDP(const char *IPaddr, int port, int pktSize) 
+IPbusUDP::IPbusUDP(const char *IPaddr, int aport, int pktSize)
 		: IPbus(pktSize)
 {
 	sockfd = -1;
-	setIPaddress(IPaddr, port);
+	setIPaddress(IPaddr, aport);
 }
 
 void IPbusUDP::setIPaddress(const char *IPaddr, int aport)
