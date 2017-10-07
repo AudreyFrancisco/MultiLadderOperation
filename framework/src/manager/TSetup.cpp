@@ -69,7 +69,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
     while ((c = getopt (argc, argv, "hv:c:n:l:")) != -1)
         switch (c) {
             case 'h':  // prints the Help of usage
-                cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> -n <nick_name>"<< endl;
+                cout << "Usage : " << argv[0] << " -h -v <level> -c <configuration_file> -l <ladder_id> -n <nick_name>"<< endl;
                 cout << "-h  :  Display this message" << endl;
                 cout << "-v <level> : Sets the verbosity level (integer)" << endl;
                 cout << "-c <configuration_file> : Sets the configuration file used" << endl << endl;
