@@ -23,7 +23,6 @@ TDeviceMaskScan(),
 fScanHisto( nullptr )
 {
     fScanHisto = make_shared<TScanHisto>();
-    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
 }
 
 //___________________________________________________________________
@@ -39,7 +38,7 @@ fScanHisto( nullptr )
         cerr << msg.what() << endl;
         exit( EXIT_FAILURE );
     }
-    fChipDecoder = make_unique<TAlpideDecoder>( fScanHisto, fErrorCounter );
+    fChipDecoder = make_unique<TAlpideDecoder>( aDevice, fScanHisto, fErrorCounter );
 }
 
 //___________________________________________________________________

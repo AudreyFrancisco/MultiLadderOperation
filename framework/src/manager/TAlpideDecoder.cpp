@@ -1,4 +1,5 @@
 #include "TAlpideDecoder.h"
+#include "TDevice.h"
 #include "TPixHit.h"
 #include "THisto.h"
 #include "TErrorCounter.h"
@@ -12,14 +13,13 @@ using namespace std;
 
 //___________________________________________________________________
 TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
+    fDevice( nullptr ),
     fNewEvent( false ),
     fBunchCounter( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
     fRegion( -1 ),
-    fBoardIndex( 0 ),
-    fBoardReceiver( 0 ),
-    fLadderId( 0 ),
+    fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
@@ -28,21 +28,27 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
 }
 
 //___________________________________________________________________
-TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto,
+TAlpideDecoder::TAlpideDecoder( shared_ptr<TDevice> aDevice,
+                               shared_ptr<TScanHisto> aScanHisto,
                                 shared_ptr<TErrorCounter> anErrorCounter ) :
     TVerbosity(),
+    fDevice( nullptr ),
     fNewEvent( false ),
     fBunchCounter( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
     fRegion( -1 ),
-    fBoardIndex( 0 ),
-    fBoardReceiver( 0 ),
-    fLadderId( 0 ),
+    fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
 {
+    try {
+        SetDevice( aDevice );
+    } catch ( exception& msg ) {
+        cerr << msg.what() << endl;
+        exit(0);
+    }
     try {
         SetScanHisto( aScanHisto );
     } catch ( exception& msg ) {
@@ -61,6 +67,15 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto,
 TAlpideDecoder::~TAlpideDecoder()
 {
     fHits.clear();
+}
+
+//___________________________________________________________________
+void TAlpideDecoder::SetDevice( shared_ptr<TDevice> aDevice )
+{
+    if ( !aDevice ) {
+        throw runtime_error( "TAlpideDecoder::SetDevice() - can not use a null pointer !" );
+    }
+    fDevice = aDevice;
 }
 
 //___________________________________________________________________
@@ -102,17 +117,20 @@ unsigned int TAlpideDecoder::GetNHits() const
 bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                                  int nBytes,
                                  unsigned int boardIndex,
-                                 unsigned int boardReceiver,
-                                 unsigned int ladderId )
+                                 unsigned int boardReceiver )
 {
     // refresh variables for each new event
     fBunchCounter = 0;
     fFlags  = 0;
     fChipId = -1;
     fRegion = -1;
-    fBoardIndex = boardIndex;
-    fBoardReceiver = boardReceiver;
-    fLadderId = ladderId;
+    try {
+        fCurrentChipIndex = fDevice->GetWorkingChipIndexdByBoardReceiver( boardIndex,
+                                                                         boardReceiver );
+    } catch ( std::exception &err ) {
+        cerr << "TAlpideDecoder::DecodeEvent() - " << err.what() << endl;
+        exit( EXIT_FAILURE );
+    }
     fDataType = TDataType::kUNKNOWN;
     bool started = false; // event has started, i.e. chip header has been found
     bool finished = false; // event trailer found
@@ -318,6 +336,11 @@ void TAlpideDecoder::DecodeChipHeader( unsigned char* data )
 
   fBunchCounter = data_field & 0xff;
   fChipId       = (data_field >> 8) & 0xf;
+    if ( !IsValidChipId() ) {
+        if ( fRescueBadChipId ) {
+            fChipId = fCurrentChipIndex.chipId;
+        }
+    }
   fNewEvent     = true;
 }
 
@@ -341,6 +364,11 @@ void TAlpideDecoder::DecodeEmptyFrame( unsigned char* data )
 
   fBunchCounter = data_field & 0xff;
   fChipId       = (data_field >> 8) & 0xf;
+    if ( !IsValidChipId() ) {
+        if ( fRescueBadChipId ) {
+            fChipId = fCurrentChipIndex.chipId;
+        }
+    }
 }
 
 //___________________________________________________________________
@@ -358,10 +386,10 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
   
     bool corrupt = false;
 
-    hit->SetBoardIndex( fBoardIndex );
-    hit->SetBoardReceiver( fBoardReceiver );
-    hit->SetLadderId( fLadderId );
-    hit->SetChipId( fChipId ); // first basic checks on chip id done here
+    hit->SetBoardIndex( fCurrentChipIndex.boardIndex );
+    hit->SetBoardReceiver( fCurrentChipIndex.dataReceiver );
+    hit->SetLadderId( fCurrentChipIndex.ladderId );
+    hit->SetChipId( fChipId ); // only basic checks on chip id done here
     hit->SetRegion( fRegion ); // can generate a bad region flag
     hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 ); // can generate a bad dcol flag
     
@@ -408,8 +436,8 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
                 (fHits.back())->DumpPixHit();
             }
         }
-        // check if chip index (board id, receiver id, chip id) belongs to
-        // the list of the expected indexes for the device currently being read
+        // check if chip index (board id, receiver id, ladder id, chip id) matches
+        // the one currently read on the device
         if ( !IsValidChipIndex( singleHit ) ) {
             cerr << "TAlpideDecoder::DecodeDataWord() - found bad chip index, data word = 0x" << std::hex << (int) data_field << std::dec << endl;
             singleHit->SetPixFlag( TPixFlag::kBAD_CHIPID );
@@ -487,7 +515,7 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
         idx.dataReceiver  = hit->GetBoardReceiver();
         idx.ladderId      = hit->GetLadderId();
         idx.chipId        = hit->GetChipId();
-        is_valid = fScanHisto->IsValidChipIndex( idx );
+        is_valid = common::SameChipIndex( idx, fCurrentChipIndex );
     }
     return is_valid;
 }
@@ -495,13 +523,8 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
 //___________________________________________________________________
 bool TAlpideDecoder::IsValidChipId()
 {
-    bool is_valid = false;
-    for ( unsigned int i = 0 ; i < fScanHisto->GetChipListSize(); i++ ) {
-        int legitimateChipId = (int)((fScanHisto->GetChipIndex(i)).chipId);
-        if ( fChipId == legitimateChipId ) {
-            is_valid = true;
-            return is_valid;
-        }
+    if ( fChipId != (int)fCurrentChipIndex.chipId ) {
+        return false;
     }
-    return is_valid;
+    return true;
 }

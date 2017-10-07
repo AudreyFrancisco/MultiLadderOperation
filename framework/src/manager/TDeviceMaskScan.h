@@ -71,6 +71,9 @@ public:
     /// propagate the verbosity level to data members
     virtual void SetVerboseLevel( const int level );
     
+    /// toggle on/off the possibility to rescue a bad chip id
+    void SetRescueBadChipId( const bool permit );
+    
     /// initialization
     virtual void Init();
     

@@ -78,6 +78,12 @@ void TDeviceMaskScan::SetVerboseLevel( const int level )
 }
 
 //___________________________________________________________________
+void TDeviceMaskScan::SetRescueBadChipId( const bool permit )
+{
+    fChipDecoder->SetRescueBadChipId( permit );
+}
+
+//___________________________________________________________________
 void TDeviceMaskScan::Init()
 {
     if ( !fScanConfig ) {
@@ -210,8 +216,7 @@ unsigned int TDeviceMaskScan::ReadEventData( const unsigned int iboard )
             }
             bool isOk = fChipDecoder->DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent,
                                                   iboard,
-                                                  fBoardDecoder->GetMosaicChannel(),
-                                                  fDevice->GetLadderId() );
+                                                  fBoardDecoder->GetMosaicChannel() );
             
             if ( !isOk ) {
                 if ( GetVerboseLevel() > kSILENT ) {
