@@ -66,6 +66,7 @@ int main(int argc, char** argv) {
     TDeviceDigitalScan theDeviceTestor( theDevice, theScanConfig );
     theDeviceTestor.Init();
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
+    theDeviceTestor.SetRescueBadChipId( true );
     
     sleep(1);
     char chipName[20], suffix[20], fName[100];
