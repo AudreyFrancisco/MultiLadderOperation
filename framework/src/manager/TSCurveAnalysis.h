@@ -10,7 +10,8 @@
  *
  * This class allows to extract and store the threshold and noise from a s-curve issued
  * from charge injection into some (or all) pixels of the matrix. It is based on a code
- * from Markus Keil from ITS team.
+ * from Markus Keil from ITS team. The threshold and noise distributions of the tested
+ * pixels can be drawn, as well as the chi2/ndf distribution from the fits.
  *
  */
 
@@ -158,7 +159,7 @@ public:
     /// Get the maximum value of the injected charge (in DAC units)
     inline unsigned int GetMaxInjectedCharge() const { return fMaxInjCharge; }
 
-#pragma mark - other public functions
+#pragma mark - other public methods
     
     ///
     void Init();
@@ -176,7 +177,9 @@ public:
     
     /// save the drawing(s) to PDF file(s)
     void SaveToFile( const char *fName );
-    
+
+#pragma mark - protected methods
+
 protected:
     
     /// set the hic and chip name for which the hit map will be
