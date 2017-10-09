@@ -85,7 +85,7 @@ foreach (EXECNAME
     fifo
     digitalscan
     roottest
-#    threshold
+    thresholdscan
 #    scantest
 #    dacscan
 #    noiseocc_ext
