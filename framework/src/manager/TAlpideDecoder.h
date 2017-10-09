@@ -70,9 +70,8 @@ public:
     /// default constructor
     TAlpideDecoder();
     
-    /// constructor with device, pointers to map of hit pixel histograms and to error counter
+    /// constructor that sets the pointers to the device and to the error counter
     TAlpideDecoder( std::shared_ptr<TDevice> aDevice,
-                    std::shared_ptr<TScanHisto> aScanHisto,
                     std::shared_ptr<TErrorCounter> anErrorCounter );
     
     /// destructor

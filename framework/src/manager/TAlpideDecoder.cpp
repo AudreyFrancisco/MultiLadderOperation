@@ -18,7 +18,7 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
     fBunchCounter( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
-    fRegion( -1 ),
+    fRegion( 32 ),
     fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
@@ -29,7 +29,6 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
 
 //___________________________________________________________________
 TAlpideDecoder::TAlpideDecoder( shared_ptr<TDevice> aDevice,
-                               shared_ptr<TScanHisto> aScanHisto,
                                 shared_ptr<TErrorCounter> anErrorCounter ) :
     TVerbosity(),
     fDevice( nullptr ),
@@ -37,7 +36,7 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TDevice> aDevice,
     fBunchCounter( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
-    fRegion( -1 ),
+    fRegion( 32 ),
     fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
@@ -45,12 +44,6 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TDevice> aDevice,
 {
     try {
         SetDevice( aDevice );
-    } catch ( exception& msg ) {
-        cerr << msg.what() << endl;
-        exit(0);
-    }
-    try {
-        SetScanHisto( aScanHisto );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
         exit(0);
@@ -123,7 +116,7 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
     fBunchCounter = 0;
     fFlags  = 0;
     fChipId = -1;
-    fRegion = -1;
+    fRegion = 32; // bad region
     try {
         fCurrentChipIndex = fDevice->GetWorkingChipIndexdByBoardReceiver( boardIndex,
                                                                          boardReceiver );
@@ -194,24 +187,19 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                     cerr << "TAlpideDecoder::DecodeEvent() - Error: hit data found before chip header or after chip trailer" << endl;
                     return false;
                 }
-                if ( fRegion == -1 ) {
-                    cout << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
-                    corrupt = true;
-                } else {
-                    if ( !IsValidChipId() ) {
-                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATASHORT" << endl;
-                        if ( GetVerboseLevel() > kCHATTY ) {
-                            for ( int i = 0; i < nBytes; i++ ) {
-                                printf("%02x ", data[i]);
-                            }
-                            printf("\n");
+                if ( fRegion == 32 ) {
+                    cout << "TAlpideDecoder::DecodeEvent() - Warning: data word without region (Chip " << fChipId << ")" << endl;
+                }
+                if ( !IsValidChipId() ) {
+                    cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATASHORT" << endl;
+                    if ( GetVerboseLevel() > kCHATTY ) {
+                        for ( int i = 0; i < nBytes; i++ ) {
+                            printf("%02x ", data[i]);
                         }
-                    }
-                    bool corrupted = DecodeDataWord( data + byte, false );
-                    if ( corrupted ) {
-                        corrupt = true;
+                        printf("\n");
                     }
                 }
+                corrupt = DecodeDataWord( data + byte, false );
                 byte += GetWordLength();
                 break;
             case TDataType::kDATALONG:
@@ -219,24 +207,19 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                     cerr << "TAlpideDecoder::DecodeEvent() - Error: hit data found before chip header or after chip trailer" << endl;
                     return false;
                 }
-                if ( fRegion == -1 ) {
+                if ( fRegion == 32 ) {
                     cerr << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
-                    corrupt = true;
-                } else {
-                    if ( !IsValidChipId() ) {
-                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATALONG" << endl;
-                        if ( GetVerboseLevel() > kCHATTY ) {
-                            for ( int i = 0; i < nBytes; i++ ) {
-                                printf("%02x ", data[i]);
-                            }
-                            printf("\n");
+                }
+                if ( !IsValidChipId() ) {
+                    cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATALONG" << endl;
+                    if ( GetVerboseLevel() > kCHATTY ) {
+                        for ( int i = 0; i < nBytes; i++ ) {
+                            printf("%02x ", data[i]);
                         }
-                    }
-                    bool corrupted = DecodeDataWord( data + byte, true );
-                    if (corrupted) {
-                        corrupt = true;
+                        printf("\n");
                     }
                 }
+                corrupt = DecodeDataWord( data + byte, true );
                 byte += GetWordLength();
                 break;
             case TDataType::kUNKNOWN:
@@ -244,8 +227,12 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                 return false;
         }
     }
-    
-    FillHistoWithEvent();
+    try {
+        FillHistoWithEvent();
+    } catch ( std::exception &err ) {
+        cerr << "TAlpideDecoder::DecodeEvent() - " << err.what() << endl;
+        exit( EXIT_FAILURE );
+    }
     
     if ( started && finished ) {
         return (!corrupt);
