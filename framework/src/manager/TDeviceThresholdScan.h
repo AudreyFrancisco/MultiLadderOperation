@@ -41,7 +41,7 @@ class TDeviceThresholdScan : public TDeviceMaskScan {
     std::deque<std::shared_ptr<TScanHisto>> fHistoQue;
     
     /// S-curve analyzer (one per chip index)
-    std::map<int, TSCurveAnalysis> fAnalyserCollection;
+    std::map<int, std::shared_ptr<TSCurveAnalysis>> fAnalyserCollection;
     
 public:
     

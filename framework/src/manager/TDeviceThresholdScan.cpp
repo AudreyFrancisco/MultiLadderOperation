@@ -45,6 +45,7 @@ fNChargeSteps( 0 )
 TDeviceThresholdScan::~TDeviceThresholdScan()
 {
     fHistoQue.clear();
+    fAnalyserCollection.clear();
 }
 
 //___________________________________________________________________
@@ -72,8 +73,8 @@ void TDeviceThresholdScan::Init()
 //___________________________________________________________________
 void TDeviceThresholdScan::SetVerboseLevel( const int level )
 {
-    for ( std::map<int, TSCurveAnalysis>::iterator it = fAnalyserCollection.begin(); it != fAnalyserCollection.end(); ++it ) {
-        ((*it).second).SetVerboseLevel( level );
+    for ( std::map<int, shared_ptr<TSCurveAnalysis>>::iterator it = fAnalyserCollection.begin(); it != fAnalyserCollection.end(); ++it ) {
+        ((*it).second)->SetVerboseLevel( level );
     }
     TDeviceMaskScan::SetVerboseLevel( level );
 }
@@ -89,9 +90,9 @@ void TDeviceThresholdScan::Go()
     if ( fNMaskStages < 0 ) {
         fNMaskStages = 1;
     }
-
-    unsigned int nHitsTot = 0, nHitsLastStage = 0;
     
+    unsigned int nHitsPerStage = 0, nHitsLastStage = 0;
+
     for ( int istage = 0; istage < fNMaskStages; istage ++ ) { //---------------- loop on pixels
         
         if ( GetVerboseLevel() > kSILENT ) {
@@ -100,7 +101,11 @@ void TDeviceThresholdScan::Go()
         }
         DoConfigureMaskStage( fNPixPerRegion, istage );
         unsigned int deltaV = fChargeStart;
-        
+
+        if ( istage ) {
+            nHitsLastStage = fChipDecoder->GetNHits();
+        }
+
         for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl++ ) { //-- loop on VPulse low
             
             if ( deltaV >= fChargeStop ) { break; }
@@ -109,9 +114,6 @@ void TDeviceThresholdScan::Go()
             // Send triggers for all boards
             for ( unsigned int ib = 0; ib < fDevice->GetNBoards(false); ib++ ) {
                 (fDevice->GetBoard( ib ))->Trigger(fNTriggers);
-            }
-            if ( istage  && ( iampl == fNChargeSteps-1) ) {
-                nHitsLastStage = fChipDecoder->GetNHits();
             }
             try {
                 fScanHisto = fHistoQue.at( iampl );
@@ -130,11 +132,11 @@ void TDeviceThresholdScan::Go()
             deltaV += fChargeStep;
             usleep(1000);
         } //---------------------------------------------------------- end of loop on VPulse low
-    
-        nHitsTot = fChipDecoder->GetNHits() - nHitsLastStage;
+        
+        nHitsPerStage = fChipDecoder->GetNHits() - nHitsLastStage;
         if ( GetVerboseLevel() > kSILENT ) {
             cout << "TDeviceThresholdScan::Go() - stage "
-            << std::dec << istage << " , found n hits = " << nHitsTot << endl;
+            << std::dec << istage << " , found n hits = " << nHitsPerStage << endl;
         }
         usleep(200);
     } // end of loop on pixels
@@ -205,9 +207,9 @@ void TDeviceThresholdScan::DrawAndSaveToFile( const char *fName )
     if ( !fIsTerminated ) {
         throw runtime_error( "TDeviceThresholdScan::DrawAndSaveToFile() - not terminated ! Please use Terminate() first." );
     }
-    for ( std::map<int, TSCurveAnalysis>::iterator it = fAnalyserCollection.begin(); it != fAnalyserCollection.end(); ++it ) {
-        ((*it).second).DrawDistributions();
-        ((*it).second).SaveToFile( fName );
+    for ( std::map<int, shared_ptr<TSCurveAnalysis>>::iterator it = fAnalyserCollection.begin(); it != fAnalyserCollection.end(); ++it ) {
+        ((*it).second)->DrawDistributions();
+        ((*it).second)->SaveToFile( fName );
     }
 }
 
@@ -351,19 +353,18 @@ void TDeviceThresholdScan::InitScanParameters()
 //___________________________________________________________________
 bool TDeviceThresholdScan::HasData( const common::TChipIndex idx )
 {
-    for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl ++ ) {
-        try {
-            fScanHisto = fHistoQue.at( iampl );
-        } catch ( std::exception &err ) {
-            cerr << "TDeviceThresholdScan::HasData() - Error, iampl "
-            << std::dec << iampl << err.what() << endl;
-            exit( EXIT_FAILURE );
-        }
-        if ( !fScanHisto->IsValidChipIndex( idx ) ) {
-            return false;
-        }
-        return fScanHisto->HasData( idx );
+    unsigned int iampl = fNChargeSteps - 1;
+    try {
+        fScanHisto = fHistoQue.at( iampl );
+    } catch ( std::exception &err ) {
+        cerr << "TDeviceThresholdScan::HasData() - Error, iampl "
+        << std::dec << iampl << err.what() << endl;
+        exit( EXIT_FAILURE );
     }
+    if ( !fScanHisto->IsValidChipIndex( idx ) ) {
+        return false;
+    }
+    return fScanHisto->HasData( idx );
     return false;
 }
 
@@ -372,9 +373,9 @@ void TDeviceThresholdScan::AddChipSCurveAnalyzer( const common::TChipIndex idx )
 {
     int int_index = common::GetMapIntIndex( idx );
     
-    TSCurveAnalysis analyzer( idx, fNTriggers, fChargeStop );
-    analyzer.Init();
-    fAnalyserCollection.insert( std::pair<int, TSCurveAnalysis>(int_index, analyzer) );
+    auto analyzer = make_shared<TSCurveAnalysis>( idx, fNTriggers, fChargeStop );
+    analyzer->Init();
+    fAnalyserCollection.insert( std::pair<int, shared_ptr<TSCurveAnalysis>>(int_index, analyzer) );
 }
 
 //___________________________________________________________________
@@ -403,14 +404,14 @@ void TDeviceThresholdScan::AnalyzePixelSCurve( const common::TChipIndex aChipInd
                                               const unsigned int iaddr )
 {
     int int_index = common::GetMapIntIndex( aChipIndex );
-    (fAnalyserCollection.at(int_index)).SetPixelCoordinates( icol, iaddr );
+    (fAnalyserCollection.at(int_index))->SetPixelCoordinates( icol, iaddr );
     
     for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl++ ) {
         unsigned int icharge = GetInjectedCharge( iampl );
         unsigned int nhits = GetHits( aChipIndex, icol, iaddr, iampl );
-        (fAnalyserCollection.at(int_index)).FillPixelData( iampl, icharge, nhits );
+        (fAnalyserCollection.at(int_index))->FillPixelData( iampl, icharge, nhits );
     }
     
-    (fAnalyserCollection.at(int_index)).ProcessPixelData();
+    (fAnalyserCollection.at(int_index))->ProcessPixelData();
 }
 

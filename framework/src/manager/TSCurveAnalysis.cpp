@@ -188,7 +188,11 @@ void TSCurveAnalysis::FillPixelData( const unsigned int istep,
                                     const unsigned int nhits )
 {
     if ( istep < fMaxNPoints ) {
-        fX[istep] = injectedCharge;
+        if ( fDACtoElectronsConversionIsUsed ) {
+            fX[istep] = injectedCharge * fElectronsPerDAC;
+        } else {
+            fX[istep] = injectedCharge;
+        }
         fData[istep] = nhits;
         fNPoints++;
     }
@@ -212,7 +216,6 @@ void TSCurveAnalysis::ProcessPixelData()
     if ( !fHNoise ) {
         throw runtime_error( "TSCurveAnalysis::ProcessPixelData() - undefined fHNoise histo!" );
     }
-    ResetData();
     bool success = FitSCurve();
     if ( success ) {
         fHChisq->Fill( fChisq );
@@ -223,8 +226,12 @@ void TSCurveAnalysis::ProcessPixelData()
             fNChisq++;
         }
     } else {
-        cerr << "TSCurveAnalysis::ProcessPixelData() - fit failed !" << endl;
+        if ( GetVerboseLevel() > kTERSE ) {
+            cerr << "TSCurveAnalysis::ProcessPixelData() - fit failed, (chip "
+                 << std::dec << fIdx.chipId << ") row " << fRow << " : column " << fColumn << endl;
+        }
     }
+    ResetData();
 }
 
 //___________________________________________________________________
