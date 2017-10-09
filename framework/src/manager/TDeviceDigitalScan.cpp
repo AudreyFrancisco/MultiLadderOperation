@@ -32,13 +32,8 @@ TDeviceMaskScan( aDevice, aScanConfig ),
 fScanHisto( nullptr )
 {
     fScanHisto = make_shared<TScanHisto>();
-    try {
-        SetScanConfig( aScanConfig );
-    } catch ( exception& msg ) {
-        cerr << msg.what() << endl;
-        exit( EXIT_FAILURE );
-    }
-    fChipDecoder = make_unique<TAlpideDecoder>( aDevice, fScanHisto, fErrorCounter );
+    fChipDecoder = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
+    fChipDecoder->SetScanHisto( fScanHisto );
 }
 
 //___________________________________________________________________
@@ -76,7 +71,7 @@ void TDeviceDigitalScan::Terminate()
     
     CollectDiscordantPixels();
     cout << endl;
-    fErrorCounter->FindCorruptedHits();
+    fErrorCounter->ClassifyCorruptedHits();
     fErrorCounter->Dump();
 }
 
@@ -101,10 +96,10 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
     strtok( fNameTemp, "." );
     string suffix( fNameTemp );
     
-    for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
+    for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         
-        common::TChipIndex aChipIndex = fScanHisto->GetChipIndex( ichip );
-        
+        common::TChipIndex aChipIndex = fDevice->GetWorkingChipIndex( ichip );
+
         if ( !HasData( aChipIndex ) ) {
             if ( GetVerboseLevel() > kSILENT ) {
                 cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID = "
@@ -295,15 +290,6 @@ bool TDeviceDigitalScan::HasData( const common::TChipIndex idx )
     if ( !fScanHisto->IsValidChipIndex( idx ) ) {
         return false;
     }
-    /*
-     for (unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++) {
-     for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
-     if ((*fScanHisto)(idx,icol,iaddr) > 0) return true;
-     }
-     }
-     
-     return false;
-     */
     return fScanHisto->HasData( idx );
 }
 

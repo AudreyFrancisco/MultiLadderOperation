@@ -27,6 +27,7 @@
 #include "Common.h"
 #include "TChipErrorCounter.h"
 #include "TPixHit.h"
+#include "TVerbosity.h"
 
 class TScanHisto;
 
@@ -77,7 +78,7 @@ public:
     void Dump();
     
     /// count bad hits for each type of flag and for each chip
-    void FindCorruptedHits();
+    void ClassifyCorruptedHits();
     
     /// write list of hit pixels with a bad flag in an output file for each chip
     void WriteCorruptedHitsToFile( const char *fName, const bool Recreate = true );

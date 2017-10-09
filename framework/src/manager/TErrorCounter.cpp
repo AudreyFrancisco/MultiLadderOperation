@@ -151,10 +151,10 @@ void TErrorCounter::Dump()
 }
 
 //___________________________________________________________________
-void TErrorCounter::FindCorruptedHits()
+void TErrorCounter::ClassifyCorruptedHits()
 {
     for ( std::map<int, TChipErrorCounter>::iterator it = fCounterCollection.begin(); it != fCounterCollection.end(); ++it ) {
-        ((*it).second).FindCorruptedHits();
+        ((*it).second).ClassifyCorruptedHits();
     }
 }
 
