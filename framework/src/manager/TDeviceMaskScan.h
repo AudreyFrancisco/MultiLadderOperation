@@ -83,6 +83,9 @@ public:
     /// write raw hit data to a text file
     virtual void WriteDataToFile( const char *fName, bool Recreate = true ) = 0;
     
+    /// draw and save hit map or distributions
+    virtual void DrawAndSaveToFile( const char *fName ) = 0;
+    
 protected:
     
     /// allocate memory for histogram of hit pixels for each enabled chip
