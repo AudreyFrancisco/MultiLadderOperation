@@ -18,17 +18,18 @@
 class TScanConfig;
 class TScanHisto;
 class TDevice;
+class TSCurveAnalysis;
 
 class TDeviceThresholdScan : public TDeviceMaskScan {
     
     /// value of charge (VPULSEH - fChargeStart) to be injected, at the start of the scan
-    int fChargeStart;
+    unsigned int fChargeStart;
 
     /// increase of the value of fChargeStart at each step of the scan
     int fChargeStep;
 
     /// value of charge (VPULSEH - fChargeStop) to be injected, at the end of the scan
-    int fChargeStop;
+    unsigned int fChargeStop;
     
     /// number of steps on the injected charge during the scan
     unsigned int fNChargeSteps;
@@ -38,6 +39,9 @@ class TDeviceThresholdScan : public TDeviceMaskScan {
     
     /// list of histogram maps (one per step of the injected charge)
     std::deque<std::shared_ptr<TScanHisto>> fHistoQue;
+    
+    /// S-curve analyzer (one per chip index)
+    std::map<int, TSCurveAnalysis> fAnalyserCollection;
     
 public:
     
@@ -54,6 +58,18 @@ public:
     /// initialization
     void Init();
     
+    /// propagate the verbosity level to data members
+    void SetVerboseLevel( const int level );
+    
+    /// get hits for a given chip, double-column, address and a given amplification step
+    unsigned int GetHits( const common::TChipIndex aChipIndex,
+                         const unsigned int icol,
+                         const unsigned int iaddr,
+                         const unsigned int iampl );
+    
+    /// return the value (in DAC units) of the injected charge at the i-th step of the scan
+    unsigned int GetInjectedCharge( const unsigned int iampl ) const;
+    
     /// terminate
     void Terminate();
     
@@ -63,6 +79,9 @@ public:
     /// write raw hit data to a text file
     void WriteDataToFile( const char *fName, bool Recreate = true );
     
+    /// draw and save threshold, noise and chi2/ndf distributions
+    void DrawAndSaveToFile( const char *fName );
+
 protected:
     
     /// allocate memory for histogram of hit pixels for each enabled chip
@@ -76,6 +95,17 @@ protected:
     
     /// check if there is any hit for the requested chip index
     bool HasData( const common::TChipIndex idx );
+    
+    /// add an S-curve analyzer for a given chip
+    void AddChipSCurveAnalyzer( const common::TChipIndex idx );
+    
+    /// analyze the data obtained from the threshold scan of the device
+    void AnalyzeData();
+
+    /// Fill the S-curve for a given pixel then extract threshold and noise
+    void AnalyzePixelSCurve( const common::TChipIndex aChipIndex,
+                            const unsigned int icol,
+                            const unsigned int iaddr );
     
 };
 

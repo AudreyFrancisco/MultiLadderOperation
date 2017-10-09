@@ -10,6 +10,7 @@
 #include "THisto.h"
 #include "TReadoutBoard.h"
 #include "TScanConfig.h"
+#include "TSCurveAnalysis.h"
 #include <stdexcept>
 #include <iostream>
 #include <bitset>
@@ -37,7 +38,7 @@ fChargeStep( 0 ),
 fChargeStop( 0 ),
 fNChargeSteps( 0 )
 {
-    
+    fChipDecoder = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
 }
 
 //___________________________________________________________________
@@ -59,8 +60,24 @@ void TDeviceThresholdScan::Init()
     if ( !fScanHisto ) {
         throw runtime_error( "TDeviceThresholdScan::Init() - can not use a null pointer for the map of scan histo !" );
     }
+    fChipDecoder->SetScanHisto( fScanHisto );
     fErrorCounter->Init( fScanHisto, fNTriggers );
+    
+    for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
+        common::TChipIndex aChipIndex = fDevice->GetWorkingChipIndex( ichip );
+        AddChipSCurveAnalyzer( aChipIndex );
+    }
 }
+
+//___________________________________________________________________
+void TDeviceThresholdScan::SetVerboseLevel( const int level )
+{
+    for ( std::map<int, TSCurveAnalysis>::iterator it = fAnalyserCollection.begin(); it != fAnalyserCollection.end(); ++it ) {
+        ((*it).second).SetVerboseLevel( level );
+    }
+    TDeviceMaskScan::SetVerboseLevel( level );
+}
+
 
 //___________________________________________________________________
 void TDeviceThresholdScan::Go()
@@ -82,7 +99,7 @@ void TDeviceThresholdScan::Go()
             << std::dec << istage << endl;
         }
         DoConfigureMaskStage( fNPixPerRegion, istage );
-        int deltaV = fChargeStart;
+        unsigned int deltaV = fChargeStart;
         
         for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl++ ) { //-- loop on VPulse low
             
@@ -124,10 +141,74 @@ void TDeviceThresholdScan::Go()
 }
 
 //___________________________________________________________________
+unsigned int TDeviceThresholdScan::GetHits( const common::TChipIndex aChipIndex,
+                                      const unsigned int icol,
+                                      const unsigned int iaddr,
+                                      const unsigned int iampl )
+{
+    if ( icol > common::MAX_DCOL ) {
+        throw domain_error( "TDeviceThresholdScan::GetHits() - bad double-colum id" );
+    }
+    if ( iaddr > common::MAX_ADDR ) {
+        throw domain_error( "TDeviceThresholdScan::GetHits() - bad address id" );
+    }
+    if ( iampl >= fNChargeSteps ) {
+        throw domain_error( "TDeviceThresholdScan::GetHits() - bad amplification step" );
+    }
+    double hits = 0;
+    try {
+        fScanHisto = fHistoQue.at( iampl );
+    } catch ( std::exception &err ) {
+        cerr << "TDeviceThresholdScan::GetHits() - Error, icol "
+        << std::dec << icol << " , iaddr " << iaddr
+        << " , iampl " << iampl << err.what() << endl;
+        exit( EXIT_FAILURE );
+    }
+    hits = (*fScanHisto)(aChipIndex,icol,iaddr);
+    if ( hits < 0 ) {
+        hits = 0;
+    }
+    return (unsigned int)hits;
+}
+
+//___________________________________________________________________
+unsigned int TDeviceThresholdScan::GetInjectedCharge( const unsigned int iampl ) const
+{
+    if ( iampl >= fNChargeSteps ) {
+        throw domain_error( "TDeviceThresholdScan::GetInjectedCharge() - bad amplification step" );
+    }
+    unsigned int icharge;
+    if ( iampl == fNChargeSteps - 1 ) {
+        icharge = fChargeStop;
+    } else {
+        icharge = fChargeStart + (iampl*fChargeStep);
+        if ( icharge > fChargeStop ) {
+            icharge = fChargeStop;
+        }
+    }
+    return icharge;
+}
+
+//___________________________________________________________________
 void TDeviceThresholdScan::Terminate()
 {
     TDeviceChipVisitor::Terminate();
-    
+    AnalyzeData();
+}
+
+//___________________________________________________________________
+void TDeviceThresholdScan::DrawAndSaveToFile( const char *fName )
+{
+    if ( !fIsInitDone ) {
+        throw runtime_error( "TDeviceThresholdScan::DrawAndSaveToFile() - not initialized ! Please use Init() first." );
+    }
+    if ( !fIsTerminated ) {
+        throw runtime_error( "TDeviceThresholdScan::DrawAndSaveToFile() - not terminated ! Please use Terminate() first." );
+    }
+    for ( std::map<int, TSCurveAnalysis>::iterator it = fAnalyserCollection.begin(); it != fAnalyserCollection.end(); ++it ) {
+        ((*it).second).DrawDistributions();
+        ((*it).second).SaveToFile( fName );
+    }
 }
 
 //___________________________________________________________________
@@ -151,11 +232,9 @@ void TDeviceThresholdScan::WriteDataToFile( const char *fName, bool Recreate )
     strtok( fNameTemp, "." );
     string suffix( fNameTemp );
     
-    const unsigned int chipListSize = (fHistoQue.front())->GetChipListSize();
-    for ( unsigned int ichip = 0; ichip < chipListSize; ichip++ ) {
+    for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         
-        fScanHisto = fHistoQue.front();
-        common::TChipIndex aChipIndex = fScanHisto->GetChipIndex( ichip );
+        common::TChipIndex aChipIndex = fDevice->GetWorkingChipIndex( ichip );
         
         if ( !HasData( aChipIndex ) ) {
             if ( GetVerboseLevel() > kSILENT ) {
@@ -187,21 +266,14 @@ void TDeviceThresholdScan::WriteDataToFile( const char *fName, bool Recreate )
         }
         for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
             for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
-                int icharge = fChargeStart;
+                double hits_at_max_charge = GetHits( aChipIndex, icol, iaddr, fNChargeSteps - 1 );
                 for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl ++ ) {
-                    try {
-                        fScanHisto = fHistoQue.at( iampl );
-                    } catch ( std::exception &err ) {
-                        cerr << "TDeviceThresholdScan::WriteDataToFile() - Error, icol "
-                        << std::dec << icol << " , iaddr " << iaddr
-                        << " , iampl " << iampl << err.what() << endl;
-                        exit( EXIT_FAILURE );
+                    double hits = GetHits( aChipIndex, icol, iaddr, iampl );
+                    // also write zero hit for pixels who are responding at max injected charge
+                    if ( (hits_at_max_charge > 0) || (hits > 0) ) {
+                        fprintf(fp, "%d %d %d %d\n",
+                                icol, iaddr, GetInjectedCharge(iampl), (int)hits);
                     }
-                    double hits = (*fScanHisto)(aChipIndex,icol,iaddr);
-                    if (hits > 0) {
-                        fprintf(fp, "%d %d %d %d\n", icol, iaddr, icharge, (int)hits);
-                    }
-                    icharge += fChargeStep;
                 }
             }
         }
@@ -212,7 +284,7 @@ void TDeviceThresholdScan::WriteDataToFile( const char *fName, bool Recreate )
 //___________________________________________________________________
 void TDeviceThresholdScan::AddHisto()
 {
-    int currentCharge = fChargeStart;
+    unsigned int currentCharge = fChargeStart;
     
     while ( currentCharge < fChargeStop ) {
         
@@ -234,14 +306,14 @@ void TDeviceThresholdScan::AddHisto()
         }
         aScanHisto->FindChipList();
         if ( GetVerboseLevel() > kCHATTY ) {
-            cout << endl << "TDeviceDigitalScan::AddHisto() - generated map with " << std::dec << aScanHisto->GetSize() << " elements" << endl;
+            cout << endl << "TDeviceThresholdScan::AddHisto() - generated map with " << std::dec << aScanHisto->GetSize() << " elements" << endl;
         }
         fHistoQue.push_back( move(aScanHisto) );
         currentCharge += fChargeStep;
     }
     fNChargeSteps = fHistoQue.size();
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << endl << "TDeviceDigitalScan::AddHisto() - generated deque with " << std::dec << fNChargeSteps << " elements" << endl;
+        cout << endl << "TDeviceThresholdScan::AddHisto() - generated deque with " << std::dec << fNChargeSteps << " elements" << endl;
     }
 }
 
@@ -258,9 +330,9 @@ void TDeviceThresholdScan::DumpScanParameters()
 void TDeviceThresholdScan::InitScanParameters()
 {
     TDeviceMaskScan::InitScanParameters();
-    fChargeStart = fScanConfig->GetChargeStart();
+    fChargeStart = (unsigned int)fScanConfig->GetChargeStart();
     fChargeStep  = fScanConfig->GetChargeStep();
-    fChargeStop  = fScanConfig->GetChargeStop();
+    fChargeStop  = (unsigned int)fScanConfig->GetChargeStop();
 
     // in case the input values were in a bad ordering
     if ( fChargeStart > fChargeStop ) {
@@ -294,3 +366,51 @@ bool TDeviceThresholdScan::HasData( const common::TChipIndex idx )
     }
     return false;
 }
+
+//___________________________________________________________________
+void TDeviceThresholdScan::AddChipSCurveAnalyzer( const common::TChipIndex idx )
+{
+    int int_index = common::GetMapIntIndex( idx );
+    
+    TSCurveAnalysis analyzer( idx, fNTriggers, fChargeStop );
+    analyzer.Init();
+    fAnalyserCollection.insert( std::pair<int, TSCurveAnalysis>(int_index, analyzer) );
+}
+
+//___________________________________________________________________
+void TDeviceThresholdScan::AnalyzeData()
+{
+    for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
+        
+        common::TChipIndex chipIndex = fDevice->GetWorkingChipIndex( ichip );
+        
+        for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
+            for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
+         
+                AnalyzePixelSCurve( chipIndex, icol, iaddr );
+                
+            }
+        }
+        
+    }
+}
+
+
+
+//___________________________________________________________________
+void TDeviceThresholdScan::AnalyzePixelSCurve( const common::TChipIndex aChipIndex,
+                                              const unsigned int icol,
+                                              const unsigned int iaddr )
+{
+    int int_index = common::GetMapIntIndex( aChipIndex );
+    (fAnalyserCollection.at(int_index)).SetPixelCoordinates( icol, iaddr );
+    
+    for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl++ ) {
+        unsigned int icharge = GetInjectedCharge( iampl );
+        unsigned int nhits = GetHits( aChipIndex, icol, iaddr, iampl );
+        (fAnalyserCollection.at(int_index)).FillPixelData( iampl, icharge, nhits );
+    }
+    
+    (fAnalyserCollection.at(int_index)).ProcessPixelData();
+}
+
