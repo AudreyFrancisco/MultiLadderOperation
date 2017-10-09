@@ -411,6 +411,19 @@ common::TChipIndex TDevice::GetWorkingChipIndexdByBoardReceiver( const unsigned 
 }
 
 //___________________________________________________________________
+common::TChipIndex TDevice::GetWorkingChipIndex( const unsigned iChip ) const
+{
+    if ( !GetNWorkingChips() ) {
+        throw runtime_error( "TDevice::GetChipIdByBoardReceiver() - no existing working chip!" );
+    }
+    if ( iChip >= GetNWorkingChips() ) {
+        cerr << "TDevice::GetWorkingChipIndex() - iChip = " << iChip << endl;
+        throw out_of_range( "TDevice::GetWorkingChipIndex() - wrong chip index!" );
+    }
+    return fWorkingChipIndexList.at( iChip );
+}
+
+//___________________________________________________________________
 shared_ptr<TChipConfig> TDevice::GetChipConfig( const unsigned int iChip )
 {
     if ( fChipConfigs.empty()  ) {
