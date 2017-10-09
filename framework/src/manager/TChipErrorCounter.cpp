@@ -158,7 +158,7 @@ void TChipErrorCounter::IncrementN8b10b( const unsigned int boardReceiver,
 }
 
 //___________________________________________________________________
-void TChipErrorCounter::FindCorruptedHits()
+void TChipErrorCounter::ClassifyCorruptedHits()
 {
     if ( fFilledErrorCounters ) {
         return;
@@ -257,7 +257,7 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
  
         if ( GetVerboseLevel() > kCHATTY ) {
             cout << endl;
-            cout << "------------------------------- TChipErrorCounter::FindCorruptedHits() "
+            cout << "------------------------------- TChipErrorCounter::ClassifyCorruptedHits() "
             << endl;
         }
         switch ( (int)flag ) {

@@ -108,7 +108,7 @@ public:
                       const double nhits );
 
     /// count bad hits for each type of flag
-    void FindCorruptedHits();
+    void ClassifyCorruptedHits();
     
     /// dump all errors
     void Dump();
