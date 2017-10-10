@@ -47,6 +47,9 @@ namespace common {
     /// number of pixels in a row of the chip
     const unsigned int NPIX_PER_ROW = 1024;  // 1024 pixels / row
     
+    /// number of lines in the pixel matrix
+    const unsigned int NLINES = 512;
+    
     /// return the integer that indexes the TChipIndex in the map
     extern int GetMapIntIndex( const common::TChipIndex idx );
     
