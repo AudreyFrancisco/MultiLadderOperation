@@ -532,8 +532,13 @@ bool TSCurveAnalysis::FitSCurve()
     fitfcn->SetParameter(1,8);
     fitfcn->SetParName(0, "Threshold");
     fitfcn->SetParName(1, "Noise");
+
+    if ( !fgClone ) {
+        g->Fit("fitfcn","Q");
+    } else {
+        g->Fit("fitfcn","Q0");
+    }
     
-    g->Fit("fitfcn","Q");
     
     fNoise     = fitfcn->GetParameter(1);
     fThreshold = fitfcn->GetParameter(0);
