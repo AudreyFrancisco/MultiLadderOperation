@@ -19,7 +19,6 @@ using namespace std;
 TDevice::TDevice() : TVerbosity(),
     fCreatedConfig( false ),
     fInitialisedSetup( false ),
-    fNWorkingChips( 0 ),
     fNChips( 0 ),
     fNModules( 0 ),
     fStartChipId( 0 ),
@@ -166,24 +165,25 @@ void TDevice::AddChipConfig( std::shared_ptr<TChipConfig> newChipConfig )
 }
 
 //___________________________________________________________________
-void TDevice::IncrementWorkingChipCounter()
-{
-    if ( IsSetupFrozen() ) {
-        return;
-    }
-    fNWorkingChips++;
-}
-
-//___________________________________________________________________
 void TDevice::AddNWorkingChipCounterPerBoard( const unsigned int nChips )
 {
-    if ( !fNWorkingChips ) {
+    if ( !GetNWorkingChips() ) {
         return;
     }
     if ( fNWorkingChipsPerBoard.size() >= fBoards.size() ) {
         throw runtime_error( "TDevice::AddNWorkingChipCounterPerBoard() - no more board available!" );
     }
     fNWorkingChipsPerBoard.push_back( nChips );
+}
+
+//___________________________________________________________________
+void TDevice::AddWorkingChipIndex( const common::TChipIndex idx )
+{
+    if ( IsSetupFrozen() ) {
+        cerr << "TDevice::AddChipIndex() - no allowad, setup already frozen!" << endl;
+        return;
+    }
+    fWorkingChipIndexList.push_back( idx );
 }
 
 #pragma mark - getters
@@ -252,7 +252,7 @@ shared_ptr<TReadoutBoard> TDevice::GetBoardByChip( const unsigned int iChip )
 //___________________________________________________________________
 unsigned int TDevice::GetBoardIndexByChip( const unsigned int iChip )
 {
-    if ( (!IsSetupFrozen()) || fBoards.empty() || fChips.empty() ) {
+    if ( fBoards.empty() || fChips.empty() ) {
         throw runtime_error( "TDevice::GetBoardIndexByChip() - no chip or board defined!" );
     }
     if ( iChip >= fChips.size() ) {
@@ -390,6 +390,40 @@ unsigned int TDevice::GetChipIndexById( const unsigned int chipId ) const
 }
 
 //___________________________________________________________________
+common::TChipIndex TDevice::GetWorkingChipIndexdByBoardReceiver( const unsigned int iBoard,
+                                                                const unsigned int rcv ) const
+{
+    if ( !GetNWorkingChips() ) {
+        throw runtime_error( "TDevice::GetChipIdByBoardReceiver() - no existing working chip!" );
+    }
+    bool found = false;
+    for ( auto it = fWorkingChipIndexList.begin(); it != fWorkingChipIndexList.end(); ++it ) {
+        if ( (iBoard == (*it).boardIndex) && (rcv == (*it).dataReceiver) ) {
+            return *it;
+        }
+    }
+    if ( !found ) {
+        cerr << "TDevice::GetChipIdByBoardReceiver() - requested board receiver id = " << rcv << endl;
+        throw runtime_error( "TDevice::GetChipIdByBoardReceiver() - chip id not found for the requested board receiver id!" );
+    }
+    auto it = fWorkingChipIndexList.begin();
+    return *it;
+}
+
+//___________________________________________________________________
+common::TChipIndex TDevice::GetWorkingChipIndex( const unsigned iChip ) const
+{
+    if ( !GetNWorkingChips() ) {
+        throw runtime_error( "TDevice::GetChipIdByBoardReceiver() - no existing working chip!" );
+    }
+    if ( iChip >= GetNWorkingChips() ) {
+        cerr << "TDevice::GetWorkingChipIndex() - iChip = " << iChip << endl;
+        throw out_of_range( "TDevice::GetWorkingChipIndex() - wrong chip index!" );
+    }
+    return fWorkingChipIndexList.at( iChip );
+}
+
+//___________________________________________________________________
 shared_ptr<TChipConfig> TDevice::GetChipConfig( const unsigned int iChip )
 {
     if ( fChipConfigs.empty()  ) {
@@ -488,4 +522,33 @@ unsigned int TDevice::GetNWorkingChipsPerBoard( const unsigned int iBoard ) cons
         throw out_of_range( "TDevice::GetNWorkingChipsPerBoard() - wrong board config index!" );
     }
     return fNWorkingChipsPerBoard.at( iBoard );
+}
+
+//___________________________________________________________________
+bool TDevice::IsValidChipIndex( const common::TChipIndex idx ) const
+{
+    if ( !GetNWorkingChips() ) {
+        throw runtime_error( "TDevice::IsValidChipIndex() - no existing working chip!" );
+    }
+    for ( auto it = fWorkingChipIndexList.begin(); it != fWorkingChipIndexList.end(); ++it ) {
+        if ( common::SameChipIndex( idx, *it ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+//___________________________________________________________________
+bool TDevice::IsValidChipId( const unsigned int chipId ) const
+{
+    if ( !GetNWorkingChips() ) {
+        throw runtime_error( "TDevice::IsValidChipId() - no existing working chip!" );
+    }
+    for ( auto it = fWorkingChipIndexList.begin(); it != fWorkingChipIndexList.end(); ++it ) {
+        unsigned int legitimateChipId = (*it).chipId;
+        if ( chipId == legitimateChipId ) {
+            return true;
+        }
+    }
+    return false;
 }

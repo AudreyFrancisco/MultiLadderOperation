@@ -72,9 +72,6 @@ public:
     /// destructor
     virtual ~TDeviceFifoTest();
         
-    /// terminate
-    virtual void Terminate();
-    
     /// run the FIFO test on all chips of the device
     void Go();
     
@@ -105,10 +102,16 @@ private:
 protected:
     
     /// configure readout boards
-    virtual void ConfigureBoards();
+    void ConfigureBoards();
     
     /// configure chips
-    virtual void ConfigureChips();
+    void ConfigureChips();
+    
+    /// start the readout
+    void StartReadout();
+    
+    /// stop the readout
+    void StopReadout();
 };
 
 

@@ -196,7 +196,6 @@ void TDeviceBuilder::CheckControlInterface()
                 << (fCurrentDevice->GetChipConfig(i))->GetChipId()
                 << ", readback correct." << endl;
             }
-            fCurrentDevice->IncrementWorkingChipCounter();
         } else {
             cerr << "TDeviceBuilder::CheckControlInterface() - Chip ID "
             << (fCurrentDevice->GetChipConfig(i))->GetChipId()
@@ -205,11 +204,28 @@ void TDeviceBuilder::CheckControlInterface()
         }
     }
     
+    FillWorkingChipIndexList();
+
     cout << "TDeviceBuilder::CheckControlInterface() - Found a total of "
          << fCurrentDevice->GetNWorkingChips() << " working chips." << endl << endl;
     
+    
     if ( fCurrentDevice->GetNWorkingChips() == 0 ) {
         throw runtime_error( "TDeviceBuilder::CheckControlInterface() - no working chip found!" );
+    }
+}
+
+//___________________________________________________________________
+void TDeviceBuilder::FillWorkingChipIndexList()
+{
+    for ( unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++ ) {
+        if ( !(fCurrentDevice->GetChipConfig(i)->IsEnabled()) ) continue;
+        common::TChipIndex idx;
+        idx.boardIndex = fCurrentDevice->GetBoardIndexByChip(i);
+        idx.dataReceiver = (fCurrentDevice->GetChipConfig(i))->GetReceiver();
+        idx.ladderId = fCurrentDevice->GetLadderId();
+        idx.chipId = fCurrentDevice->GetChipId(i);
+        fCurrentDevice->AddWorkingChipIndex( idx );
     }
 }
 

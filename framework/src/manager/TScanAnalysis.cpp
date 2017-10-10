@@ -12,7 +12,7 @@ TScanAnalysis::TScanAnalysis(std::deque<TScanHisto> *histoQue)
 void TScanAnalysis::Run() 
 {
 
-    common::TChipIndex idx = {0, 3, 0};
+    common::TChipIndex idx = {0, 3, 0, 0};
   while (m_histoQue->size() > 0) {
     TScanHisto histo = m_histoQue->front();
     m_histoQue->pop_front();

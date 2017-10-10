@@ -1,9 +1,9 @@
 /**
- * \brief This executable runs the digital scan test for all enabled chips in the device.
+ * \brief This executable runs the threshold scan test for all enabled chips in the device.
  *
  * \note
  * The default configuration file for this test for a MFT ladder is 
- * ConfigMFTladder_DigitalScan.cfg
+ * ConfigMFTladder_ThresholdScan.cfg
  *
  * \warning
  * The current code can not correctly handle a number N > 1 of readout boards
@@ -20,16 +20,16 @@
 #include "TSetup.h"
 #include "TDevice.h"
 #include "TScanConfig.h"
-#include "TDeviceDigitalScan.h"
+#include "TDeviceThresholdScan.h"
 #include "TBoardConfig.h"
 
 using namespace std;
 
 // Example of usage : if 25 is the id of the tested ladder
-// ./test_digitalscan -v 1 -c ../config/ConfigMFTladder_DigitalScan.cfg -l 25
+// ./test_thresholdscan -v 1 -c ../config/ConfigMFTladder_ThresholdScan.cfg -l 25
 //
 // If you want to see the available options, do :
-// ./test_digitalscan -h
+// ./test_thresholdscan -h
 //
 
 int main(int argc, char** argv) {
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     
-    TDeviceDigitalScan theDeviceTestor( theDevice, theScanConfig );
+    TDeviceThresholdScan theDeviceTestor( theDevice, theScanConfig );
     theDeviceTestor.Init();
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.SetRescueBadChipId( true );
@@ -82,12 +82,11 @@ int main(int argc, char** argv) {
 
     if ( !(theDevice->GetNickName()).empty() ) {
         sprintf( chipName, "%s", (theDevice->GetNickName()).c_str() );
-        sprintf(fName, "digitalScan_%s_%s.dat", chipName, suffix);
+        sprintf(fName, "thresholdScan_%s_%s.dat", chipName, suffix);
     } else {
-        sprintf(fName, "digitalScan_%s.dat", suffix);
+        sprintf(fName, "thresholdScan_%s.dat", suffix);
     }
     theDeviceTestor.WriteDataToFile( fName, Recreate );
-    theDeviceTestor.WriteCorruptedHitsToFile( fName, Recreate );
     theDeviceTestor.DrawAndSaveToFile( fName );
     
     return EXIT_SUCCESS;

@@ -148,7 +148,7 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   //bool TDAQBoard::DecodeEventHeader  (unsigned char *data_buf, TEventHeader *AHeader) {
   const int header_length = nBytesHeader/4; // length in terms of 32-bit words
 
-  int Header[header_length];
+  int* Header = new int[header_length];
   for (int i = 0; i < header_length; i++) {
       Header[i] = DAQBoardDecoder::GetIntFromBinaryStringReversed(4, data + i*4);
     //#ifdef MYDEBUG
@@ -266,6 +266,9 @@ bool TBoardDecoder::DecodeEventDAQ( unsigned char *data,
   //  std::cout << std::hex<< "Trailer: 2 word = " << Trailer[1] <<  std::dec << std::endl;
   //#endif
 
+    if ( Header ) {
+        delete[] Header;
+    }
   return true;
 }
 

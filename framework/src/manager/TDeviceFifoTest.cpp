@@ -49,20 +49,6 @@ TDeviceFifoTest::~TDeviceFifoTest()
 }
 
 //___________________________________________________________________
-void TDeviceFifoTest::Terminate()
-{
-    for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
-        
-        shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( iboard ));
-        
-        if ( myDAQBoard ) {
-            myDAQBoard->PowerOff();
-        }
-    }
-    fIsTerminated = true;
-}
-
-//___________________________________________________________________
 void TDeviceFifoTest::Go()
 {
     if ( !fIsInitDone ) {
@@ -84,7 +70,7 @@ void TDeviceFifoTest::Go()
                 cout << "TDeviceFifoTest::Go() - Chip ID "
                 << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << " : disabled chip, skipped." <<  endl;
             }
-            return;
+            continue;
         }
         if ( GetVerboseLevel() > kSILENT ) {
             cout << "TDeviceFifoTest::Go() - Testing chip ID "
@@ -391,7 +377,7 @@ void TDeviceFifoTest::MemTestPerChip()
 //___________________________________________________________________
 void TDeviceFifoTest::ConfigureBoards()
 {
-    
+    // nothing to do to be able to run a FIFO test
 }
 
 //___________________________________________________________________
@@ -400,3 +386,23 @@ void TDeviceFifoTest::ConfigureChips()
     DoActivateConfigMode();
     DoBaseConfig();
 }
+
+//___________________________________________________________________
+void TDeviceFifoTest::StartReadout()
+{
+    // nothing to do to be able to run a FIFO test
+}
+
+//___________________________________________________________________
+void TDeviceFifoTest::StopReadout()
+{
+    for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
+        
+        shared_ptr<TReadoutBoardDAQ> myDAQBoard = dynamic_pointer_cast<TReadoutBoardDAQ>(fDevice->GetBoard( iboard ));
+        
+        if ( myDAQBoard ) {
+            myDAQBoard->PowerOff();
+        }
+    }
+}
+

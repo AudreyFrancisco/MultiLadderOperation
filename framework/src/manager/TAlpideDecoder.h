@@ -20,12 +20,16 @@ enum class TDataType {
 };
 
 class TPixHit;
+class TDevice;
 class TScanHisto;
 class TErrorCounter;
 
 class TAlpideDecoder : public TVerbosity {
     
 private:
+
+    /// pointer to the device to which belongs the data stream being decoded
+    std::shared_ptr<TDevice> fDevice;
 
     /// allows the decoder to know if the current data corresponds to a new event
     bool fNewEvent;
@@ -42,14 +46,11 @@ private:
     /// region id decoded from region header
     int fRegion;
     
-    /// id of the board that read the chip (must be given by the user)
-    unsigned int fBoardIndex;
+    /// current chip index of the device being decoded
+    common::TChipIndex fCurrentChipIndex;
     
-    /// id of the board data receiver that read the chip (must be given by the user)
-    unsigned int fBoardReceiver;
-    
-    /// id of the ladder to which belong the chip
-    unsigned int fLadderId;
+    /// decide if we use the MOSAIC receiver id to recover a bad chip id (default = false)
+    bool fRescueBadChipId;
     
     /// type of the data word currently being decoded
     TDataType fDataType;
@@ -69,12 +70,15 @@ public:
     /// default constructor
     TAlpideDecoder();
     
-    /// constructor that sets pointers to map of hit pixel histograms and to error counter
-    TAlpideDecoder( std::shared_ptr<TScanHisto> aScanHisto,
+    /// constructor that sets the pointers to the device and to the error counter
+    TAlpideDecoder( std::shared_ptr<TDevice> aDevice,
                     std::shared_ptr<TErrorCounter> anErrorCounter );
     
     /// destructor
     ~TAlpideDecoder();
+
+    /// set the pointer to the device
+    void SetDevice( std::shared_ptr<TDevice> aDevice );
 
     /// set the pointer to the map containing histograms of hit pixels vs chip index
     void SetScanHisto( std::shared_ptr<TScanHisto> aScanHisto );
@@ -82,11 +86,11 @@ public:
     /// set the pointer to the error container
     void SetErrorCounter( std::shared_ptr<TErrorCounter> anErrorCounter );
     
+    /// toggle on/off the possibility to rescue a bad chip id
+    inline void SetRescueBadChipId( const bool permit ) { fRescueBadChipId = permit; }
+    
     /// get the map of histograms (one per chip) of hit pixels
     inline std::shared_ptr<TScanHisto> GetScanHisto() { return fScanHisto; }
-    
-    /// write hit data to a text file
-    void WriteDataToFile( const char *fName, bool Recreate = true );
     
     /// compute the total number of hits over the full extent of the scan
     unsigned int GetNHits() const;
@@ -94,8 +98,7 @@ public:
     /// the sole purpose of this class : decode each event read by the readout board
     bool DecodeEvent( unsigned char* data, int nBytes,
                      unsigned int boardIndex,
-                     unsigned int boardReceiver,
-                     unsigned int ladderId );
+                     unsigned int boardReceiver );
         
 private:
     
@@ -123,9 +126,6 @@ private:
     
     /// fill the histogram with good quality pixel hits extracted from the current event
     void FillHistoWithEvent();
-    
-    /// check if there is any hit for the requested chip index
-    bool HasData( const common::TChipIndex& idx );
     
     /// check if the hit would have a legitimate chip index
     bool IsValidChipIndex( std::shared_ptr<TPixHit> hit );

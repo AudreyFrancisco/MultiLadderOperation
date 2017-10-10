@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <stdexcept>
 
 #include "THitMapDiscordant.h"
@@ -95,7 +96,7 @@ void TChipErrorCounter::AddDeadPixel( const unsigned int icol, const unsigned in
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
-    float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
+    float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kDEAD );
     fHitMap->AddDeadPixel( hit );
@@ -118,7 +119,7 @@ void TChipErrorCounter::AddInefficientPixel( const unsigned int icol,
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
-    float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
+    float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kINEFFICIENT );
     fHitMap->AddInefficientPixel( hit, nhits );
@@ -140,7 +141,7 @@ void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int
     hit->SetChipId( fIdx.chipId );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
-    float region = floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
+    float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
     hit->SetRegion( (unsigned int)region );
     hit->SetPixFlag( TPixFlag::kHOT );
     fHitMap->AddHotPixel( hit, nhits );
@@ -157,7 +158,7 @@ void TChipErrorCounter::IncrementN8b10b( const unsigned int boardReceiver,
 }
 
 //___________________________________________________________________
-void TChipErrorCounter::FindCorruptedHits()
+void TChipErrorCounter::ClassifyCorruptedHits()
 {
     if ( fFilledErrorCounters ) {
         return;
@@ -229,7 +230,6 @@ void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
     }
 
     char  fNameChip[100];
-    FILE *fp;
     
     char fNameTemp[100];
     sprintf( fNameTemp,"%s", fName);
@@ -257,7 +257,7 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
  
         if ( GetVerboseLevel() > kCHATTY ) {
             cout << endl;
-            cout << "------------------------------- TChipErrorCounter::FindCorruptedHits() "
+            cout << "------------------------------- TChipErrorCounter::ClassifyCorruptedHits() "
             << endl;
         }
         switch ( (int)flag ) {
@@ -269,7 +269,7 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
                     }
                 }
                 break;
-            case (int)TPixFlag::kOK : // nothing to do, since all hits in the vector are bad
+            case (int)TPixFlag::kOK : // nothing to do, since all hits in the deque are bad
                 break;
             case (int)TPixFlag::kBAD_CHIPID : // nothing to do, since a bad chip id can not be attached (and hence found) to (in) a given TChipErrorCounter
                 break;

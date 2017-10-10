@@ -28,10 +28,6 @@ protected:
     bool fIsInitDone;
     bool fIsTerminated;
 
-    #pragma mark - readout board configuration
-    virtual void ConfigureBoards() = 0;
-    virtual void ConfigureChips() = 0;
-    
 public:
     
     #pragma mark - Constructors/destructor
@@ -47,7 +43,7 @@ public:
     
     #pragma mark - init / terminate
     virtual void Init();
-    virtual void Terminate() = 0;
+    virtual void Terminate();
     
     #pragma mark - forward operations to each Alpide in the device
     void DoActivateConfigMode();
@@ -63,6 +59,17 @@ public:
     void DoConfigureMaskStage( int nPix, const int iStage );
     void DoDumpConfig();
     void DoActivateReadoutMode();
+    void DoConfigureVPulseLow( const unsigned int deltaV );
+    
+protected:
+    
+    #pragma mark - readout board and chip configuration
+    virtual void ConfigureBoards() = 0;
+    virtual void ConfigureChips() = 0;
+    void HardwareGlobalReset();
+    virtual void StartReadout() = 0;
+    virtual void StopReadout() = 0;
+    
     
 };
 

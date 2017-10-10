@@ -92,6 +92,7 @@ public:
     void SetDoubleColumn( const unsigned int value );
     void SetAddress( const unsigned int value );
     inline void SetPixFlag( const TPixFlag flag ) { fFlag = flag; }
+    void SetPixChipIndex( const common::TChipIndex idx );
 
 #pragma mark - getters
 
