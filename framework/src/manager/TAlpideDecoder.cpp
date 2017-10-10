@@ -130,7 +130,7 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
     bool corrupt  = false; // corrupt data found (i.e. data without region or chip)
     int byte = 0;
     
-    unsigned char last;
+    unsigned char last = 0x0;
     
     // decode the event
     while ( byte < nBytes ) {
