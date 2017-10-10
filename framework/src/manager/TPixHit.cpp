@@ -113,6 +113,15 @@ void TPixHit::SetAddress( const unsigned int value )
     fAddress = value;
 }
 
+//___________________________________________________________________
+void TPixHit::SetPixChipIndex( const common::TChipIndex idx )
+{
+    SetBoardIndex( idx.boardIndex );
+    SetBoardReceiver( idx.dataReceiver );
+    SetLadderId( idx.ladderId );
+    SetChipId( idx.chipId );
+}
+
 #pragma mark - getters
 
 //___________________________________________________________________
@@ -218,8 +227,7 @@ bool TPixHit::IsPixHitCorrupted() const
 //___________________________________________________________________
 unsigned int TPixHit::GetColumn() const
 {
-    if ( (fFlag == TPixFlag::kBAD_REGIONID)
-        || (fFlag == TPixFlag::kBAD_ADDRESS)
+    if ( (fFlag == TPixFlag::kBAD_ADDRESS)
         || (fFlag == TPixFlag::kBAD_DCOLID) ) {
         cerr << "TPixHit::GetColumn() - Warning, return value probably meaningless" << endl;
     }

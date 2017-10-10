@@ -21,12 +21,10 @@
 #include <libusb-1.0/libusb.h>
 #include "TDeviceBuilder.h"
 
-namespace DeviceBuilder {
-     static struct libusb_context *fContext = 0;
-}
-
 class TDeviceBuilderWithDAQBoards : public TDeviceBuilder {
-    
+
+    static struct libusb_context* fContext;
+
 protected:
     #pragma mark - Specific to DAQ board settings
     void AddDAQBoard( libusb_device* device );

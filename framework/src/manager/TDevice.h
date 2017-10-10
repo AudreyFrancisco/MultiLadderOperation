@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include "TVerbosity.h"
+#include "Common.h"
 
 class TAlpide;
 class TReadoutBoard;
@@ -55,7 +56,6 @@ class TDevice : public TVerbosity {
     
     bool fCreatedConfig;
     bool fInitialisedSetup;
-    unsigned int fNWorkingChips;
     unsigned int fNChips;
     unsigned int fNModules;
     unsigned int fStartChipId;
@@ -68,6 +68,7 @@ class TDevice : public TVerbosity {
     std::vector<std::shared_ptr<TBoardConfig>> fBoardConfigs;
     std::vector<std::shared_ptr<TChipConfig>> fChipConfigs;
     std::vector<unsigned int> fNWorkingChipsPerBoard;
+    std::vector<common::TChipIndex> fWorkingChipIndexList;
     
 public:
     #pragma mark - Constructors/destructor
@@ -92,8 +93,8 @@ public:
     void AddBoardConfig( std::shared_ptr<TBoardConfig> newBoardConfig );
     void AddChip( std::shared_ptr<TAlpide> newChip );
     void AddChipConfig( std::shared_ptr<TChipConfig> newChipConfig );
-    void IncrementWorkingChipCounter();
     void AddNWorkingChipCounterPerBoard( const unsigned int nChips );
+    void AddWorkingChipIndex( const common::TChipIndex idx );
 
     #pragma mark - getters
     std::shared_ptr<TReadoutBoard>  GetBoard( const unsigned int iBoard );
@@ -105,6 +106,9 @@ public:
     std::shared_ptr<TAlpide>        GetChipById( const unsigned int chipId );
     unsigned int                    GetChipId( const unsigned int iChip ) const;
     unsigned int                    GetChipIndexById( const unsigned int chipId ) const;
+    common::TChipIndex              GetWorkingChipIndexdByBoardReceiver( const unsigned int iBoard,
+                                                             const unsigned int rcv ) const;
+    common::TChipIndex              GetWorkingChipIndex( const unsigned iChip ) const;
     std::shared_ptr<TChipConfig>    GetChipConfig( const unsigned int iChip );
     std::shared_ptr<TChipConfig>    GetChipConfigById( const unsigned int chipId );
     inline TBoardType               GetBoardType() const { return fBoardType; }
@@ -113,7 +117,8 @@ public:
     unsigned int                    GetChipConfigsVectorSize() const;
     unsigned int                    GetNBoards( const bool useBoardConfigVector = true ) const;
     unsigned int                    GetNModules() const { return fNModules; }
-    inline unsigned int             GetNWorkingChips() const { return fNWorkingChips; }
+    inline unsigned int             GetNWorkingChips() const
+        { return fWorkingChipIndexList.size(); }
     unsigned int                    GetStartChipId();
     bool                            IsMFTLadder() const;
     inline bool                     IsConfigFrozen() const { return fCreatedConfig; }
@@ -121,7 +126,9 @@ public:
     unsigned int                    GetNWorkingChipsPerBoard( const unsigned int iBoard ) const;
     inline std::string              GetNickName() const { return fNickName; }
     inline unsigned int             GetLadderId() const { return fLadderId; }
-
+    bool                            IsValidChipIndex( const common::TChipIndex idx ) const;
+    bool                            IsValidChipId( const unsigned int chipId ) const;
+    
 };
 
 

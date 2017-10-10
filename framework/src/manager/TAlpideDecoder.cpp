@@ -1,4 +1,5 @@
 #include "TAlpideDecoder.h"
+#include "TDevice.h"
 #include "TPixHit.h"
 #include "THisto.h"
 #include "TErrorCounter.h"
@@ -12,14 +13,13 @@ using namespace std;
 
 //___________________________________________________________________
 TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
+    fDevice( nullptr ),
     fNewEvent( false ),
     fBunchCounter( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
-    fRegion( -1 ),
-    fBoardIndex( 0 ),
-    fBoardReceiver( 0 ),
-    fLadderId( 0 ),
+    fRegion( 32 ),
+    fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
@@ -28,23 +28,22 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
 }
 
 //___________________________________________________________________
-TAlpideDecoder::TAlpideDecoder( shared_ptr<TScanHisto> aScanHisto,
+TAlpideDecoder::TAlpideDecoder( shared_ptr<TDevice> aDevice,
                                 shared_ptr<TErrorCounter> anErrorCounter ) :
     TVerbosity(),
+    fDevice( nullptr ),
     fNewEvent( false ),
     fBunchCounter( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
-    fRegion( -1 ),
-    fBoardIndex( 0 ),
-    fBoardReceiver( 0 ),
-    fLadderId( 0 ),
+    fRegion( 32 ),
+    fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
     fErrorCounter( nullptr )
 {
     try {
-        SetScanHisto( aScanHisto );
+        SetDevice( aDevice );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
         exit(0);
@@ -64,6 +63,15 @@ TAlpideDecoder::~TAlpideDecoder()
 }
 
 //___________________________________________________________________
+void TAlpideDecoder::SetDevice( shared_ptr<TDevice> aDevice )
+{
+    if ( !aDevice ) {
+        throw runtime_error( "TAlpideDecoder::SetDevice() - can not use a null pointer !" );
+    }
+    fDevice = aDevice;
+}
+
+//___________________________________________________________________
 void TAlpideDecoder::SetScanHisto( shared_ptr<TScanHisto> aScanHisto )
 {
     if ( !aScanHisto ) {
@@ -79,65 +87,6 @@ void TAlpideDecoder::SetErrorCounter( shared_ptr<TErrorCounter> anErrorCounter )
         throw runtime_error( "TAlpideDecoder::SetErrorCounter() - can not use a null pointer !" );
     }
     fErrorCounter = anErrorCounter;
-}
-
-//___________________________________________________________________
-void TAlpideDecoder::WriteDataToFile( const char *fName, bool Recreate )
-{
-    if ( !fScanHisto ) {
-        throw runtime_error( "TAlpideDecoder::WriteDataToFile() - scan histo is a null pointer !" );
-    }
-    
-    char  fNameChip[100];
-    FILE *fp;
-    
-    char fNameTemp[100];
-    sprintf( fNameTemp,"%s", fName);
-    strtok( fNameTemp, "." );
-    string suffix( fNameTemp );
-    
-    for ( unsigned int ichip = 0; ichip < fScanHisto->GetChipListSize(); ichip++ ) {
-        
-        common::TChipIndex aChipIndex = fScanHisto->GetChipIndex( ichip );
-        
-        if ( !HasData( aChipIndex ) ) {
-            if ( GetVerboseLevel() > kSILENT ) {
-                cout << "TAlpideDecoder::WriteDataToFile() - Chip ID = "
-                << aChipIndex.chipId ;
-                if ( aChipIndex.ladderId ) {
-                    cout << " , Ladder ID = " << aChipIndex.ladderId;
-                }
-                cout << " : no data, skipped." <<  endl;
-            }
-            continue;  // write files only for chips with data
-        }
-        string filename = common::GetFileName( aChipIndex, suffix );
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TAlpideDecoder::WriteDataToFile() - Chip ID = "<< aChipIndex.chipId ;
-            if ( aChipIndex.ladderId ) {
-                cout << " , Ladder ID = " << aChipIndex.ladderId;
-            }
-            cout << endl;
-        }
-        strcpy( fNameChip, filename.c_str());
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TDeviceDigitalScan::WriteDataToFile() - Writing data to file "<< fNameChip << endl;
-        }
-        if ( Recreate ) fp = fopen(fNameChip, "w");
-        else            fp = fopen(fNameChip, "a");
-        if ( !fp ) {
-            throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - output file not found." );
-        }
-        for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
-            for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
-                double hits = (*fScanHisto)(aChipIndex,icol,iaddr);
-                if (hits > 0) {
-                    fprintf(fp, "%d %d %d\n", icol, iaddr, (int)hits);
-                }
-            }
-        }
-        if (fp) fclose (fp);
-    }
 }
 
 //___________________________________________________________________
@@ -161,24 +110,27 @@ unsigned int TAlpideDecoder::GetNHits() const
 bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                                  int nBytes,
                                  unsigned int boardIndex,
-                                 unsigned int boardReceiver,
-                                 unsigned int ladderId )
+                                 unsigned int boardReceiver )
 {
     // refresh variables for each new event
     fBunchCounter = 0;
     fFlags  = 0;
     fChipId = -1;
-    fRegion = -1;
-    fBoardIndex = boardIndex;
-    fBoardReceiver = boardReceiver;
-    fLadderId = ladderId;
+    fRegion = 32; // bad region
+    try {
+        fCurrentChipIndex = fDevice->GetWorkingChipIndexdByBoardReceiver( boardIndex,
+                                                                         boardReceiver );
+    } catch ( std::exception &err ) {
+        cerr << "TAlpideDecoder::DecodeEvent() - " << err.what() << endl;
+        exit( EXIT_FAILURE );
+    }
     fDataType = TDataType::kUNKNOWN;
     bool started = false; // event has started, i.e. chip header has been found
     bool finished = false; // event trailer found
     bool corrupt  = false; // corrupt data found (i.e. data without region or chip)
     int byte = 0;
     
-    unsigned char last;
+    unsigned char last = 0x0;
     
     // decode the event
     while ( byte < nBytes ) {
@@ -235,24 +187,19 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                     cerr << "TAlpideDecoder::DecodeEvent() - Error: hit data found before chip header or after chip trailer" << endl;
                     return false;
                 }
-                if ( fRegion == -1 ) {
-                    cout << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
-                    corrupt = true;
-                } else {
-                    if ( !IsValidChipId() ) {
-                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATASHORT" << endl;
-                        if ( GetVerboseLevel() > kCHATTY ) {
-                            for ( int i = 0; i < nBytes; i++ ) {
-                                printf("%02x ", data[i]);
-                            }
-                            printf("\n");
+                if ( fRegion == 32 ) {
+                    cout << "TAlpideDecoder::DecodeEvent() - Warning: data word without region (Chip " << fChipId << ")" << endl;
+                }
+                if ( !IsValidChipId() ) {
+                    cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATASHORT" << endl;
+                    if ( GetVerboseLevel() > kCHATTY ) {
+                        for ( int i = 0; i < nBytes; i++ ) {
+                            printf("%02x ", data[i]);
                         }
-                    }
-                    bool corrupted = DecodeDataWord( data + byte, false );
-                    if ( corrupted ) {
-                        corrupt = true;
+                        printf("\n");
                     }
                 }
+                corrupt = DecodeDataWord( data + byte, false );
                 byte += GetWordLength();
                 break;
             case TDataType::kDATALONG:
@@ -260,24 +207,19 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                     cerr << "TAlpideDecoder::DecodeEvent() - Error: hit data found before chip header or after chip trailer" << endl;
                     return false;
                 }
-                if ( fRegion == -1 ) {
+                if ( fRegion == 32 ) {
                     cerr << "TAlpideDecoder::DecodeEvent() - Warning: data word without region, skipping (Chip " << fChipId << ")" << endl;
-                    corrupt = true;
-                } else {
-                    if ( !IsValidChipId() ) {
-                        cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATALONG" << endl;
-                        if ( GetVerboseLevel() > kCHATTY ) {
-                            for ( int i = 0; i < nBytes; i++ ) {
-                                printf("%02x ", data[i]);
-                            }
-                            printf("\n");
+                }
+                if ( !IsValidChipId() ) {
+                    cerr << "TAlpideDecoder::DecodeEvent() - Warning: unexpected chip id (Chip " << fChipId << ") , TDataType::kDATALONG" << endl;
+                    if ( GetVerboseLevel() > kCHATTY ) {
+                        for ( int i = 0; i < nBytes; i++ ) {
+                            printf("%02x ", data[i]);
                         }
-                    }
-                    bool corrupted = DecodeDataWord( data + byte, true );
-                    if (corrupted) {
-                        corrupt = true;
+                        printf("\n");
                     }
                 }
+                corrupt = DecodeDataWord( data + byte, true );
                 byte += GetWordLength();
                 break;
             case TDataType::kUNKNOWN:
@@ -285,8 +227,12 @@ bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                 return false;
         }
     }
-    
-    FillHistoWithEvent();
+    try {
+        FillHistoWithEvent();
+    } catch ( std::exception &err ) {
+        cerr << "TAlpideDecoder::DecodeEvent() - " << err.what() << endl;
+        exit( EXIT_FAILURE );
+    }
     
     if ( started && finished ) {
         return (!corrupt);
@@ -377,6 +323,11 @@ void TAlpideDecoder::DecodeChipHeader( unsigned char* data )
 
   fBunchCounter = data_field & 0xff;
   fChipId       = (data_field >> 8) & 0xf;
+    if ( !IsValidChipId() ) {
+        if ( fRescueBadChipId ) {
+            fChipId = fCurrentChipIndex.chipId;
+        }
+    }
   fNewEvent     = true;
 }
 
@@ -400,6 +351,11 @@ void TAlpideDecoder::DecodeEmptyFrame( unsigned char* data )
 
   fBunchCounter = data_field & 0xff;
   fChipId       = (data_field >> 8) & 0xf;
+    if ( !IsValidChipId() ) {
+        if ( fRescueBadChipId ) {
+            fChipId = fCurrentChipIndex.chipId;
+        }
+    }
 }
 
 //___________________________________________________________________
@@ -417,10 +373,10 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
   
     bool corrupt = false;
 
-    hit->SetBoardIndex( fBoardIndex );
-    hit->SetBoardReceiver( fBoardReceiver );
-    hit->SetLadderId( fLadderId );
-    hit->SetChipId( fChipId ); // first basic checks on chip id done here
+    hit->SetBoardIndex( fCurrentChipIndex.boardIndex );
+    hit->SetBoardReceiver( fCurrentChipIndex.dataReceiver );
+    hit->SetLadderId( fCurrentChipIndex.ladderId );
+    hit->SetChipId( fChipId ); // only basic checks on chip id done here
     hit->SetRegion( fRegion ); // can generate a bad region flag
     hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 ); // can generate a bad dcol flag
     
@@ -436,7 +392,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 
     for ( int i = -1; i < hitmap_length; i ++ ) {
         
-        if ((i >= 0) && (! (data[2] >> i) & 0x1)) continue;
+        if ((i >= 0) && (!((data[2] >> i) & 0x1))) continue;
         shared_ptr<TPixHit> singleHit( new TPixHit( hit ) ); // deep copy
 
         // set hit address on the new shared ptr, can generate a bad address flag
@@ -467,8 +423,8 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
                 (fHits.back())->DumpPixHit();
             }
         }
-        // check if chip index (board id, receiver id, chip id) belongs to
-        // the list of the expected indexes for the device currently being read
+        // check if chip index (board id, receiver id, ladder id, chip id) matches
+        // the one currently read on the device
         if ( !IsValidChipIndex( singleHit ) ) {
             cerr << "TAlpideDecoder::DecodeDataWord() - found bad chip index, data word = 0x" << std::hex << (int) data_field << std::dec << endl;
             singleHit->SetPixFlag( TPixFlag::kBAD_CHIPID );
@@ -498,12 +454,12 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 void TAlpideDecoder::FillHistoWithEvent()
 {
     if ( !fScanHisto ) {
-        throw runtime_error( "TDeviceDigitalScan::FillHistoEvent() - can not use a null pointer to fScanHisto !" );
+        throw runtime_error( "TAlpideDecoder::FillHistoEvent() - can not use a null pointer to fScanHisto !" );
     }
 
     common::TChipIndex idx;
     
-    for ( int i = 0; i < fHits.size(); i++ ) {
+    for ( unsigned int i = 0; i < fHits.size(); i++ ) {
 
         if ( (fHits.at(i))->IsPixHitCorrupted() ) {
 
@@ -537,21 +493,6 @@ void TAlpideDecoder::FillHistoWithEvent()
 }
 
 //___________________________________________________________________
-bool TAlpideDecoder::HasData( const common::TChipIndex& idx )
-{
-    if ( !fScanHisto->IsValidChipIndex( idx ) ) {
-        return false;
-    }
-    for (unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++) {
-        for (unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++) {
-            if ((*fScanHisto)(idx,icol,iaddr) > 0) return true;
-        }
-    }
-    
-    return false;
-}
-
-//___________________________________________________________________
 bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
 {
     bool is_valid = false;
@@ -561,7 +502,7 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
         idx.dataReceiver  = hit->GetBoardReceiver();
         idx.ladderId      = hit->GetLadderId();
         idx.chipId        = hit->GetChipId();
-        is_valid = fScanHisto->IsValidChipIndex( idx );
+        is_valid = common::SameChipIndex( idx, fCurrentChipIndex );
     }
     return is_valid;
 }
@@ -569,13 +510,8 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
 //___________________________________________________________________
 bool TAlpideDecoder::IsValidChipId()
 {
-    bool is_valid = false;
-    for ( unsigned int i = 0 ; i < fScanHisto->GetChipListSize(); i++ ) {
-        int legitimateChipId = (int)((fScanHisto->GetChipIndex(i)).chipId);
-        if ( fChipId == legitimateChipId ) {
-            is_valid = true;
-            return is_valid;
-        }
+    if ( fChipId != (int)fCurrentChipIndex.chipId ) {
+        return false;
     }
-    return is_valid;
+    return true;
 }

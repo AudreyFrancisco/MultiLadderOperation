@@ -11,7 +11,7 @@
  * For a given chip, this class collect the list of corrupted hit pixels. They can
  * be due to a stuck pixel, a bad region Id, a bad double column Id, a bad address, 
  * a dead, inefficient, or a hot pixel (see TPixHit class for the enumeration of
- * bad hits). This class also counts the number of 8b10b encoder errors and 
+ * bad hit types). This class also counts the number of 8b10b encoder errors and
  * the number of priority encoder errors for the chip.
  *
  * For a given chip, the number of occurences of the following errors are extracted 
@@ -24,14 +24,16 @@
  * - number of inefficient pixels 
  * - number of hot pixels
  * This class can also print the bad pixel hits to screen or to output files, 
- * with a possible selection on the type of flaw.
+ * with a possible selection on the type of flaw. Thanks to its data member of
+ * type THitMapDiscordant, this class also plot a hit map of the corrupted pixels
+ * and their firing frequency given the number of injected triggers per pixel.
  */
 
 
 #include "Common.h"
 #include "TPixHit.h"
 #include <memory>
-#include <vector>
+#include <deque>
 
 class THitMapDiscordant;
 
@@ -71,7 +73,7 @@ class TChipErrorCounter : public TVerbosity {
     common::TChipIndex fIdx;
 
     /// list of corrupted pixel hits
-    std::vector<std::shared_ptr<TPixHit>> fCorruptedHits;
+    std::deque<std::shared_ptr<TPixHit>> fCorruptedHits;
     
     /// class used to locate bad pixel on a hit map
     std::shared_ptr<THitMapDiscordant> fHitMap;
@@ -106,7 +108,7 @@ public:
                       const double nhits );
 
     /// count bad hits for each type of flag
-    void FindCorruptedHits();
+    void ClassifyCorruptedHits();
     
     /// dump all errors
     void Dump();

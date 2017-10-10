@@ -137,7 +137,7 @@ fHistoLegend( nullptr )
 THitMapDiscordant::~THitMapDiscordant()
 {
     // don't delete any other pointer to ROOT object
-    // ROOT will take care by itself
+    // ROOT will take care by itself and delete anything in the Canvas
     fFireCanvas->Clear();
     delete fFireCanvas;
 }

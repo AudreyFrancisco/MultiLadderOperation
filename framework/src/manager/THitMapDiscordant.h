@@ -8,12 +8,13 @@
  *
  * \author Andry Rakotozafindrabe
  *
- * \note
- * Currently the considered types of bad pixel are: 
+ * Currently the considered types of bad pixel are:
  * - the dead pixels
  * - the inefficient pixels
  * - the hot pixels.
- * Stuck pixels should be added as well.
+ *
+ * \remark
+ * Stuck pixels should (will ?) be added as well.
  *
 */
 

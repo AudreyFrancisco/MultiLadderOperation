@@ -157,8 +157,7 @@ THisto &THisto::operator=( const THisto &h )
     if (&h == this) {
         return *this;
     } else {
-        unsigned int j;
-        for (j=0; j<fDim[1]; j++) {
+        for (unsigned int j=0; j<fDim[1]; j++) {
             if (fSize == 1) delete[] ((unsigned char **)fHisto)[j];
             if (fSize == 2) delete[] ((unsigned short int **)fHisto)[j];
             if (fSize == 4) delete[] ((float **)fHisto)[j];
@@ -302,6 +301,24 @@ unsigned int THisto::GetNEntries() const
     return (unsigned int)nEntries;
 }
 
+//___________________________________________________________________
+bool THisto::HasData() const
+{
+    double data = 0;
+    for (unsigned int j=0; j<fDim[1]; j++) {
+        for (unsigned int i=0; i<fDim[0]; i++) {
+            if (fSize == 1) data = ((unsigned char **)fHisto)[j][i];
+            if (fSize == 2) data = ((unsigned short int **)fHisto)[j][i];
+            if (fSize == 4) data = ((float **)fHisto)[j][i];
+            if (fSize == 8) data = ((double **)fHisto)[j][i];
+            if ( data > 0 ) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 
 //================================================================================
 //
@@ -321,8 +338,7 @@ fIndex( -1 )
 //___________________________________________________________________
 TScanHisto::TScanHisto( const TScanHisto &sh )
 {
-    std::map<int, THisto>::const_iterator it;
-    for (it = sh.fHistos.begin(); it != sh.fHistos.end(); ++it) {
+    for ( std::map<int, THisto>::const_iterator it = sh.fHistos.begin(); it != sh.fHistos.end(); ++it) {
         fHistos.insert(*it);
     }
     SetIndex(sh.GetIndex());
@@ -347,8 +363,7 @@ double TScanHisto::operator() ( common::TChipIndex index, unsigned int i, unsign
         std::cout << "TScanHisto::operator(idx, i, j) - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index =  (index.ladderId << 12)
-        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
+    int int_index = common::GetMapIntIndex( index );
     return (fHistos.at(int_index))(i,j);
 }
 
@@ -360,8 +375,7 @@ double TScanHisto::operator() ( common::TChipIndex index, unsigned int i ) const
         std::cout << "TScanHisto::operator(idx, i) - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index =  (index.ladderId << 12)
-        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+    int int_index =  common::GetMapIntIndex( index );
     return (fHistos.at(int_index))(i);
 }
 
@@ -378,9 +392,15 @@ unsigned int TScanHisto::GetChipNEntries( common::TChipIndex index ) const
         std::cout << "TScanHisto::GetChipNEntries() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index =  (index.ladderId << 12)
-        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+    int int_index =  common::GetMapIntIndex( index );
     return (fHistos.at(int_index)).GetNEntries();
+}
+
+//___________________________________________________________________
+bool TScanHisto::HasData( common::TChipIndex index ) const
+{
+    int int_index =  common::GetMapIntIndex( index );
+    return (fHistos.at(int_index)).HasData();
 }
 
 #pragma mark - other
@@ -392,8 +412,7 @@ void TScanHisto::AddHisto( common::TChipIndex index, THisto histo )
         std::cout << "TScanHisto::AddHisto() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-    int int_index =  (index.ladderId << 12)
-        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf );
+    int int_index =  common::GetMapIntIndex( index );
     fHistos.insert (std::pair<int, THisto>(int_index, histo));
 }
 
@@ -406,8 +425,7 @@ void TScanHisto::Incr( common::TChipIndex index, unsigned int i, unsigned int j 
         std::cout << "TScanHisto::Incr() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-   int int_index =  (index.ladderId << 12)
-        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+   int int_index =  common::GetMapIntIndex( index );
     (fHistos.at(int_index)).Incr(i,j);
 }
 
@@ -418,8 +436,7 @@ void TScanHisto::Incr( common::TChipIndex index, unsigned int i )
         std::cout << "TScanHisto::Incr() - B " << std::dec << index.boardIndex
         << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
     }
-   int int_index = (index.ladderId << 12)
-        | (index.boardIndex << 8) | (index.dataReceiver << 4) | (index.chipId & 0xf);
+   int int_index = common::GetMapIntIndex( index );
     (fHistos.at(int_index)).Incr(i);
 }
 
@@ -429,11 +446,7 @@ void TScanHisto::FindChipList()
     fChipList.clear();
     for (std::map<int, THisto>::iterator it = fHistos.begin(); it != fHistos.end(); ++it) {
         int        intIndex = it->first;
-        common::TChipIndex index;
-        index.ladderId     = (intIndex >> 12);
-        index.boardIndex   = (intIndex >> 8) & 0xf;
-        index.dataReceiver = (intIndex >> 4) & 0xf;
-        index.chipId       =  intIndex       & 0xf;
+        common::TChipIndex index = common::GetChipIndexFromMapInt( intIndex );
         fChipList.push_back(index);
     }
 }

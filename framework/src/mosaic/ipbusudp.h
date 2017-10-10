@@ -42,9 +42,9 @@ class IPbusUDP : public IPbus
 {
 public:
     IPbusUDP(int pktSize=MosaicIPbus::DEFAULT_PACKET_SIZE);
-    IPbusUDP(const char *brdName, int port=MosaicIPbus::DEFAULT_UDP_PORT, int pktsize=MosaicIPbus::DEFAULT_PACKET_SIZE);
+    IPbusUDP(const char *brdName, int aport=MosaicIPbus::DEFAULT_UDP_PORT, int pktsize=MosaicIPbus::DEFAULT_PACKET_SIZE);
     ~IPbusUDP();
-    void setIPaddress(const char *brdName, int port=MosaicIPbus::DEFAULT_UDP_PORT);
+    void setIPaddress(const char *brdName, int aport=MosaicIPbus::DEFAULT_UDP_PORT);
 	void execute();
 
 private:
