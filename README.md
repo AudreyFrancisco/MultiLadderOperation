@@ -16,7 +16,7 @@ $ git clone ssh://git@gitlab.cern.ch:7999/alice-MFT-upgrade/new-alpide-software.
 
 ### Prerequisites
 
-#### Recent compiler
+#### (a) Recent compiler
 
 Make sure you have either at least clang version Apple LLVM version 8.1.0 (clang-802.0.42) if you work on MacOS X, or a gcc version with C++14 is enabled by default i.e. at least gcc 6. If you don't have gcc 6, you can easily install it on Cent OS 7 thanks to devtoolset-6. More details at this [link](https://www.softwarecollections.org/en/scls/rhscl/devtoolset-6/). Don't forget to add the following line in your .bashrc:
 
@@ -31,11 +31,11 @@ source scl_source enable devtoolset-6
 
 Then start a new shell to have gcc 6.
 
-#### Recent cmake
+#### (b) Recent cmake
 
 The minimal version is 3.4.3.
 
-#### Recent ROOT
+#### (c) Recent ROOT
 
 Old versions of [ROOT](https://root.cern.ch/), i.e. prior to ROOT 6, are not supported. 
 
@@ -64,6 +64,7 @@ So far, the avalaible tests are:
 * Test the communication with the MOSAIC board (main_mosaic.cpp)
 * FIFO scan (main_fifo.cpp)
 * Digital scan (main_digital.cpp)
+* Threshold scan (main_thresholdscan.cpp)
 * ROOT test (main_roottest.cpp)
 
 Each main*.cpp file has a few comments explaining how to run the test. If you use the MOSAIC board, make sure its IP address matches the one in the relevant configuration file. There is one configuration file per type of device and per type of test (i.e. one for a single chip in IB mode for FIFO scan, one for a MFT ladder for FIFO scan, one for MFT ladder for digital scan, etc).
