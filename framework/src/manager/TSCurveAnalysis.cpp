@@ -289,10 +289,10 @@ void TSCurveAnalysis::DrawDistributions()
         << std::dec << fIdx.boardIndex << " . "
         << fIdx.dataReceiver << " / " << fIdx.chipId << endl;
     }
-    cout << "Found                 " << fNPixels << " pixels " << endl;
-    cout << "No start point found: " << fNNostart << endl;
-    cout << "Chisq cut failed:     " << fNChisq << endl;
-    cout << "Chisq cut value:      " << fChisqCut << endl;
+    cout << "Start point found for:     " << fNPixels << " pixels " << endl;
+    cout << "No start point found for:  " << fNNostart << " pixels " << endl;
+    cout << "Chisq cut failed for:      " << fNChisq << " pixels " << endl;
+    cout << "Chisq cut value:           " << fChisqCut << endl;
     printf("Threshold : %6.3f +/- %6.3f\n",
            fHThreshold->GetMean(), fHThreshold->GetRMS() );
     printf("    Noise : %6.3f +/- %6.3f\n",
