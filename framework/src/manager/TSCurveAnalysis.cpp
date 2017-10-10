@@ -52,6 +52,8 @@ fCnv1( nullptr ),
 fCnv2( nullptr ),
 fCnv3( nullptr ),
 fCnv4( nullptr ),
+fCnv5( nullptr ),
+fCnv6( nullptr ),
 fgClone( nullptr ),
 fPaveNoise( nullptr ),
 fLineThreshold( nullptr ),
@@ -94,6 +96,8 @@ fCnv1( nullptr ),
 fCnv2( nullptr ),
 fCnv3( nullptr ),
 fCnv4( nullptr ),
+fCnv5( nullptr ),
+fCnv6( nullptr ),
 fgClone( nullptr ),
 fPaveNoise( nullptr ),
 fLineThreshold( nullptr ),
@@ -145,6 +149,15 @@ TSCurveAnalysis::~TSCurveAnalysis()
     if ( fCnv4 ) {
         fCnv4->Clear();
         delete fCnv4;
+    }
+    if ( fHChisq ) {
+        delete fHChisq;
+    }
+    if ( fHThreshold ) {
+        delete fHThreshold;
+    }
+    if ( fHNoise ) {
+        delete fHNoise;
     }
 }
 
@@ -228,6 +241,7 @@ void TSCurveAnalysis::ProcessPixelData()
         throw runtime_error( "TSCurveAnalysis::ProcessPixelData() - undefined fHNoise histo!" );
     }
     bool success = FitSCurve();
+    cout << fIdx.chipId << " " << fRow << " " << fColumn << endl;
     if ( success ) {
         fHChisq->Fill( fChisq );
         if ( fChisq < fChisqCut ) {

@@ -403,13 +403,14 @@ void TDeviceThresholdScan::AnalyzePixelSCurve( const common::TChipIndex aChipInd
                                               const unsigned int icol,
                                               const unsigned int iaddr )
 {
-    int int_index = common::GetMapIntIndex( aChipIndex );
-    (fAnalyserCollection.at(int_index))->SetPixelCoordinates( icol, iaddr );
-
     if ( !GetHits( aChipIndex, icol, iaddr, fNChargeSteps-1 ) ) {
         // skip pixels that have no data (presumably not pulsed)
         return;
     }
+
+    int int_index = common::GetMapIntIndex( aChipIndex );
+    (fAnalyserCollection.at(int_index))->SetPixelCoordinates( icol, iaddr );
+
     
     for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl++ ) {
         unsigned int icharge = GetInjectedCharge( iampl );
