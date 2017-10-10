@@ -22,6 +22,9 @@ using namespace std;
 const unsigned int TSCurveAnalysis::fElectronsPerDAC = 7;
 const unsigned int TSCurveAnalysis::fMaxNPoints = 512;
 
+const int TSCurveAnalysis::fNgroup = 8;
+const int TSCurveAnalysis::fColorCode[] = { kBlack, kBlue, kRed, kGreen, kMagenta, kViolet+1, kGray, kAzure+7 };
+
 //___________________________________________________________________
 TSCurveAnalysis::TSCurveAnalysis() :
 TVerbosity(),
@@ -131,6 +134,14 @@ TSCurveAnalysis::~TSCurveAnalysis()
         fCnv3->Clear();
         delete fCnv3;
     }
+    if ( fCnv5 ) {
+        fCnv5->Clear();
+        delete fCnv5;
+    }
+    if ( fCnv6 ) {
+        fCnv6->Clear();
+        delete fCnv6;
+    }
     if ( fCnv4 ) {
         fCnv4->Clear();
         delete fCnv4;
@@ -222,8 +233,6 @@ void TSCurveAnalysis::ProcessPixelData()
         if ( fChisq < fChisqCut ) {
             fHThreshold->Fill( fThreshold );
             fHNoise->Fill( fNoise );
-        } else {
-            fNChisq++;
         }
     } else {
         if ( GetVerboseLevel() > kTERSE ) {
@@ -267,7 +276,7 @@ void TSCurveAnalysis::DrawDistributions()
         << std::dec << fIdx.boardIndex << " . "
         << fIdx.dataReceiver << " / " << fIdx.chipId << endl;
     }
-    cout << "Found                 " << fNPixels << "pixels " << endl;
+    cout << "Found                 " << fNPixels << " pixels " << endl;
     cout << "No start point found: " << fNNostart << endl;
     cout << "Chisq cut failed:     " << fNChisq << endl;
     cout << "Chisq cut value:      " << fChisqCut << endl;
@@ -297,7 +306,7 @@ void TSCurveAnalysis::DrawDistributions()
     fHChisq->SetMarkerColor( kAzure-3 );
     fHChisq->SetLineColor( kAzure-3 );
     fHChisq->SetFillColor( kAzure-3 );
-    fCnv4->Draw("hist");
+    fHChisq->Draw("hist");
     
     fSaveToFileReady = true;
 }
@@ -334,8 +343,14 @@ void TSCurveAnalysis::SaveToFile( const char *fName )
     fCnv1->Print( fNameOpen, "Title:Threshold distribution");
     fCnv2->Print( fNameOpen, "Title:Noise distribution");
     fCnv3->Print( fNameOpen, "Title:Response for a single pixel");
+    if ( fNNostart ) {
+        fCnv5->Print( fNameOpen, "Title:S-curves with failed fit");
+    }
+    if ( fNChisq ) {
+        fCnv6->Print( fNameOpen, "Title:S-curves with low quality fit");
+    }
     fCnv4->Print( fNameClose, "Title:Chi2/ndf distribution");
-    
+
     cout << "------------------------------- " << endl;
 }
 
@@ -360,6 +375,7 @@ void TSCurveAnalysis::SetBaseStyle()
     gStyle->SetCanvasBorderMode(0);
     gStyle->SetPadBorderMode(0);
     gStyle->SetFrameBorderMode(0);
+    gStyle->SetOptStat(1110);
     
     gStyle->SetPadTickX( true );
     gStyle->SetPadTickY( true );
@@ -397,6 +413,12 @@ void TSCurveAnalysis::PrepareCanvas()
     if (!fCnv4 ) {
         fCnv4 = new TCanvas ( GetName("fCnv4").c_str(), "Chi2/ndf distribution") ;
     }
+    if (!fCnv5 ) {
+        fCnv5 = new TCanvas ( GetName("fCnv5").c_str(), "S-curves with failed fit ") ;
+    }
+    if (!fCnv6 ) {
+        fCnv6 = new TCanvas ( GetName("fCnv6").c_str(), "S-curves with low quality fit") ;
+    }
 }
 
 //___________________________________________________________________
@@ -433,7 +455,7 @@ void TSCurveAnalysis::PrepareHistos()
 
     // chi2 distribution
     if ( !fHChisq ) {
-        fHChisq = new TH1F( GetName("hChisq_").c_str(), fHicChipName.c_str(), 1000, 0., 100.);
+        fHChisq = new TH1F( GetName("hChisq_").c_str(), fHicChipName.c_str(), 50, 0., 5.01);
         fHChisq->SetXTitle("Chi2");
         fHChisq->SetYTitle("#(pixels)");
     }
@@ -463,26 +485,41 @@ bool TSCurveAnalysis::FitSCurve()
                 fgClone->GetXaxis()->SetTitle("Injected charge [electrons]");
             }
             fgClone->GetYaxis()->SetTitle("#Hits");
-            fgClone->Draw("ape");
+            fgClone->Draw("ap");
         }
     }
     
-    TF1* fitfcn = new TF1( "fitfcn", this, &TSCurveAnalysis::Erf, 0, 1500, 2 );
-    fitfcn->SetNpx(10000);
     float Start  = FindStart();
     
     if ( Start < 0 ) {
         fNNostart ++;
+        fCnv5->cd();
+        g->SetTitle( "Bad S-curves" );
+        g->SetLineWidth( 1);
+        int igroup = std::floor( (float)fRow / (common::NLINES / fNgroup) );
+        g->SetLineColor( fColorCode[igroup] );
+        if ( !fDACtoElectronsConversionIsUsed ) {
+            g->GetXaxis()->SetTitle("Injected charge [DAC units]");
+        } else {
+            g->GetXaxis()->SetTitle("Injected charge [electrons]");
+        }
+        g->GetYaxis()->SetTitle("#Hits");
+        if ( fNNostart == 1) {
+            g->DrawClone( "al" );
+        } else {
+            g->DrawClone( "l" );
+        }
+        g->Delete();
         return false;
     }
     
+    TF1* fitfcn = new TF1( "fitfcn", this, &TSCurveAnalysis::Erf, 0, 1500, 2 );
+    fitfcn->SetNpx(10000);
     fitfcn->SetParameter(0,Start);
     fitfcn->SetParameter(1,8);
     fitfcn->SetParName(0, "Threshold");
     fitfcn->SetParName(1, "Noise");
     
-    //g->SetMarkerStyle(20);
-    //g->Draw("AP");
     g->Fit("fitfcn","Q");
     
     fNoise     = fitfcn->GetParameter(1);
@@ -507,7 +544,25 @@ bool TSCurveAnalysis::FitSCurve()
         fIsPixelCurveDrawn = true;
     }
     
-    if ( fHChisq ) fHChisq->Fill( fChisq );
+    if ( fChisq > fChisqCut ) {
+        fNChisq++;
+        fCnv6->cd();
+        g->SetTitle( "Refused S-curves" );
+        g->SetLineWidth( 1);
+        int igroup = std::floor( (float)fRow / (common::NLINES / fNgroup) );
+        g->SetLineColor( fColorCode[igroup] );
+        if ( !fDACtoElectronsConversionIsUsed ) {
+            g->GetXaxis()->SetTitle("Injected charge [DAC units]");
+        } else {
+            g->GetXaxis()->SetTitle("Injected charge [electrons]");
+        }
+        g->GetYaxis()->SetTitle("#Hits");
+        if ( fNChisq == 1) {
+            g->DrawClone( "al" );
+        } else {
+            g->DrawClone( "l" );
+        }
+    }
     
     g->Delete();
     fitfcn->Delete();

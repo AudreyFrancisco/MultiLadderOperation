@@ -111,7 +111,13 @@ class TSCurveAnalysis : public TVerbosity {
     
     /// canvas for the Chisq distribution
     TCanvas* fCnv4;
-    
+
+    /// canvas for the S-curves for which the fit failed
+    TCanvas* fCnv5;
+
+    /// canvas for the S-curves for which the fit has a large chi2/ndf > cut
+    TCanvas* fCnv6;
+
     /// graph with the response of a single pixel (the first one was chosen as an example).
     TGraph* fgClone;
     
@@ -211,6 +217,15 @@ protected:
     
     /// return the readiness status of the drawings for file saving
     inline bool IsSaveToFileReady() const { return fSaveToFileReady; }
+    
+private:
+    
+    /// number of part in which the pixel matrix is horizontally divided
+    static const int fNgroup;
+    
+    /// the color code for the s-curves of pixels belonging to each horizontal part defined above
+    static const int fColorCode[];
+
 
 };
 #endif
