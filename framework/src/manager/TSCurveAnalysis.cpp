@@ -241,7 +241,6 @@ void TSCurveAnalysis::ProcessPixelData()
         throw runtime_error( "TSCurveAnalysis::ProcessPixelData() - undefined fHNoise histo!" );
     }
     bool success = FitSCurve();
-    cout << fIdx.chipId << " " << fRow << " " << fColumn << endl;
     if ( success ) {
         fHChisq->Fill( fChisq );
         if ( fChisq < fChisqCut ) {
