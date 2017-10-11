@@ -19,7 +19,7 @@
 
 using namespace std;
 
-const unsigned int TSCurveAnalysis::fElectronsPerDAC = 7;
+const unsigned int TSCurveAnalysis::fElectronsPerDAC = 10;
 const unsigned int TSCurveAnalysis::fMaxNPoints = 512;
 
 const int TSCurveAnalysis::fNgroup = 8;
