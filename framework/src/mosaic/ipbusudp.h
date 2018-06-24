@@ -31,21 +31,23 @@
 #ifndef IPBUSUDP_H
 #define IPBUSUDP_H
 
-#include <stdint.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include "ipbus.h"
 #include <arpa/inet.h>
 #include <mutex>
-#include "ipbus.h"
+#include <netinet/in.h>
+#include <stdint.h>
+#include <string>
+#include <sys/socket.h>
 
 class IPbusUDP : public IPbus
 {
 public:
-    IPbusUDP(int pktSize=MosaicIPbus::DEFAULT_PACKET_SIZE);
-    IPbusUDP(const char *brdName, int aport=MosaicIPbus::DEFAULT_UDP_PORT, int pktsize=MosaicIPbus::DEFAULT_PACKET_SIZE);
-    ~IPbusUDP();
-    void setIPaddress(const char *brdName, int aport=MosaicIPbus::DEFAULT_UDP_PORT);
+    IPbusUDP(const int pktSize = (int)MosaicIPbus::DEFAULT_PACKET_SIZE);
+    IPbusUDP(const char *brdName, const int port = (int)MosaicIPbus::DEFAULT_UDP_PORT, const int pktsize = (int)MosaicIPbus::DEFAULT_PACKET_SIZE);
+    virtual ~IPbusUDP();
+    void setIPaddress(const char *brdName, const int port = (int)MosaicIPbus::DEFAULT_UDP_PORT);
 	void execute();
+	const std::string name() { return "IPbusUDP"; }
 
 private:
 	void testConnection();
@@ -53,12 +55,9 @@ private:
 	void sockWrite();
 
 private:
-	int port;
 	int sockfd;
 	struct sockaddr_in sockAddress;
 	int rcvTimoutTime;
-    static const int RCV_LONG_TIMEOUT = 2000; // timeout in ms for the first rx datagrams
-    static const int RCV_SHORT_TIMEOUT = 100; // timeout in ms for rx datagrams
 };
 
 #endif // IPBUSUDP_H

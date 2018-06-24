@@ -30,6 +30,8 @@
 
 #include "mexception.h"
 
+using namespace std;
+
 MException::MException()
 {
 }
@@ -65,6 +67,12 @@ MIPBusErrorWrite::MIPBusErrorWrite(const string& arg)
 	 msg = "IPBus Error: " + arg;
 }
 
+// IPBus error - Remote Bus Read error
+MIPBusErrorReadTimeout::MIPBusErrorReadTimeout(const string &arg) 
+{ 
+	msg = "IPBus Error: " + arg; 
+}
+
 // Data connection over TCP error
 MDataConnectError::MDataConnectError(const string& arg)
 {
@@ -88,7 +96,6 @@ MBoardInitError::MBoardInitError(const string& arg)
 {
 	 msg = "Board initialization Error: " + arg;
 }
-
 
 const char* MException::what() const throw()
 {

@@ -32,9 +32,10 @@
 #include "i2cslave.h"
 
 
-I2Cslave::I2Cslave(I2Cbus *bus)
+I2Cslave::I2Cslave(I2Cbus *bus, uint8_t address)
 {
-	i2cBus = bus;
+	i2cBus            = bus;
+	i2c_deviceAddress = address;
 }
 
 void I2Cslave::execute()

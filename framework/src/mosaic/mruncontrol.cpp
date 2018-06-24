@@ -27,53 +27,59 @@
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
+#include "mruncontrol.h"
+#include "mexception.h"
+#include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
-#include "mruncontrol.h"
-
 
 MRunControl::MRunControl(WishboneBus *wbbPtr, uint32_t baseAdd): 
 			MWbbSlave(wbbPtr, baseAdd)
 {
 }
 
-
 void MRunControl::getErrors(uint32_t *errors, bool clear)
 {
-	wbb->addRead(baseAddress+regErrorState, errors);	// READ error register
+	wbb->addRead(baseAddress + regErrorState, errors);	// READ error register
 	if (clear)
-		wbb->addWrite(baseAddress+regErrorState, 0);		// clear it
+		wbb->addWrite(baseAddress + regErrorState, 0);		// clear it
 	wbb->execute();
 }
 
 void MRunControl::clearErrors()
 {
-	wbb->addWrite(baseAddress+regErrorState, 0);
+	wbb->addWrite(baseAddress + regErrorState, 0);
 	wbb->execute();
 }
 
 void MRunControl::setConfigReg(uint32_t d)
 {
-	wbb->addWrite(baseAddress+regConfig, d);
+	wbb->addWrite(baseAddress + regConfig, d);
 	wbb->execute();
 }
 
 void MRunControl::getConfigReg(uint32_t *d)
 {
-	wbb->addRead(baseAddress+regConfig, d);
+	wbb->addRead(baseAddress + regConfig, d);
+	wbb->execute();
+}
+
+void MRunControl::rmwConfigReg(uint32_t mask, uint32_t data)
+{
+	wbb->addRMWbits(baseAddress + regConfig, mask, data);
 	wbb->execute();
 }
 
 void MRunControl::setAFThreshold(uint32_t d)
 {
-	wbb->addWrite(baseAddress+regAlmostFullThreshold, d);
+	wbb->addWrite(baseAddress + regAlmostFullThreshold, d);
 	wbb->execute();
 }
 
 void MRunControl::getAFThreshold(uint32_t *d)
 {
-	wbb->addRead(baseAddress+regAlmostFullThreshold, d);
+	wbb->addRead(baseAddress + regAlmostFullThreshold, d);
 	wbb->execute();
 }
 
@@ -81,7 +87,7 @@ void MRunControl::setLatency(uint8_t mode, uint32_t timeout)
 {
 	uint32_t m = mode;
 
-	wbb->addWrite(baseAddress+regLatency, ((m&0x03)<<30) | (timeout&0x00ffffff));
+	wbb->addWrite(baseAddress + regLatency, ((m&0x03)<<30) | (timeout&0x00ffffff));
 	wbb->execute();
 }
 
@@ -89,7 +95,7 @@ void MRunControl::getLatency(uint8_t *mode, uint32_t *timeout)
 {
 	uint32_t d;
 
-	wbb->addRead(baseAddress+regLatency, &d);
+	wbb->addRead(baseAddress + regLatency, &d);
 	wbb->execute();
 
 	*mode = d >> 30;
@@ -98,46 +104,56 @@ void MRunControl::getLatency(uint8_t *mode, uint32_t *timeout)
 
 void MRunControl::getStatus(uint32_t *st)
 {
-	wbb->addRead(baseAddress+regStatus, st);
+	wbb->addRead(baseAddress + regStatus, st);
 	wbb->execute();
 }
-
-
-void MRunControl::setSpeed(Mosaic::TReceiverSpeed ASpeed) 
-{
-	int regSet = 0;
-
-	switch (ASpeed){
-	case Mosaic::RCV_RATE_400:
-			regSet = CFG_RATE_400;
-			break;
-
-	case Mosaic::RCV_RATE_600:
-			regSet = CFG_RATE_600;
-			break;
-
-	case Mosaic::RCV_RATE_1200:
-			regSet = CFG_RATE_1200;
-			break;
-	}
-	std::cout << "MRunControl::setSpeed() - Writing " << std::hex << regSet << std::dec << " to config register" << std::endl;
-	wbb->addRMWbits(baseAddress+regConfig, ~CFG_RATE_MASK, regSet);
-	wbb->execute();
-
-}
-
 
 void MRunControl::startRun()
 {
-	wbb->addWrite(baseAddress+regRunCtrl, RUN_CTRL_RUN);
+	wbb->addWrite(baseAddress + regRunCtrl, RUN_CTRL_RUN);
 	wbb->execute();
 }
 
 void MRunControl::stopRun()
 {
-	wbb->addWrite(baseAddress+regRunCtrl, 0);
+	wbb->addWrite(baseAddress + regRunCtrl, 0);
 	wbb->execute();
 }
+
+std::string MRunControl::dumpRegisters()
+{
+  if (!wbb) throw MIPBusUDPError("No IPBus configured");
+
+  regAddress_e addrs[] = {				regRunCtrl,
+                          				regErrorState,
+                        				regAlmostFullThreshold,
+                        				regLatency,
+      	  		  /* regTemperature, */ regStatus,
+	   /* regReserved0, regReserved1,*/ regConfig };
+  uint32_t nAddrs = sizeof(addrs) / sizeof(regAddress_e);
+
+  std::stringstream ss;
+  ss << std::hex;
+
+  for (uint32_t iAddr = 0; iAddr < nAddrs; ++iAddr) {
+    uint32_t result = 0xDEADBEEF;
+    try {
+      wbb->addRead(baseAddress + addrs[iAddr], &result);
+      execute();
+    }
+    catch (...) {
+      std::cerr << "MRunControl read error: address 0x" << std::hex << baseAddress + addrs[iAddr]
+                << " (0x" << addrs[iAddr] << ")!" << std::dec << std::endl;
+    };
+
+    ss << "0x" << addrs[iAddr] << "\t0x" << result << std::endl;
+  }
+
+  ss << std::endl;
+
+  return ss.str();
+}
+
 
 
 

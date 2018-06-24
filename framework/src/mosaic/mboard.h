@@ -31,19 +31,19 @@
 #ifndef MBOARD_H
 #define MBOARD_H
 
+#include "i2cbus.h"
+#include "i2csyspll.h"
+#include "ipbus.h"
+#include "ipbusudp.h"
+#include "mdatagenerator.h"
+#include "mruncontrol.h"
+#include "mtriggercontrol.h"
+#include "mwbb.h"
 #include <stdint.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <vector>
-#include <string>
-#include "ipbusudp.h"
-#include "mruncontrol.h"
-#include "mtriggercontrol.h"
-#include "i2csyspll.h"
-
-#include "ipbus.h"
-#include "i2cbus.h"
-#include "wbb.h"
 
 class MDataReceiver;
 
@@ -51,20 +51,23 @@ class MBoard
 {
 public:
 	MBoard();
-    MBoard(const char *IPaddr, int UDPport=MosaicIPbus::DEFAULT_UDP_PORT);
+    MBoard(const char *IPaddr, const int myBoardId = 0, int UDPport = (int)MosaicIPbus::DEFAULT_UDP_PORT);
     ~MBoard();
 
-	void setIPaddress(const char *IPaddr, int UDPport=MosaicIPbus::DEFAULT_UDP_PORT);
+	void setIPaddress(const char *IPaddr, int UDPport = (int)MosaicIPbus::DEFAULT_UDP_PORT);
+	void setBoardId(const int number = 0);
 	void initHardware();
-    void connectTCP(int port=MosaicIPbus::DEFAULT_TCP_PORT, int rcvBufferSize=MosaicIPbus::DEFAULT_TCP_BUFFER_SIZE);
+    void connectTCP(int port = (int)MosaicIPbus::DEFAULT_TCP_PORT, int rcvBufferSize = (int)MosaicIPbus::DEFAULT_TCP_BUFFER_SIZE);
 	void closeTCP();
 	long pollTCP(int timeout, MDataReceiver **dr);
 	long pollData(int timeout);
 	void addDataReceiver(int id, MDataReceiver *dc);
 	void flushDataReceivers();
 	static unsigned int buf2ui(unsigned char *buf);
+	inline int getBoardId() const { return boardId; }
 
 public:
+	MDataGenerator *mDataGenerator;
 	IPbusUDP 		*mIPbus;
 	MRunControl 	*mRunControl;
 	MTriggerControl *mTriggerControl;
@@ -74,6 +77,7 @@ private:
 	void init();
 	ssize_t recvTCP(void *buffer, size_t count, int timeout);
 	ssize_t readTCPData(void *buffer, size_t count, int timeout);
+	int boardId;
 
 // private:
 public:

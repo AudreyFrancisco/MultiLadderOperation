@@ -67,6 +67,11 @@ public:
     virtual int  Trigger           (int nTriggers) = 0;
     virtual int  ReadEventData     (int &NBytes, unsigned char *Buffer) = 0; // TODO: max buffer size not needed??
     
+    virtual void EnableClockOutputs(const bool en) = 0;
+    virtual void SendBroadcastReset() = 0;
+    virtual void SendBroadcastROReset() = 0;
+    virtual void SendBroadcastBCReset() = 0;
+
 protected:
     
     std::vector<std::weak_ptr<TChipConfig>> fChipPositions;

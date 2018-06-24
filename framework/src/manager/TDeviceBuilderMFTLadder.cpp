@@ -133,25 +133,25 @@ void TDeviceBuilderMFTLadder::InitSetup()
     
     shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(fCurrentDevice->GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
-    Mosaic::TReceiverSpeed speed;
+    MosaicReceiverSpeed speed;
     
     switch ( (fCurrentDevice->GetChipConfig(0))->GetParamValue("LINKSPEED")) {
         case (int)AlpideIBSerialLinkSpeed::IB400:
-            speed = Mosaic::RCV_RATE_400;
+            speed = MosaicReceiverSpeed::RCV_RATE_400;
             break;
         case (int)AlpideIBSerialLinkSpeed::IB600:
-            speed = Mosaic::RCV_RATE_600;
+            speed = MosaicReceiverSpeed::RCV_RATE_600;
             break;
         case (int)AlpideIBSerialLinkSpeed::IB1200:
-            speed = Mosaic::RCV_RATE_1200;
+            speed = MosaicReceiverSpeed::RCV_RATE_1200;
             break;
         default:
             cout << "TDeviceBuilderMFTLadder::InitSetup() - Warning: invalid link speed, using 1200" << endl;
-            speed = Mosaic::RCV_RATE_1200;
+            speed = MosaicReceiverSpeed::RCV_RATE_1200;
             break;
     }
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TDeviceBuilderMFTLadder::InitSetup() - Speed mode = " << speed << endl;
+        cout << "TDeviceBuilderMFTLadder::InitSetup() - Speed mode = " << (int)speed << endl;
     }
     boardConfig->SetSpeedMode( speed );
     

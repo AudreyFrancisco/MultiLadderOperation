@@ -65,7 +65,7 @@ const char* TAlpide::fDACsRegName[] = {
 //___________________________________________________________________
 TAlpide::TAlpide() :
     fChipId( -1 ),
-    fADCBias( -1 ),
+    fADCOffset( -1 ),
     fADCHalfLSB( false ),
     fADCSign( false )
 { }
@@ -73,7 +73,7 @@ TAlpide::TAlpide() :
 //___________________________________________________________________
 TAlpide::TAlpide( shared_ptr<TChipConfig> config ) :
     fChipId( -1 ),
-    fADCBias( -1 ),
+    fADCOffset( -1 ),
     fADCHalfLSB( false ),
     fADCSign( false )
 {
@@ -88,7 +88,7 @@ TAlpide::TAlpide( shared_ptr<TChipConfig> config ) :
 TAlpide::TAlpide( shared_ptr<TChipConfig> config,
                   shared_ptr<TReadoutBoard> readoutBoard ) :
     fChipId( -1 ),
-    fADCBias( -1 ),
+    fADCOffset( -1 ),
     fADCHalfLSB( false ),
     fADCSign( false )
 {
@@ -557,17 +557,17 @@ float TAlpide::ReadTemperature()
     }
 
     uint16_t theResult = 0;
-    if (fADCBias == -1) { // needs calibration
+    if (fADCOffset == -1) { // needs calibration
         CalibrateADC();
     }
     
     SetTheDacMonitor( AlpideRegister::ANALOGMON ); // uses the RE_ANALOGMON, in order to disable the monitoring !
     usleep(5000);
-    SetTheADCCtrlRegister( ADCMode::MANUAL, ADCInput::Temperature, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    SetTheADCCtrlRegister( AlpideADCMode::MANUAL, AlpideADCInput::Temperature, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
     spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE,  (uint8_t)fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
     ReadRegister( AlpideRegister::ADC_AVSS, theResult );
-    theResult -=  (uint16_t)fADCBias;
+    theResult -=  (uint16_t)fADCOffset;
     float theValue =  ( ((float)theResult) * 0.1281) + 6.8; // first approximation
     return theValue;
 }
@@ -581,17 +581,17 @@ float TAlpide::ReadDACVoltage( AlpideRegister ADac )
     }
 
     uint16_t theResult = 0;
-    if (fADCBias == -1) { // needs calibration
+    if (fADCOffset == -1) { // needs calibration
         CalibrateADC();
     }
     
     SetTheDacMonitor( ADac );
     usleep(5000);
-    SetTheADCCtrlRegister( ADCMode::MANUAL, ADCInput::DACMONV, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    SetTheADCCtrlRegister( AlpideADCMode::MANUAL, AlpideADCInput::DACMONV, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
     spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
     ReadRegister( AlpideRegister::ADC_AVSS, theResult );
-    theResult -=  (uint16_t)fADCBias;
+    theResult -=  (uint16_t)fADCOffset;
     float theValue =  ( ((float)theResult) * 0.001644); // V scale first approximation
     return theValue;
 }
@@ -605,17 +605,17 @@ float TAlpide::ReadDACCurrent( AlpideRegister ADac )
     }
 
     uint16_t theResult = 0;
-    if (fADCBias == -1) { // needs calibration
+    if (fADCOffset == -1) { // needs calibration
         CalibrateADC();
     }
     
     SetTheDacMonitor( ADac );
     usleep(5000);
-    SetTheADCCtrlRegister( ADCMode::MANUAL, ADCInput::DACMONI, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    SetTheADCCtrlRegister( AlpideADCMode::MANUAL, AlpideADCInput::DACMONI, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
     spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE,  (uint8_t)fChipId );
     usleep(5000); // Wait for the measurement > of 5 milli sec
     ReadRegister( AlpideRegister::ADC_AVSS, theResult );
-    theResult -= (uint16_t)fADCBias;
+    theResult -= (uint16_t)fADCOffset;
     float theValue =  ( ((float)theResult) * 0.164); // uA scale   first approximation
     return theValue;
 }
@@ -723,7 +723,7 @@ void TAlpide::ApplyStandardDACSettings( const float backBias )
 {
     shared_ptr<TChipConfig> spConfig = fConfig.lock();
     if ( !spConfig ) {
-        throw runtime_error( "TAlpide::ConfigureCMU() - chip config. not found!" );
+        throw runtime_error( "TAlpide::ApplyStandardDACSettings() - chip config. not found!" );
     }
    if ( !(spConfig->IsEnabled()) ) {
         if ( GetVerboseLevel() > kCHATTY ) {
@@ -1407,12 +1407,12 @@ void TAlpide::CalibrateADC()
     // Calibration Phase 1
     fADCHalfLSB = false;
     fADCSign = false;
-    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    SetTheADCCtrlRegister( AlpideADCMode::CALIBRATE , AlpideADCInput::AVSS, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
     spBoard->SendOpCode ( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( AlpideRegister::ADC_CALIB, theVal1 );
     fADCSign = true;
-    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    SetTheADCCtrlRegister( AlpideADCMode::CALIBRATE , AlpideADCInput::AVSS, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
     spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( AlpideRegister::ADC_CALIB, theVal2 );
@@ -1420,39 +1420,45 @@ void TAlpide::CalibrateADC()
     
     // Calibration Phase 2
     fADCHalfLSB = false;
-    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    SetTheADCCtrlRegister( AlpideADCMode::CALIBRATE , AlpideADCInput::AVSS, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
     spBoard->SendOpCode ( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( AlpideRegister::ADC_CALIB, theVal1 );
     fADCHalfLSB = true;
-    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
+    SetTheADCCtrlRegister( AlpideADCMode::CALIBRATE , AlpideADCInput::AVSS, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
     spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
     usleep(4000); // > of 5 milli sec
     ReadRegister( AlpideRegister::ADC_CALIB, theVal2 );
     fADCHalfLSB =  (theVal1 > theVal2) ? false : true;
     
-    // Detect the Bias
-    SetTheADCCtrlRegister( ADCMode::CALIBRATE , ADCInput::AVSS, ADCComparator::COMP_296uA, ADCRampSpeed::RAMP_1us );
-    spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
-    usleep(4000); // > of 5 milli sec
-    ReadRegister( AlpideRegister::ADC_CALIB,theVal1 );
-    fADCBias = theVal1;
+    // Offset Measurement (detect the bias)
+    fADCOffset = 0;
+    const unsigned int n_samples = 20;
+    for (unsigned int i = 0; i < n_samples; ++i) {
+        SetTheADCCtrlRegister( AlpideADCMode::CALIBRATE , AlpideADCInput::AVSS, AlpideADCComparator::COMP_296uA, AlpideADCRampSpeed::RAMP_1us );
+        spBoard->SendOpCode( (uint16_t)AlpideOpCode::ADCMEASURE, (uint8_t)fChipId );
+        usleep(4000); // > of 5 milli sec
+        ReadRegister( AlpideRegister::ADC_CALIB,theVal1 );
+        fADCOffset += theVal1;
+    }
+    fADCOffset =
+      static_cast<int>(static_cast<double>(fADCOffset) / static_cast<double>(n_samples) + 0.5);
 }
 
 //___________________________________________________________________
-uint16_t TAlpide::SetTheADCCtrlRegister( ADCMode Mode,
-										ADCInput SelectInput,
-										ADCComparator ComparatorCurrent,
-										ADCRampSpeed RampSpeed )
+uint16_t TAlpide::SetTheADCCtrlRegister( AlpideADCMode Mode,
+										AlpideADCInput SelectInput,
+										AlpideADCComparator ComparatorCurrent,
+										AlpideADCRampSpeed RampSpeed )
 {
 	uint16_t Data;
-	Data = Mode | (SelectInput<<2) | (ComparatorCurrent<<6) | (fADCSign<<8) | (RampSpeed<<9) | (fADCHalfLSB<<11);
+	Data = (int)Mode | ((int)SelectInput<<2) | ((int)ComparatorCurrent<<6) | (fADCSign<<8) | ((int)RampSpeed<<9) | (fADCHalfLSB<<11);
 	WriteRegister( AlpideRegister::ADC_CONTROL, Data );
 	return Data;
 }
 
 //___________________________________________________________________
-void TAlpide::SetTheDacMonitor( AlpideRegister ADac, DACMonIref IRef )
+void TAlpide::SetTheDacMonitor( AlpideRegister ADac, AlpideDACMonIref IRef )
 {
 	int VDAC, IDAC;
 	uint16_t Value;
@@ -1521,7 +1527,7 @@ void TAlpide::SetTheDacMonitor( AlpideRegister ADac, DACMonIref IRef )
 
 	Value = VDAC & 0xf;
 	Value |= (IDAC & 0x7) << 4;
-	Value |= (IRef & 0x3) << 9;
+	Value |= ((int)IRef & 0x3) << 9;
 
 	WriteRegister( AlpideRegister::ANALOGMON, Value );
 	return;

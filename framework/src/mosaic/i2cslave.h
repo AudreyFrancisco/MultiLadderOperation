@@ -37,11 +37,12 @@
 class I2Cslave
 {
 public:
-	I2Cslave(I2Cbus *bus);
+	I2Cslave(I2Cbus *bus, uint8_t address = 0);
 	void execute();
 
 protected:
 	I2Cbus *i2cBus;	
+	uint8_t i2c_deviceAddress;
 };
 
 

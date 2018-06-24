@@ -27,8 +27,8 @@
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
-#ifndef WBB_H
-#define WBB_H
+#ifndef MWBB_H
+#define MWBB_H
 
 /*
 	Definition of Base address for WishboneBus slaves
@@ -37,20 +37,22 @@ class WbbBaseAddress
 {
 public:
 	enum baseAddress_e {
-		i2cSysPLL				= (0x00 << 24),
-		runControl 				= (0x01 << 24),
-		triggerControl			= (0x02 << 24),
-		dataGenerator 			= (0x03 << 24),
-		pulser					= (0x04 << 24),
-		i2cMaster				= (0x05 << 24),
-		controlInterface		= (0x06 << 24),
-		controlInterfaceB		= (0x07 << 24),
-		alpideRcv				= (0x08 << 24),
-		};
+		i2cSysPLL      = (0 << 24),
+    	runControl     = (1 << 24),
+    	triggerControl = (2 << 24),
+    	dataGenerator  = (3 << 24),
+    	pulser         = (4 << 24),
+		// extended addresses
+		add_i2cMaster          = (5 << 24),
+    	add_controlInterface   = (6 << 24),
+    	add_controlInterfaceB  = (7 << 24),
+    	add_alpideRcv          = (8 << 24), // total of 10 alpideRcv
+    	add_trgRecorder        = (18 << 24),
+    	add_controlInterface_0 = (19 << 24),
+    	add_controlInterface_9 = (28 << 24),
+    	add_i2cAux             = (29 << 24),
+    	add_coordinator        = (30 << 24)
+	};
 };
 
-
-
-
-
-#endif // WBB_H
+#endif // MWBB_H

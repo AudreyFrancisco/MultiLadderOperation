@@ -108,6 +108,9 @@ protected:
     
     /// stop the readout
     void StopReadout();
+
+    /// global reset + read out reset + bunch crossing counter reset
+    void DoBroadcastReset();
     
     /// check if there is any hit for the requested chip index
     virtual bool HasData( const common::TChipIndex idx ) = 0;

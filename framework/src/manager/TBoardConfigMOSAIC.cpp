@@ -6,7 +6,6 @@
 #include "TBoardConfigMOSAIC.h"
 
 using namespace std;
-using namespace BoardConfigMOSAIC;
 
 const int TBoardConfigMOSAIC::RCVMAP[] = { 3, 5, 7, 8, 6, 4, 2, 1, 0 };
 
@@ -16,22 +15,26 @@ TBoardConfigMOSAIC::TBoardConfigMOSAIC( const char *AConfigFileName ) : TBoardCo
     fBoardType = TBoardType::kBOARD_MOSAIC;
 
 	// Default values set
-	NumberOfControlInterfaces = MAX_MOSAICCTRLINT;
-	TCPPort = DEF_TCPPORT;
-	ControlInterfacePhase = DEF_CTRLINTPHASE;
-	RunCtrlAFThreshold = DEF_CTRLAFTHR;
-	RunCtrlLatMode = DEF_CTRLLATMODE; // 0 := latencyModeEoe, 1 := latencyModeTimeout, 2 := latencyModeMemory
-	RunCtrlTimeout = DEF_CTRLTIMEOUT;
-	pollDataTimeout = DEF_POLLDATATIMEOUT; // milliseconds
-	Inverted = DEF_POLARITYINVERSION;
-	SpeedMode = DEF_SPEEDMODE;
+	TCPPort = (int)MosaicBoardConfig::DEF_TCPPORT;
+	NumberOfControlInterfaces = (int)MosaicBoardConfig::MAX_CTRLINT;
+	ControlInterfacePhase = (int)MosaicBoardConfig::DEF_CTRLINTPHASE;
+	RunCtrlAFThreshold = (int)MosaicBoardConfig::DEF_CTRLAFTHR;
+	RunCtrlLatMode = (int)MosaicLatencyMode::latencyModeEoe; 
+	RunCtrlTimeout = (int)MosaicBoardConfig::DEF_CTRLTIMEOUT;
+	pollDataTimeout = (int)MosaicBoardConfig::DEF_POLLDATATIMEOUT; // milliseconds
+	Inverted = (int)MosaicBoardConfig::DEF_POLARITYINVERSION;
+	SpeedMode = (int)MosaicReceiverSpeed::RCV_RATE_400;
+	ManchesterDisable = (int)MosaicBoardConfig::DEF_MANCHESTERDISABLE;
+  	MasterSlaveModeOn = (int)MosaicBoardConfig::DEF_MASTERSLAVEMODEENABLE;
+	MasterSlaveMode = (int)MosaicBoardConfig::DEF_MASTERSLAVEMODE; 
+	TrgRecorderEnable = (int)MosaicBoardConfig::DEF_TRGRECORDERENABLE;
 
 	if (AConfigFileName) { // Read Configuration file
 		try {
-			if(AConfigFileName == NULL || strlen(AConfigFileName) == 0) throw std::invalid_argument("MOSAIC Config : invalid filename");
+			if(AConfigFileName == NULL || strlen(AConfigFileName) == 0) throw std::invalid_argument("TBoardConfigMOSAIC::TBoardConfigMOSAIC() - invalid filename");
 			fhConfigFile = fopen(AConfigFileName,"r"); // opens the file
 			} catch (...) {
-				throw std::invalid_argument("MOSAIC Config : file not exists !");
+				throw std::invalid_argument("TBoardConfigMOSAIC::TBoardConfigMOSAIC() - file does not exist !");
 			}
 	}
     InitParamMap();
@@ -48,63 +51,67 @@ TBoardConfigMOSAIC::~TBoardConfigMOSAIC()
 //___________________________________________________________________
 void TBoardConfigMOSAIC::InitParamMap()
 {
+	fSettings["TCPPORTNUMBER"]             = &TCPPort;
 	fSettings["NUMBEROFCONTROLINTERFACES"] = &NumberOfControlInterfaces;
-	fSettings["TCPPORTNUMBER"] = &TCPPort;
-	fSettings["CONTROLINTERFACEPHASE"] = &ControlInterfacePhase;
-	fSettings["CONTROLAFTHRESHOLD"] = &RunCtrlAFThreshold;
-	fSettings["CONTROLLATENCYMODE"] = &RunCtrlLatMode;
-	fSettings["CONTROLTIMEOUT"] = &RunCtrlTimeout;
-	fSettings["POLLINGDATATIMEOUT"] = &pollDataTimeout;
-	fSettings["DATALINKPOLARITY"] = &Inverted;
-	fSettings["DATALINKSPEED"] = &SpeedMode;
-
+	fSettings["CONTROLINTERFACEPHASE"]     = &ControlInterfacePhase;
+	fSettings["CONTROLAFTHRESHOLD"]        = &RunCtrlAFThreshold;
+	fSettings["CONTROLLATENCYMODE"]        = &RunCtrlLatMode;
+	fSettings["CONTROLTIMEOUT"]            = &RunCtrlTimeout;
+	fSettings["POLLINGDATATIMEOUT"]        = &pollDataTimeout;
+	fSettings["DATALINKPOLARITY"]          = &Inverted;
+	fSettings["DATALINKSPEED"]             = &SpeedMode;
+	fSettings["MANCHESTERDISABLED"]        = &ManchesterDisable;
+  	fSettings["MASTERSLAVEMODEON"]         = &MasterSlaveModeOn;
+	fSettings["MASTERSLAVEMODE"]           = &MasterSlaveMode;
+	fSettings["TRGRECORDERENABLE"]         = &TrgRecorderEnable;
+  
 	TBoardConfig::InitParamMap();
 }
 
 //___________________________________________________________________
-Mosaic::TReceiverSpeed TBoardConfigMOSAIC::GetSpeedMode()
+MosaicReceiverSpeed TBoardConfigMOSAIC::GetSpeedMode()
 {
 	switch(SpeedMode) {
 	case 0:
-		return(Mosaic::RCV_RATE_400);
+		return(MosaicReceiverSpeed::RCV_RATE_400);
 		break;
 	case 1:
-		return(Mosaic::RCV_RATE_600);
+		return(MosaicReceiverSpeed::RCV_RATE_600);
 		break;
 	case 2:
-		return(Mosaic::RCV_RATE_1200);
+		return(MosaicReceiverSpeed::RCV_RATE_1200);
 		break;
 	default:
-		return(Mosaic::RCV_RATE_400);
+		return(MosaicReceiverSpeed::RCV_RATE_400);
 		break;
 	}
 }
 
 //___________________________________________________________________
-int TBoardConfigMOSAIC::GetRCVMAP( const int i ) const
+int TBoardConfigMOSAIC::GetRCVMAP( const unsigned int i ) const
 {
     try {
-        if ( (i < 0) || (i>= RCVMAPsize) ) {
+        if ( i>= RCVMAPsize ) {
             cerr << "TBoardConfigMOSAIC::GetRCVMAP() - index = " << i << endl;
             throw out_of_range("TBoardConfigMOSAIC::GetRCVMAP() - index out of range!");
         }
         return RCVMAP[i];
     } catch ( std::out_of_range &err ) {
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 }
 
 //___________________________________________________________________
-void TBoardConfigMOSAIC::SetSpeedMode(Mosaic::TReceiverSpeed ASpeedMode)
+void TBoardConfigMOSAIC::SetSpeedMode(MosaicReceiverSpeed ASpeedMode)
 {
 	switch(ASpeedMode) {
-	case Mosaic::RCV_RATE_400:
+	case MosaicReceiverSpeed::RCV_RATE_400:
 		SpeedMode = 0;
 		break;
-	case Mosaic::RCV_RATE_600:
+	case MosaicReceiverSpeed::RCV_RATE_600:
 		SpeedMode = 1;
 		break;
-	case Mosaic::RCV_RATE_1200:
+	case MosaicReceiverSpeed::RCV_RATE_1200:
 		SpeedMode = 2;
 		break;
 	default:

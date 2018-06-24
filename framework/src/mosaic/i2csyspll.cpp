@@ -32,49 +32,9 @@
 #include <stdlib.h>
 #include "mexception.h"
 #include "i2csyspll.h"
+#include "mdictionary.h"
 
 #define CDCM6208_ADDRESS	0x54
-
-/* System PLL register setup for:
-		Primary Input Frequency: 200
-		Secondary Input Frequency: 40
-		Version 2
-		C1: 18.0849p
-		R2: 1.003k
-		C2: 9.9706n
-		R3: 60
-		C3: 377.5p
-		Charge Pump: 2.5m
-		Input MUX set to Primary
-		All inputs/Outputs LVDS 3.3V/2.5V
-*/
-
-uint16_t regContent [] = {
-	/* Register 0: */ 0x02A9,
-	/* Register 1: */ 0x0000,
-	/* Register 2: */ 0x000E,
-	/* Register 3: */ 0x08F5,
-	/* Register 4: */ 0x346F,	// set to 0x346f to set reference clock from secondary input (0x246f for primary)
-	/* Register 5: */ 0x0023,
-	/* Register 6: */ 0x0002,
-	/* Register 7: */ 0x0023,
-	/* Register 8: */ 0x0002,
-	/* Register 9: */ 0x0003,
-	/* Register 10: */ 0x0020,
-	/* Register 11: */ 0x0000,
-	/* Register 12: */ 0x0003,  // 0x0003, 0x2003 bypass Y5 from primary input
-	/* Register 13: */ 0x0020,
-	/* Register 14: */ 0x0000,
-	/* Register 15: */ 0x0003,
-	/* Register 16: */ 0x0020,
-	/* Register 17: */ 0x0000,
-	/* Register 18: */ 0x0003,
-	/* Register 19: */ 0x0020,
-	/* Register 20: */ 0x0000,
-	/* Register 21: */ 0x0006			// RO register
-	};
-
-
 
 I2CSysPll::I2CSysPll(WishboneBus *wbbPtr, uint32_t baseAdd) : 
 			I2Cbus(wbbPtr, baseAdd)
@@ -83,11 +43,11 @@ I2CSysPll::I2CSysPll(WishboneBus *wbbPtr, uint32_t baseAdd) :
 
 void I2CSysPll::writeReg(uint8_t add, uint16_t d)
 {
-	addAddress(CDCM6208_ADDRESS, I2Cbus::I2C_Write);
+	addAddress(CDCM6208_ADDRESS, MosaicReadWriteN::I2C_Write);
 	addWriteData(0x00);
 	addWriteData(add);
-	addWriteData(d>>8);
-	addWriteData(d&0xff, I2Cbus::RWF_stop);
+	addWriteData(d >> 8);
+	addWriteData(d & 0xff, (uint32_t)MosaicReadWriteFlags::RWF_stop);
 	execute();
 }
 
@@ -95,40 +55,39 @@ void I2CSysPll::readReg (uint8_t add, uint16_t *d)
 {
 	uint32_t *r = new uint32_t[2];
 
-	addAddress(CDCM6208_ADDRESS, I2Cbus::I2C_Write);
+	addAddress(CDCM6208_ADDRESS, MosaicReadWriteN::I2C_Write);
 	addWriteData(0x00);
-	addWriteData(add, I2Cbus::RWF_stop);
+	addWriteData(add, (uint32_t)MosaicReadWriteFlags::RWF_stop);
 
-	addAddress(CDCM6208_ADDRESS, I2Cbus::I2C_Read);
+	addAddress(CDCM6208_ADDRESS, MosaicReadWriteN::I2C_Read);
 	addRead(r);
-	addRead(r+1, I2Cbus::RWF_dontAck | I2Cbus::RWF_stop);
+	addRead(r+1, (uint32_t)MosaicReadWriteFlags::RWF_dontAck | (uint32_t)MosaicReadWriteFlags::RWF_stop);
 	execute();
 
-	*d = ((r[0]&0xff) << 8) | (r[1]&0xff);
+	*d = ((r[0] & 0xff) << 8) | (r[1] & 0xff);
 }
 
-
-void I2CSysPll::setup()
+void I2CSysPll::setup(pllRegisters_t regs)
 {
-	uint16_t r;
-	int lookTry;
-	
-	// Write
-	for (int i=0; i<20; i++){
-		writeReg(i, regContent[i]);
-	}
+  uint16_t r;
+  //	int lookTry;
 
-	// Verify
-	for (int i=0; i<20; i++){
-		readReg(i, &r);
-		if (r != regContent[i])
-			throw MBoardInitError("System PLL verify error");
-	}
+  // Write
+  for (int i = 0; i < 20; i++) {
+    writeReg(i, regs.reg[i]);
+  }
 
-	// Cycle the reset 
-	writeReg(3, regContent[3] & ~(1<<6));
-	writeReg(3, regContent[3]);
+  // Verify
+  for (int i = 0; i < 20; i++) {
+    readReg(i, &r);
+    if (r != regs.reg[i]) throw MBoardInitError("System PLL verify error");
+  }
 
+  // Cycle the reset
+  writeReg(3, regs.reg[3] & ~(1 << 6));
+  writeReg(3, regs.reg[3]);
+
+#if 0 // lock check is done at upper level
 	// wait for PLL to lock
 	lookTry = 500;
 	while (--lookTry){
@@ -139,8 +98,9 @@ void I2CSysPll::setup()
 
 	if (lookTry==0)
 			throw MBoardInitError("System PLL NOT locked!");
-		
+#endif
 }
+
 
 
 

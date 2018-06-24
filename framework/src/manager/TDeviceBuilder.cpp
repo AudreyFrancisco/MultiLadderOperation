@@ -169,6 +169,8 @@ void TDeviceBuilder::CheckControlInterface()
         throw runtime_error( "TDeviceBuilder::CheckControlInterface() - no chip defined!" );
     }
 
+    fCurrentDevice->EnableClockOutputs( true );
+
     for ( unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++ ) {
         
         if ( !(fCurrentDevice->GetChipConfig(i)->IsEnabled()) ) continue;

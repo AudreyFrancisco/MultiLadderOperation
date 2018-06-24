@@ -32,34 +32,22 @@
 #define I2CSYSPLL_H
 
 #include <stdint.h>
+#include <string.h>
 #include "i2cbus.h"
 
 class I2CSysPll: public I2Cbus
 {
 public:
+
+	typedef struct pllRegisters_s {
+    	uint16_t reg[22];
+    	pllRegisters_s(uint16_t *r) { memcpy(reg, r, sizeof(uint16_t) * 22); }
+	} pllRegisters_t;
+
     I2CSysPll(WishboneBus *wbbPtr, uint32_t baseAddress);
 	void writeReg(uint8_t add, uint16_t d);
 	void readReg (uint8_t add, uint16_t *d);
-	void setup();
-
-private:					// WBB Slave registers map 
-/*
-	enum regAddress_e {
-		regWriteAdd				= 0,
-		regReadAdd 				= 1,
-		regParInAdd				= 2
-		};
-
-	enum writeRegBits_e {
-		I2C_STOP_BIT		= (1<<31),
-		I2C_START_BIT		= (1<<30),
-		I2C_MASTER_ACK_BIT	= (1<<29),
-		I2C_IGNORE_ACK_BIT	= (1<<28)
-	};
-*/
-
+	void setup(pllRegisters_t regs);
 };
-
-
 
 #endif // I2CBUS_H

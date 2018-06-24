@@ -21,56 +21,33 @@
  *    / / /  | / / / ___/ /  | / / SEZIONE di BARI
  *   / / / | |/ / / /_   / | |/ /
  *  / / / /| / / / __/  / /| / /
- * /_/ /_/ |__/ /_/    /_/ |__/  	 
+ * /_/ /_/ |__/ /_/    /_/ |__/
  *
  * ====================================================
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
 
-#ifndef MDATARECEIVER_H
-#define MDATARECEIVER_H
+#ifndef GENCONSUMER_H
+#define GENCONSUMER_H
 
-#include "ipbus.h"
-#include "mboard.h"
-#include <vector>
-#include <stdlib.h>
+#include "mdatareceiver.h"
+#include <stdint.h>
 
-typedef std::vector<char> dataBuffer_t;
+class GenConsumer : public MDataReceiver {
+public:
+  GenConsumer();
+  void setEventSize(long evSize) { eventSize = evSize; }
+  void                   flush();
 
-class MDataReceiver
-{
-friend class MBoard;
+protected:
+  long parse(int numClosed);
+
+private:
+  long eventSize;
 
 public:
-	MDataReceiver();
-	virtual ~MDataReceiver();
-
-protected:
-	virtual long parse(int numClosed) = 0;		// Pure virtual
-	virtual void flush();
-
-protected:
-	long dataBufferUsed;
-	long numClosedData;
-	long blockFlags;
-	long blockSrc;
-	dataBuffer_t dataBuffer;
-    unsigned char blockHeader[(unsigned int)MosaicIPbus::HEADER_SIZE];
-
-protected:
-	void *getWritePtr(size_t size) 
-	{
-		// resize the buffer if needed
-		if (dataBufferUsed + size > dataBuffer.size()){
-			dataBuffer.resize(dataBufferUsed+size);
-		}  
-		// return a pointer to the free area
-		return (void*) &dataBuffer[dataBufferUsed];
-	};
+  uint32_t expectedData;
 };
 
-
-
-
-#endif // MDATARECEIVER_H
+#endif // GENCONSUMER_H
