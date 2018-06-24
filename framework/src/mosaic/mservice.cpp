@@ -37,12 +37,9 @@
 #include <string.h>
 #include <poll.h>
 #include "mservice.h"
+#include "ipbus.h"
 
-#define PKT_ACK					0x06
-#define PKT_NAK					0x15
-
-#define CMD_FW_INFO				205
-
+using namespace std;
 
 // Service error - Remote Bus Write error
 MSrvcError::MSrvcError(const string& arg)
@@ -139,7 +136,7 @@ void MService::readFWinfo(fw_info_t *info)
 	ssize_t nread;
 	int i;
 	
-	rcvTimoutTime = RCV_LONG_TIMEOUT;
+	rcvTimoutTime = (int)MosaicIPbus::RCV_LONG_TIMEOUT;
 
 	/*
 		setup the request message
@@ -153,7 +150,7 @@ void MService::readFWinfo(fw_info_t *info)
 	*/
 	nread=sockRead(rxBuffer, pktSize);
 
-	rcvTimoutTime = RCV_SHORT_TIMEOUT;
+	rcvTimoutTime = (int)MosaicIPbus::RCV_SHORT_TIMEOUT;
 	
 	if (nread < 8)
 		throw MSrvcError("Response datagram too short");

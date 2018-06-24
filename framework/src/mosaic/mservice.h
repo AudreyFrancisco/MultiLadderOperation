@@ -37,10 +37,6 @@
 #include <arpa/inet.h>
 #include "mexception.h"
 
-#define FIRMWARE_PORT				65000
-#define RCV_LONG_TIMEOUT			2000	// timeout in ms for the first rx datagrams
-#define RCV_SHORT_TIMEOUT			100		// timeout in ms for rx datagrams
-
 class MService
 {
 public:
@@ -55,9 +51,9 @@ public:
 
 public:
 	MService();
-    MService(const char *brdName, int port=FIRMWARE_PORT);
+    MService(const char *brdName, int port = FIRMWARE_PORT);
     ~MService();
-	void setIPaddress(const char *brdName, int port=FIRMWARE_PORT);
+	void setIPaddress(const char *brdName, int port = FIRMWARE_PORT);
 	void readFWinfo(fw_info_t *info);
 
 private:
@@ -70,14 +66,17 @@ private:
 	struct sockaddr_in sockAddress;
 	int rcvTimoutTime;
 	uint8_t seqNumber;
-
+	static const int FIRMWARE_PORT = 65000; // timeout in ms for the first rx datagrams
+	static const int PKT_ACK = 0x06;
+	static const int PKT_NAK = 0x15;
+	static const int CMD_FW_INFO = 205;
 };
 
 
 class MSrvcError : public MException 
 {
 public:
-	explicit MSrvcError(const string& __arg);
+	explicit MSrvcError(const std::string& __arg);
 };
 
 

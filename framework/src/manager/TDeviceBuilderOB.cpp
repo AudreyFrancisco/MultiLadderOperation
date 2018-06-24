@@ -106,7 +106,7 @@ void TDeviceBuilderOB::InitSetup()
     
     shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(fCurrentDevice->GetBoardConfig(0)));
     boardConfig->SetInvertedData(boardConfig->IsInverted()); // ???: circular definition? (AR)
-    boardConfig->SetSpeedMode( Mosaic::RCV_RATE_400 );
+    boardConfig->SetSpeedMode( MosaicReceiverSpeed::RCV_RATE_400 );
     auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
     fCurrentDevice->AddBoard( newBoard );
     

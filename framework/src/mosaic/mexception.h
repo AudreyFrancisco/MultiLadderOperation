@@ -34,15 +34,12 @@
 #include <exception>
 #include <string>
 
-//class string;
-using namespace std;
-
-class MException : public exception 
+class MException : public std::exception 
 {
 public:
 	/** Takes a character string describing the error.  */
 	explicit MException();
-	explicit MException(const string& __arg);
+	explicit MException(const std::string& __arg);
 	~MException() throw();
 
 	/** Returns a C-style character string describing the general cause of
@@ -50,28 +47,34 @@ public:
 	virtual const char* what() const throw();
 
 protected:
-    string msg;
+    std::string msg;
 };
 
 // IPBus  error
 class MIPBusError : public MException 
 {
 public:
-	explicit MIPBusError(const string& __arg);
+	explicit MIPBusError(const std::string& __arg);
 };
 
 // IPBus error - Remote Bus Write error
 class MIPBusErrorWrite : public MException 
 {
 public:
-	explicit MIPBusErrorWrite(const string& __arg);
+	explicit MIPBusErrorWrite(const std::string& __arg);
+};
+
+// IPBus error - Remote Bus Read error
+class MIPBusErrorReadTimeout : public MException {
+public:
+	explicit MIPBusErrorReadTimeout(const std::string &__arg);
 };
 
 // IPBus over UDP error
 class MIPBusUDPError : public MException 
 {
 public:
-	explicit MIPBusUDPError(const string& __arg);
+	explicit MIPBusUDPError(const std::string& __arg);
 };
 
 // IPBus over UDP Timeout
@@ -85,27 +88,27 @@ public:
 class MDataConnectError : public MException 
 {
 public:
-	explicit MDataConnectError(const string& __arg);
+	explicit MDataConnectError(const std::string& __arg);
 };
 
 // Data receive over TCP
 class MDataReceiveError : public MException 
 {
 public:
-	explicit MDataReceiveError(const string& __arg);
+	explicit MDataReceiveError(const std::string& __arg);
 };
 
 // Data parser
 class MDataParserError : public MException 
 {
 public:
-	explicit MDataParserError(const string& __arg);
+	explicit MDataParserError(const std::string& __arg);
 };
 
 class MBoardInitError : public MException 
 {
 public:
-	explicit MBoardInitError(const string& __arg);
+	explicit MBoardInitError(const std::string& __arg);
 };
 
 

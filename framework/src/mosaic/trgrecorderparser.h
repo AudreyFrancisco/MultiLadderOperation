@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014
+ * Copyright (C) 2017
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,53 +24,30 @@
  * /_/ /_/ |__/ /_/    /_/ |__/  	 
  *
  * ====================================================
- * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
+ * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2017.
  *
  */
 
-#ifndef MDATARECEIVER_H
-#define MDATARECEIVER_H
+#ifndef TRGRECORDERPARSER_H
+#define TRGRECORDERPARSER_H
 
-#include "ipbus.h"
-#include "mboard.h"
-#include <vector>
-#include <stdlib.h>
+#include "mdatareceiver.h"
+#include <stdint.h>
+#include "TVerbosity.h"
 
-typedef std::vector<char> dataBuffer_t;
-
-class MDataReceiver
+class TrgRecorderParser : public MDataReceiver, public TVerbosity
 {
-friend class MBoard;
-
 public:
-	MDataReceiver();
-	virtual ~MDataReceiver();
-
+	TrgRecorderParser();
+	void flush();
+	
 protected:
-	virtual long parse(int numClosed) = 0;		// Pure virtual
-	virtual void flush();
-
-protected:
-	long dataBufferUsed;
-	long numClosedData;
-	long blockFlags;
-	long blockSrc;
-	dataBuffer_t dataBuffer;
-    unsigned char blockHeader[(unsigned int)MosaicIPbus::HEADER_SIZE];
-
-protected:
-	void *getWritePtr(size_t size) 
-	{
-		// resize the buffer if needed
-		if (dataBufferUsed + size > dataBuffer.size()){
-			dataBuffer.resize(dataBufferUsed+size);
-		}  
-		// return a pointer to the free area
-		return (void*) &dataBuffer[dataBufferUsed];
-	};
+	long parse(int numClosed);
+	
+private:
+	uint32_t buf2uint32(unsigned char *buf);
+	uint64_t buf2uint64(unsigned char *buf);
+	static const int TRIGGERDATA_SIZE = 12;	// 4 bytes: Trigger number. 8 bytes: Time stamp
 };
 
-
-
-
-#endif // MDATARECEIVER_H
+#endif // TRGRECORDERPARSER_H

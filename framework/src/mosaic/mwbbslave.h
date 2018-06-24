@@ -31,8 +31,8 @@
 #ifndef MWBBSLAVE_H
 #define MWBBSLAVE_H
 
-#include <stdint.h>
 #include "wishbonebus.h"
+#include <stdint.h>
 
 class MWbbSlave
 {
@@ -46,7 +46,5 @@ protected:
 	WishboneBus *wbb;
 	uint32_t baseAddress;
 };
-
-
 
 #endif // MWBBSLAVE_H

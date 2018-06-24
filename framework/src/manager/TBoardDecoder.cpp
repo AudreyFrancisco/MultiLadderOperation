@@ -119,7 +119,7 @@ bool TBoardDecoder::DecodeEventMOSAIC( unsigned char *data,
     fMOSAIC_timeout     = blockFlags & MBoard::flagTimeout;
     fMOSAIC_eoeCount    = 1;
     fMOSAIC_channel     = MOSAICBoardDecoder::EndianAdjust(data+12)-1; // (-1) because of addDataReceiver(i+1, fAlpideDataParser[i]) in TReadoutBoardMOSAIC::init() 
-    nBytesHeader        = MosaicIPbus::HEADER_SIZE; // #define MOSAIC_HEADER_LENGTH 64
+    nBytesHeader        = (int)MosaicIPbus::HEADER_SIZE; // #define MOSAIC_HEADER_LENGTH 64
     nBytesTrailer       = 1; // #define The MOSAIC trailer length
     
     uint8_t MOSAICtransmissionFlag = data[nBytes-1];	// last byte is the trailer

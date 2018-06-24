@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014
+ * Copyright (C) 2017
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,56 +21,32 @@
  *    / / /  | / / / ___/ /  | / / SEZIONE di BARI
  *   / / / | |/ / / /_   / | |/ /
  *  / / / /| / / / __/  / /| / /
- * /_/ /_/ |__/ /_/    /_/ |__/  	 
+ * /_/ /_/ |__/ /_/    /_/ |__/
  *
  * ====================================================
- * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
+ * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2017.
  *
  */
 
-#ifndef MDATARECEIVER_H
-#define MDATARECEIVER_H
+#ifndef TRGRECORDER_H
+#define TRGRECORDER_H
 
-#include "ipbus.h"
-#include "mboard.h"
-#include <vector>
-#include <stdlib.h>
+#include "mwbbslave.h"
+#include <stdint.h>
+#include <string>
 
-typedef std::vector<char> dataBuffer_t;
-
-class MDataReceiver
-{
-friend class MBoard;
-
+class TrgRecorder : public MWbbSlave {
 public:
-	MDataReceiver();
-	virtual ~MDataReceiver();
+  TrgRecorder(WishboneBus *wbbPtr, uint32_t baseAddress);
+  void addEnable(bool en);
+  std::string dumpRegisters();
 
-protected:
-	virtual long parse(int numClosed) = 0;		// Pure virtual
-	virtual void flush();
+private: // WBB Slave registers map
+  enum regAddress_e {
+    regControl = 0 // Control register
+  };
 
-protected:
-	long dataBufferUsed;
-	long numClosedData;
-	long blockFlags;
-	long blockSrc;
-	dataBuffer_t dataBuffer;
-    unsigned char blockHeader[(unsigned int)MosaicIPbus::HEADER_SIZE];
-
-protected:
-	void *getWritePtr(size_t size) 
-	{
-		// resize the buffer if needed
-		if (dataBufferUsed + size > dataBuffer.size()){
-			dataBuffer.resize(dataBufferUsed+size);
-		}  
-		// return a pointer to the free area
-		return (void*) &dataBuffer[dataBufferUsed];
-	};
+  enum controlBits_e { CONTROL_ENABLE = (1 << 0) };
 };
 
-
-
-
-#endif // MDATARECEIVER_H
+#endif // TRGRECORDER_H

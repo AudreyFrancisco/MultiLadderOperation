@@ -81,7 +81,8 @@ void TDeviceChipVisitor::SetVerboseLevel( const int level )
 void TDeviceChipVisitor::Init()
 {
     try {
-        HardwareGlobalReset();
+        ConfigureBoards();
+        DoBroadcastReset();
     } catch ( std::exception &err ) {
         cerr << err.what() << endl;
         exit( EXIT_FAILURE );
@@ -100,6 +101,7 @@ void TDeviceChipVisitor::Init()
 void TDeviceChipVisitor::Terminate()
 {
     StopReadout();
+    fDevice->EnableClockOutputs( false );
     fIsTerminated = true;
 }
 
@@ -263,34 +265,29 @@ void TDeviceChipVisitor::DoConfigureVPulseLow( const unsigned int deltaV )
 #pragma mark - readout board and chip configuration
 
 //___________________________________________________________________
-void TDeviceChipVisitor::HardwareGlobalReset()
+void TDeviceChipVisitor::DoBroadcastReset()
 {
     if ( !fDevice ) {
-        throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - can not use a null pointer for the device !" );
-    }
-    if ( fDevice->GetNChips() == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - no chip found !" );
-    }
-    if ( fDevice->GetNBoards(false) == 0 ) {
-        throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - no readout board found !" );
+        throw runtime_error( "TDeviceChipVisitor::DoBroadcastReset() - can not use a null pointer for the device !" );
     }
     if ( fIsInitDone ) {
-        cerr << "TDeviceChipVisitor::HardwareGlobalReset() - already done ! Doing nothing." << endl;
+        cerr << "TDeviceChipVisitor::DoBroadcastReset() - already done ! Doing nothing." << endl;
         return;
     }
-    
-    ConfigureBoards();
-    
+    if ( fDevice->GetNBoards(false) == 0 ) {
+        throw runtime_error( "TDeviceChipVisitor::DoBroadcastReset() - no readout board found !" );
+    }
+
     for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
         
         shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard( iboard );
         if ( !myBoard ) {
-            throw runtime_error( "TDeviceChipVisitor::HardwareGlobalReset() - no readout board found!" );
+            throw runtime_error( "TDeviceChipVisitor::DoBroadcastReset() - no readout board found!" );
         }
         
         // -- global reset chips
         
-        myBoard->SendOpCode( (uint16_t)AlpideOpCode::GRST );
+        myBoard->SendBroadcastReset();
         
         // TODO: check if AlpideOpCode::PRST is needed ?
         // -- pixel matrix reset

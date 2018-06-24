@@ -149,8 +149,7 @@ enum class AlpideIBSerialLinkSpeed {
     IB400   = 0,
     IB600   = 1,
     IB1200  = 2
-};
-    
+};    
     
 // Bits 1:0 of the Mode Control Register
 enum class AlpideChipMode {
@@ -167,5 +166,40 @@ enum class AlpidePrbs7Mode {
     PRBSRST    = 3 // 2b'11 (synchronous reset of the PRBS-7 pattern generator)
 };
 
+enum class AlpideDACMonIref {
+    IREF_025uA = 0,
+    IREF_075uA = 1,
+    IREF_100uA = 2,
+    IREF_125uA = 3
+};
+enum class AlpideADCMode {
+    MANUAL      = 0,
+    CALIBRATE   = 1,
+    AUTO        = 2,
+    SUPERMANUAL = 3
+};
+enum class AlpideADCComparator {
+    COMP_180uA = 0,
+    COMP_190uA = 1,
+    COMP_296uA = 2,
+    COMP_410uA = 3
+};
+enum class AlpideADCRampSpeed {
+    RAMP_500ms = 0,
+    RAMP_1us = 1,
+    RAMP_2us = 2,
+    RAMP_4us = 3
+};
+enum class AlpideADCInput {
+    AVSS = 0,
+    DVSS = 1,
+    AVDD = 2,
+    DVDD = 3,
+    VBGthVolScal = 4,
+    DACMONV = 5,
+    DACMONI = 6,
+    Bandgap = 7,
+    Temperature = 8
+};
 
 #endif

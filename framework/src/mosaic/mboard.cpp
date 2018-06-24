@@ -27,16 +27,16 @@
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
+#include "mboard.h"
+#include "mdatareceiver.h"
+#include "mexception.h"
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <poll.h>
-#include "mexception.h"
-#include "mdatareceiver.h"
-#include "mboard.h"
+#include <sys/types.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -45,6 +45,9 @@ using namespace std;
 void MBoard::init()
 {
 	mIPbus = new IPbusUDP();
+
+  	// Data Generator
+  	mDataGenerator = new MDataGenerator(mIPbus, WbbBaseAddress::dataGenerator);
 
 	// Run control
 	mRunControl = new MRunControl(mIPbus, WbbBaseAddress::runControl);
@@ -57,6 +60,7 @@ void MBoard::init()
 
 	tcp_sockfd = -1;
 	numReceivers = 0;
+	boardId = 0;
 }
 
 MBoard::MBoard() 
@@ -64,16 +68,22 @@ MBoard::MBoard()
 	init();
 }
 
-MBoard::MBoard(const char *IPaddr, int port) 
+MBoard::MBoard(const char *IPaddr, const int myBoardId, int port) 
 {
 	init();
 	setIPaddress(IPaddr, port);
+	setBoardId(myBoardId);
 }
 
 void MBoard::setIPaddress(const char *IPaddr, int port)
 {
 	IPaddress = IPaddr;
 	mIPbus->setIPaddress(IPaddr, port);
+}
+
+void MBoard::setBoardId(const int number)
+{
+	boardId = number;
 }
 
 MBoard::~MBoard() 
@@ -85,23 +95,24 @@ MBoard::~MBoard()
     delete mSysPLL;
     delete mTriggerControl;
     delete mRunControl;
+	delete mDataGenerator;
 	delete mIPbus;
 }
 
 
 void MBoard::addDataReceiver(int id, MDataReceiver *dr)
 {
-	if (id+1 > numReceivers)
-		receivers.resize(id+1, NULL);
+	if (id + 1 > numReceivers)
+		receivers.resize(id + 1, NULL);
 	receivers[id] = dr;	
-	numReceivers=id+1;
+	numReceivers  = id + 1;
 }
 
 void MBoard::flushDataReceivers()
 {
-	for (int i=0; i<numReceivers; i++)
-		if (receivers[i]!=NULL){
-			receivers[i]->dataBufferUsed=0;
+	for (int i = 0; i < numReceivers; i++)
+		if (receivers[i] !=NULL){
+			receivers[i]->dataBufferUsed = 0;
 			receivers[i]->flush();
 		}	
 }
@@ -116,7 +127,7 @@ void MBoard::connectTCP(int port, int rcvBufferSize)
 	if (tcp_sockfd == -1)
 		throw MDataConnectError("Socket creation");
 
-	if (rcvBufferSize!=0){
+	if (rcvBufferSize != 0){
 		// Limit the maximum ammount of "in-flight" data
 		// In linux setting the buffer size to 128 KB has the affect of limit
 		// the TCP receive window to 162 KB
@@ -127,10 +138,10 @@ void MBoard::connectTCP(int port, int rcvBufferSize)
 		}
 	}
 	
-	bzero(&servaddr,sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr=inet_addr(IPaddress.c_str());
-	servaddr.sin_port=htons(port);
+	bzero(&servaddr, sizeof(servaddr));
+	servaddr.sin_family      = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr(IPaddress.c_str());
+	servaddr.sin_port        = htons(port);
 
 	if (::connect(tcp_sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1){
 		closeTCP ();
@@ -142,7 +153,7 @@ void MBoard::closeTCP()
 {
 	if (tcp_sockfd != -1)
 		::close (tcp_sockfd);
-	tcp_sockfd= -1;
+	tcp_sockfd = -1;
 }
 
 ssize_t MBoard::recvTCP(void *rxBuffer, size_t count, int timeout)
@@ -152,7 +163,7 @@ ssize_t MBoard::recvTCP(void *rxBuffer, size_t count, int timeout)
 	ssize_t rxSize;
 
 	ufds.fd = tcp_sockfd;
-	ufds.events = POLLIN|POLLNVAL; // check for normal read or error
+	ufds.events = POLLIN | POLLNVAL; // check for normal read or error
 	rv = poll(&ufds, 1, timeout);	
 
 	if (rv == -1)
@@ -165,7 +176,7 @@ ssize_t MBoard::recvTCP(void *rxBuffer, size_t count, int timeout)
 	rxSize = 0;
 	if (ufds.revents & POLLIN) {
 		rxSize = recv(tcp_sockfd, rxBuffer, count, 0);
-		if (rxSize==0 || rxSize == -1)
+		if (rxSize == 0 || rxSize == -1)
 			throw MDataReceiveError("Board connection closed. Buffer overflow or fatal error!");
 	} else if (ufds.revents & POLLNVAL){
 		throw MDataReceiveError("Invalid file descriptor in poll system call");
@@ -176,7 +187,7 @@ ssize_t MBoard::recvTCP(void *rxBuffer, size_t count, int timeout)
 
 ssize_t MBoard::readTCPData(void *buffer, size_t count, int timeout)
 {
-	ssize_t p=0;
+	ssize_t p = 0;
 	ssize_t res;
 	
 	while (count){
@@ -184,8 +195,8 @@ ssize_t MBoard::readTCPData(void *buffer, size_t count, int timeout)
 
 		if (res == 0)
 			return p;
-		p+=res;
-		buffer = (char*) buffer + res;
+		p += res;
+		buffer = (char*)buffer + res;
 		count -= res;
 		timeout = -1;		// disable timeout for segments following the first
 	}
@@ -231,9 +242,9 @@ static void dump(unsigned char *buffer, int size)
 //
 long MBoard::pollTCP(int timeout, MDataReceiver **drPtr)
 {
-	const unsigned int bufferSize = 64*1024;
+	const unsigned int bufferSize = 64 * 1024;
 	unsigned char rcvbuffer[bufferSize];
-    const unsigned int headerSize = MosaicIPbus::HEADER_SIZE;
+    const unsigned int headerSize = (unsigned int)MosaicIPbus::HEADER_SIZE;
 	unsigned char header[headerSize];
 	unsigned int flags;
 	long blockSize, readBlockSize;
@@ -242,34 +253,35 @@ long MBoard::pollTCP(int timeout, MDataReceiver **drPtr)
 	int dataSrc;
 	ssize_t n;
 
+	*drPtr = NULL;
 	n = readTCPData(header, headerSize, timeout);
 
 	if (n == 0)			// timeout
 		return 0;
 
-	blockSize = buf2ui(header);
-	flags = buf2ui(header+4);	
-	closedDataCounter = buf2ui(header+8);
-	dataSrc = buf2ui(header+12);
+	blockSize         = buf2ui(header);
+	flags             = buf2ui(header + 4);	
+	closedDataCounter = buf2ui(header + 8);
+	dataSrc           = buf2ui(header + 12);
 
 	if (flags & flagOverflow)
 		printf("****** Received data block with overflow flag set from source %d\n", dataSrc);
 
 	// round the block size to the higer 64 multiple
-	readBlockSize = (blockSize & 0x3f) ? (blockSize & ~0x3f)+64: blockSize;
-	readDataSize+=readBlockSize;
+	readBlockSize = (blockSize & 0x3f) ? (blockSize & ~0x3f) + 64: blockSize;
+	readDataSize += readBlockSize;
 
-	if (blockSize==0 && (flags & flagCloseRun)==0)
+	if (blockSize == 0 && (flags & flagCloseRun) == 0)
 		throw MDataReceiveError("Block size set to zero and not CLOSE_RUN");
 
 //	if (flags & flagCloseRun)
 //		printf("Received Data packet with CLOSE_RUN\n");
 
 	// skip data from unregistered source
-	if (dataSrc>numReceivers || receivers[dataSrc]== NULL){
+	if (dataSrc > numReceivers || receivers[dataSrc] == NULL) {
 		printf("Skipping data block from unregistered source\n");
 		while (readBlockSize){
-			if (readBlockSize>bufferSize)
+			if (readBlockSize > bufferSize)
 				n = readTCPData(rcvbuffer, bufferSize, -1);
 			else
 				n = readTCPData(rcvbuffer, readBlockSize, -1);
@@ -280,9 +292,9 @@ long MBoard::pollTCP(int timeout, MDataReceiver **drPtr)
 
 	// read data into the consumer buffer
 	MDataReceiver *dr = receivers[dataSrc];
-	dr->blockFlags = flags;
-	dr->blockSrc = dataSrc;
-    memcpy(dr->blockHeader, header, MosaicIPbus::HEADER_SIZE);
+	dr->blockFlags    = flags;
+	dr->blockSrc      = dataSrc;
+    memcpy(dr->blockHeader, header, (int)MosaicIPbus::HEADER_SIZE);
 	*drPtr = dr;
 
 	if (readBlockSize != 0) {
@@ -291,7 +303,7 @@ long MBoard::pollTCP(int timeout, MDataReceiver **drPtr)
 			return 0;
 	
 		// update the size of data in the buffer
-		if (n<blockSize)
+		if (n < blockSize)
 			dr->dataBufferUsed += n;
 		else
 			dr->dataBufferUsed += blockSize;
@@ -315,24 +327,25 @@ long MBoard::pollData(int timeout)
 	MDataReceiver *dr;
 
 	readDataSize = pollTCP(timeout, &dr);
-	closedDataCounter = dr->numClosedData;
-	if (closedDataCounter>0){
-		long parsedBytes = dr->parse(closedDataCounter);
+	if (dr != NULL) {
+    	closedDataCounter = dr->numClosedData;
+    	if (closedDataCounter > 0) {
+      		long parsedBytes = dr->parse(closedDataCounter);
 
-		// move unused bytes to the begin of buffer
-		size_t bytesToMove = dr->dataBufferUsed - parsedBytes;
-		if (bytesToMove>0)
-			memmove(&dr->dataBuffer[0], &dr->dataBuffer[parsedBytes], bytesToMove);
-		dr->dataBufferUsed -= parsedBytes;
-		dr->numClosedData = 0;
-	}
+      		// move unused bytes to the begin of buffer
+      		size_t bytesToMove = dr->dataBufferUsed - parsedBytes;
+      		if (bytesToMove > 0) memmove(&dr->dataBuffer[0], &dr->dataBuffer[parsedBytes], bytesToMove);
+      		dr->dataBufferUsed -= parsedBytes;
+      		dr->numClosedData = 0;
+    	}
 
-	if ((dr->blockFlags & flagCloseRun) && dr->dataBufferUsed!=0){
-		printf("WARNING: MBoard::pollData received data with flagCloseRun but after parsing the databuffer is not empty (%ld bytes)\n",
-						dr->dataBufferUsed);		
-	//	dump((unsigned char*) &dr->dataBuffer[0], dr->dataBufferUsed);
-	}
-
+    	if ((dr->blockFlags & flagCloseRun) && dr->dataBufferUsed != 0) {
+      		printf("WARNING: MBoard::pollData received data with flagCloseRun but after parsing the "
+            	 "databuffer is not empty (%ld bytes)\n",
+             	dr->dataBufferUsed);
+      //	dump((unsigned char*) &dr->dataBuffer[0], dr->dataBufferUsed);
+    	}
+  	}
 	return readDataSize;
 }
 

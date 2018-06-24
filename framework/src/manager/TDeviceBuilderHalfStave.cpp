@@ -106,7 +106,7 @@ void TDeviceBuilderHalfStave::InitSetup()
     for (unsigned int i = 0; i < fCurrentDevice->GetNBoards(true); i++) {
         shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>)(fCurrentDevice->GetBoardConfig(i)));
         boardConfig->SetInvertedData(false);  //already inverted in the adapter plug ?
-        boardConfig->SetSpeedMode(Mosaic::RCV_RATE_400);
+        boardConfig->SetSpeedMode(MosaicReceiverSpeed::RCV_RATE_400);
         auto newBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
         fCurrentDevice->AddBoard( newBoard );
     }

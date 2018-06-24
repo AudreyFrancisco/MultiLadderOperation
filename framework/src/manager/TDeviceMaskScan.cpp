@@ -255,8 +255,6 @@ void TDeviceMaskScan::StartReadout()
         if ( !myBoard ) {
             throw runtime_error( "TDeviceMaskScan::Init() - no readout board found!" );
         }
-        // readout reset
-        myBoard->SendOpCode( (uint16_t)AlpideOpCode::RORST );
         
         shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(myBoard);
         
@@ -282,4 +280,37 @@ void TDeviceMaskScan::StopReadout()
     }
 }
 
+//___________________________________________________________________
+void TDeviceMaskScan::DoBroadcastReset()
+{
+    if ( !fDevice ) {
+        throw runtime_error( "TDeviceMaskScan::DoBroadcastReset() - can not use a null pointer for the device !" );
+    }
+    if ( fIsInitDone ) {
+        cerr << "TDeviceMaskScan::DoBroadcastReset() - already done ! Doing nothing." << endl;
+        return;
+    }
+    if ( fDevice->GetNBoards(false) == 0 ) {
+        throw runtime_error( "TDeviceMaskScan::DoBroadcastReset() - no readout board found !" );
+    }
 
+    for ( unsigned int iboard = 0; iboard < fDevice->GetNBoards(false); iboard++ ) {
+        
+        shared_ptr<TReadoutBoard> myBoard = fDevice->GetBoard( iboard );
+        if ( !myBoard ) {
+            throw runtime_error( "TDeviceMaskScan::DoBroadcastReset() - no readout board found!" );
+        }
+        
+        // -- global reset chips
+        
+        myBoard->SendBroadcastReset();
+        myBoard->SendBroadcastROReset();
+        myBoard->SendBroadcastBCReset();
+        
+        // TODO: check if AlpideOpCode::PRST is needed ?
+        // -- pixel matrix reset
+        // (does not affect the PULSE_EN and MASK_EN latches)
+        
+        myBoard->SendOpCode( (uint16_t)AlpideOpCode::PRST );
+    }
+}

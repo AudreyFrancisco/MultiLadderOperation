@@ -31,15 +31,15 @@
 #ifndef MDATAGENERATOR_H
 #define MDATAGENERATOR_H
 
-#include <stdint.h>
 #include "mwbbslave.h"
+#include <stdint.h>
 
 class MDataGenerator: public MWbbSlave
 {
 public:
     MDataGenerator();
     MDataGenerator(WishboneBus *wbbPtr, uint32_t baseAddress);
-	void setup(uint32_t evSize, uint32_t evDelay, bool on=true);
+	void setup(uint32_t evSize, uint32_t evDelay, bool on = true);
 	void getSetup(uint32_t *evSize, uint32_t *evDelay, bool *on);
 	void setOnOff(bool on);
 	void start() { return setOnOff(true); }
@@ -47,18 +47,15 @@ public:
 
 private:					// WBB Slave registers map 
 	enum regAddress_e {
-		regModeOn					= 0,		// Run control register
-		regEventSize 				= 1,		// Event size
-		regEventDelay				= 2			// delay between events
+		regModeOn	  = 0, // Run control register
+		regEventSize  = 1, // Event size
+		regEventDelay = 2  // delay between events
 	};
 
 	enum modeOn_e {
-		MODEON_ON				= (1<<0),
-		MODEON_MODE				= (1<<1)	 // NOT implemented
+		MODEON_ON	= (1<<0),
+		MODEON_MODE	= (1<<1)  // NOT implemented
 	};
-
 };
-
-
 
 #endif // MDATAGENERATOR_H
