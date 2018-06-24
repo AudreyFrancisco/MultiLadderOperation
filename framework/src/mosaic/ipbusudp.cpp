@@ -37,7 +37,7 @@
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
+#include <cstring>
 #include <sys/socket.h>
 
 IPbusUDP::IPbusUDP(const int pktSize) 
