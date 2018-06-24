@@ -522,10 +522,10 @@ void TReadoutBoardMOSAIC::init()
             // Master/Slave coordinator
             fCoordinator = make_shared<MCoordinator>(mIPbus, WbbBaseAddress::add_coordinator);
             switch ( (int)spBoardConfig->GetMasterSlaveMode() ) {
-                case 0 : fCoordinator->setMode(MCoordinator::Alone);
-                case 1 : fCoordinator->setMode(MCoordinator::Master);
-                case 2 : fCoordinator->setMode(MCoordinator::Slave);
-                default : fCoordinator->setMode(MCoordinator::Alone);
+                case 0 : fCoordinator->setMode(MCoordinator::Alone);  break;
+                case 1 : fCoordinator->setMode(MCoordinator::Master); break;
+                case 2 : fCoordinator->setMode(MCoordinator::Slave);  break;
+                default : fCoordinator->setMode(MCoordinator::Alone); break;
             }
         } catch (...) {
             throw runtime_error( "TReadoutBoardMOSAIC::init() - Could not communicate with the Master/Slave coordinator, please upgrade your firmware!");
