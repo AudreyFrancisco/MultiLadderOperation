@@ -54,7 +54,7 @@ enum class MosaicReadWriteN { // previously in i2cbus.h
 	I2C_Read = 1
 };
 
-enum class MosaicReadWriteFlags : std::uint8_t { // previously in i2cbus.h
+enum class MosaicReadWriteFlags : std::uint32_t { // previously in i2cbus.h
 	RWF_start	= 0x01,
 	RWF_stop	= 0x02,
 	RWF_dontAck	= 0x04
@@ -74,7 +74,7 @@ enum class MosaicIPbus : int { // previously in ipbus.h
 };
 
 // IPBus info codes (errors)
-enum class MosaicIPbusInfoCode : std::uint8_t { // previously in ipbus.h
+enum class MosaicIPbusInfoCode { // previously in ipbus.h // ? std::uint8_t 
 	infoCodeSuccess 		= 0x0,
 	infoCodeBadHeader 		= 0x1,
 	infoCodeBusErrRead 		= 0x2,
@@ -87,7 +87,7 @@ enum class MosaicIPbusInfoCode : std::uint8_t { // previously in ipbus.h
 };
 
 // IPBus type of transaction
-enum class MosaicIPbusTransaction : std::uint8_t { // previously in ipbus.h
+enum class MosaicIPbusTransaction { // previously in ipbus.h // ? std::uint8_t
 	typeIdRead		 		= 0x0,
 	typeIdWrite		 		= 0x1,
 	typeIdNIRead		 	= 0x2,
@@ -114,4 +114,32 @@ enum class MosaicBoardConfig { // previously in TBoardConfigMOSAIC.h
 	DEF_TRGRECORDERENABLE     = 0  // default 0: disable trigger recording; 1: enable
 };
 
+// singleton used to retrieve the correct type for the enum
+class MosaicDict 
+{
+	static MosaicDict s;
+	int i;
+	MosaicDict(int x) : i(x) { }
+	MosaicDict&
+	operator=(MosaicDict&); // Disallowed
+	MosaicDict(const MosaicDict&); // Disallowed
+
+public:
+
+	static MosaicDict& instance() { return s; }
+
+	int           receiverSpeed( const MosaicReceiverSpeed v ) { return (int)v; }
+	int           latencyMode( const MosaicLatencyMode v ) { return (int)v; }
+	std::uint32_t configBits( const MosaicConfigBits v ) { return (std::uint32_t)v; }
+	int           statusBits( const MosaicStatusBits v ) { return (int)v; }
+	std::uint8_t  opCode( const MosaicOpCode v ) { return (std::uint8_t)v; }
+	int           readWriteN( const MosaicReadWriteN v ) { return (int)v; }
+	std::uint32_t readWriteFlags( const MosaicReadWriteFlags v ) { return (std::uint32_t)v;}
+	int           iPbus( const MosaicIPbus v ) { return (int)v; }
+	int           iPbusInfoCode( const MosaicIPbusInfoCode v ) { return (int)v; }
+	int           iPbusTransaction( const MosaicIPbusTransaction v ) { return (int)v; }
+	int           boardConfig( const MosaicBoardConfig v ) { return (int)v; }
+
+};
+// MosaicDict::instance().opCode()
 #endif

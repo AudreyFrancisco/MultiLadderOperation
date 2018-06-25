@@ -399,8 +399,8 @@ void IPbus::addBadIdle(bool sendWrongVersion, bool sendWrongInfoCode)
   	transactionList[numTransactions].SetReadDataPtr(readDataPtr);
 
   	// Add the header to the tx buffer
-  	unsigned ipProtocol = sendWrongVersion ? (unsigned)MosaicIPbus::WRONG_PROTOCOL_VERSION : (unsigned)MosaicIPbus::IPBUS_PROTOCOL_VERSION;
-  	unsigned infoCode   = sendWrongInfoCode ? (unsigned)MosaicIPbusInfoCode::infoCodeBusErrRead : (unsigned)MosaicIPbusInfoCode::infoCodeRequest;
+  	unsigned ipProtocol = sendWrongVersion ? MosaicDict::instance().iPbus(MosaicIPbus::WRONG_PROTOCOL_VERSION) : MosaicDict::instance().iPbus(MosaicIPbus::IPBUS_PROTOCOL_VERSION);
+  	unsigned infoCode   = sendWrongInfoCode ? MosaicDict::instance().iPbusInfoCode(MosaicIPbusInfoCode::infoCodeBusErrRead) : MosaicDict::instance().iPbusInfoCode(MosaicIPbusInfoCode::infoCodeRequest);
   	addWord((ipProtocol << 28) | (words << 16) | (transactionId << 8) | (typeId << 4) | infoCode); 
 
   	transactionId++;

@@ -34,8 +34,6 @@
 #include <stdint.h>
 #include <mutex>
 #include "mwbbslave.h"
-#include "mdictionary.h"
-
 
 class CiReadRequest
 {

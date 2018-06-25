@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "controlinterface.h"
+#include "mdictionary.h"
 
 using namespace std;
 
@@ -124,7 +125,7 @@ void ControlInterface::addWriteReg(uint8_t chipID, uint16_t address, uint16_t da
 
 	wbb->addWrite(baseAddress + regWriteData, data);
 	wbb->addWrite(baseAddress + regWriteCtrl, 
-					((uint8_t)MosaicOpCode::OPCODE_WROP << 24) |
+					( MosaicDict::instance().opCode(MosaicOpCode::OPCODE_WROP)<< 24) |
 					((chipID & 0xff) << 16) |
 					(address & 0xffff)
 					);
@@ -146,7 +147,7 @@ void ControlInterface::addReadReg(uint8_t chipID, uint16_t address, uint16_t *da
 
 	// queue read command
 	wbb->addWrite(baseAddress + regWriteCtrl, 
-					((uint8_t)MosaicOpCode::OPCODE_RDOP << 24) |
+					(MosaicDict::instance().opCode(MosaicOpCode::OPCODE_RDOP) << 24) |
 					((chipID & 0xff) << 16) |
 					(address & 0xffff)
 					);

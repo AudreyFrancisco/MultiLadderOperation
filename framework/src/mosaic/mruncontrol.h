@@ -34,7 +34,6 @@
 #include <stdint.h>
 #include <string>
 #include "mwbbslave.h"
-#include "mdictionary.h"
 
 class MRunControl : public MWbbSlave
 {

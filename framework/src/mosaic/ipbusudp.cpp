@@ -79,10 +79,10 @@ IPbusUDP::~IPbusUDP()
 void IPbusUDP::testConnection()
 {
 	try {
-		rcvTimoutTime = (int)MosaicIPbus::RCV_LONG_TIMEOUT;
+		rcvTimoutTime = MosaicDict::instance().iPbus(MosaicIPbus::RCV_LONG_TIMEOUT);
 		addIdle();
 		execute();
-		rcvTimoutTime = (int)MosaicIPbus::RCV_SHORT_TIMEOUT;
+		rcvTimoutTime = MosaicDict::instance().iPbus(MosaicIPbus::RCV_SHORT_TIMEOUT);
 	} catch (MIPBusUDPError) {
 		throw MIPBusUDPError("IPbusUDP::testConnection() - Board connection error");
 	}

@@ -47,7 +47,7 @@ void I2CSysPll::writeReg(uint8_t add, uint16_t d)
 	addWriteData(0x00);
 	addWriteData(add);
 	addWriteData(d >> 8);
-	addWriteData(d & 0xff, (uint32_t)MosaicReadWriteFlags::RWF_stop);
+	addWriteData(d & 0xff, MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_stop)); 
 	execute();
 }
 
@@ -57,11 +57,11 @@ void I2CSysPll::readReg (uint8_t add, uint16_t *d)
 
 	addAddress(CDCM6208_ADDRESS, MosaicReadWriteN::I2C_Write);
 	addWriteData(0x00);
-	addWriteData(add, (uint32_t)MosaicReadWriteFlags::RWF_stop);
+	addWriteData(add, MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_stop)); 
 
 	addAddress(CDCM6208_ADDRESS, MosaicReadWriteN::I2C_Read);
 	addRead(r);
-	addRead(r+1, (uint32_t)MosaicReadWriteFlags::RWF_dontAck | (uint32_t)MosaicReadWriteFlags::RWF_stop);
+	addRead(r+1, MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_dontAck) | MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_stop));
 	execute();
 
 	*d = ((r[0] & 0xff) << 8) | (r[1] & 0xff);
