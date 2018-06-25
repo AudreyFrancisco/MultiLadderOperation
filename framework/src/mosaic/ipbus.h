@@ -37,33 +37,14 @@
 #include <stdint.h>
 #include <string>
 
-class IPbusTransaction
-{
+class IPbusTransaction {
 public:
-	IPbusTransaction();
-	virtual ~IPbusTransaction();
-
-	inline void SetVersion( const uint8_t aVersion ){ fVersion = aVersion; }
-	inline void SetWords( const uint16_t someWords ) { fWords = someWords; }
-	inline void SetTypeId( const MosaicIPbusTransaction aTypeId ) { fTypeId = aTypeId; }
-	inline void SetTransactionId( const uint8_t aTransactionId ) { fTransactionId = aTransactionId; }
-	inline void SetInfoCode( const MosaicIPbusInfoCode anInfoCode ) { fInfoCode = anInfoCode; }
-	inline void SetReadDataPtr( uint32_t* aReadDataPtr ) { fReadDataPtr = aReadDataPtr; }
-
-	inline uint8_t GetVersion() const { return fVersion; }
-	inline uint16_t GetWords() const { return fWords; }
-	inline MosaicIPbusTransaction GetTypeId() const { return fTypeId; }
-	inline uint8_t GetTransactionId() const { return fTransactionId; }
-	inline MosaicIPbusInfoCode GetInfoCode() const { return fInfoCode; }
-	inline uint32_t* GetReadDataPtr() { return fReadDataPtr; }
-
-private:
-	uint8_t fVersion;
-	uint16_t fWords;
-	MosaicIPbusTransaction fTypeId;
-	uint8_t fTransactionId;
-	MosaicIPbusInfoCode fInfoCode;		
-	uint32_t* fReadDataPtr;
+	uint8_t   version;
+	uint16_t  words;
+	uint8_t   typeId;
+	uint8_t   transactionId;
+	uint8_t   infoCode;
+	uint32_t *readDataPtr;
 };
 
 class IPbus : public WishboneBus
@@ -97,7 +78,7 @@ private:
 	void chkBuffers(int txTransactionSize, int rxTransactionSize);
 	void addWord(uint32_t w);
 	uint32_t getWord();
-	void addHeader(uint16_t words, MosaicIPbusTransaction typeId, uint32_t *readDataPtr);
+	void addHeader(uint16_t words, uint8_t typeId, uint32_t *readDataPtr);
 	void getHeader(IPbusTransaction *tr);
 	void clearList();
 	void dumpRxData();
