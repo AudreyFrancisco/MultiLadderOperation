@@ -61,9 +61,10 @@ IPbusTransaction::~IPbusTransaction()
 	#define TRACE(format, args...)
 #endif
 
-IPbus::IPbus(int pktSize)
+const int IPbus::bufferSize = (int)MosaicIPbus::DEFAULT_PACKET_SIZE;
+
+IPbus::IPbus()
 {
-	bufferSize      = pktSize;
 	txBuffer        = new uint8_t[bufferSize];
 	rxBuffer        = new uint8_t[bufferSize];
 	transactionList = new IPbusTransaction[bufferSize / 4];
@@ -74,7 +75,7 @@ IPbus::IPbus(int pktSize)
 
 IPbus::~IPbus()
 {
-	delete[] transactionList;
+	//delete[] transactionList;
 	delete txBuffer;
 	delete rxBuffer;
 }
@@ -136,7 +137,7 @@ void IPbus::getHeader(IPbusTransaction *tr)
 	tr->SetVersion( (header>>28) & 0x0f );
 	tr->SetWords( (header>>16) & 0xfff );
 	tr->SetTransactionId( (header>>8) & 0xff );
-	tr->SetTypeId( MosaicIPbusTransaction((header>>4) & 0xf) ); 
+	tr->SetTypeId( (MosaicIPbusTransaction)((header>>4) & 0xf) ); 
 	tr->SetInfoCode( (MosaicIPbusInfoCode)(header & 0xf) ); 
 
 #ifdef TRACE_IPBUS

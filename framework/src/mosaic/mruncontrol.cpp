@@ -122,7 +122,7 @@ void MRunControl::stopRun()
 
 std::string MRunControl::dumpRegisters()
 {
-  if (!wbb) throw MIPBusUDPError("No IPBus configured");
+  if (!wbb) throw MIPBusUDPError("MRunControl::dumpRegisters() - No IPBus configured");
 
   regAddress_e addrs[] = {				regRunCtrl,
                           				regErrorState,
@@ -142,7 +142,7 @@ std::string MRunControl::dumpRegisters()
       execute();
     }
     catch (...) {
-      std::cerr << "MRunControl read error: address 0x" << std::hex << baseAddress + addrs[iAddr]
+      std::cerr << "MRunControl::dumpRegisters() - MRunControl read error: address 0x" << std::hex << baseAddress + addrs[iAddr]
                 << " (0x" << addrs[iAddr] << ")!" << std::dec << std::endl;
     };
 

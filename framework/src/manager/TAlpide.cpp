@@ -105,10 +105,7 @@ TAlpide::TAlpide( shared_ptr<TChipConfig> config,
 
 //___________________________________________________________________
 TAlpide::~TAlpide()
-{
-    fConfig.reset();
-    fReadoutBoard.reset();
-}
+{ }
 
 #pragma mark - setters/getters
 
@@ -126,7 +123,19 @@ void TAlpide::SetEnable( const bool Enable )
 //___________________________________________________________________
 void TAlpide::SetVerboseLevel( const int level )
 {
-    if ( level > kTERSE ) {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::SetVerboseLevel() - chip config. not found!" );
+    }
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kULTRACHATTY ) {
+            cout << endl;
+            cout << "TAlpide::SetVerboseLevel() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+    if ( GetVerboseLevel() > kTERSE ) {
         cout << "TAlpide::SetVerboseLevel() - " << level << " for chip id = " << DecomposeChipId() << endl;
     }
     TVerbosity::SetVerboseLevel( level );
@@ -275,6 +284,19 @@ void TAlpide::DumpConfig( const char* fileName, const bool writeFile, char* conf
 //___________________________________________________________________
 void TAlpide::DumpConfig()
 {
+    shared_ptr<TChipConfig> spConfig = fConfig.lock();
+    if ( !spConfig ) {
+        throw runtime_error( "TAlpide::DumpConfig() - chip config. not found!" );
+    }
+    if ( !(spConfig->IsEnabled()) ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            cout << endl;
+            cout << "TAlpide::DumpConfig() - chip id = "
+            << DecomposeChipId()  << " : disabled chip, skipped." <<  endl;
+        }
+        return;
+    }
+
     array<uint16_t, (uint16_t)AlpideRegister::BUSY_MINWIDTH + 1> regs;
     regs.fill( 0 );
     

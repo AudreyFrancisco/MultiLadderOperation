@@ -40,14 +40,14 @@
 #include <cstring>
 #include <sys/socket.h>
 
-IPbusUDP::IPbusUDP(const int pktSize) 
-		: IPbus(pktSize)
+IPbusUDP::IPbusUDP() 
+		: IPbus()
 {
 	sockfd = -1;
 }
 
-IPbusUDP::IPbusUDP(const char *IPaddr, const int aport, const int pktSize)
-		: IPbus(pktSize)
+IPbusUDP::IPbusUDP(const char *IPaddr, const int aport)
+		: IPbus()
 {
 	sockfd = -1;
 	setIPaddress(IPaddr, aport);

@@ -567,3 +567,10 @@ bool TDevice::IsValidChipId( const unsigned int chipId ) const
     }
     return false;
 }
+
+//___________________________________________________________________
+int TDevice::GetChipReceiverById( const unsigned int chipId )
+{
+    int rcv = GetChipConfigById( chipId )->GetReceiver();
+    return rcv;
+}

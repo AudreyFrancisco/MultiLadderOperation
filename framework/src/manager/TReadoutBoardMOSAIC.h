@@ -110,7 +110,7 @@ public:
     inline std::string GetFwIdString() const { return fTheVersionId; }
     inline int   GetFwMajVersion() const { return fTheVersionMaj; }
     inline int   GetFwMinVersion() const { return fTheVersionMin; }
-    std::shared_ptr<MCoordinator> GetCoordinatorHandle() { return fCoordinator; };
+    //std::shared_ptr<MCoordinator> GetCoordinatorHandle() { return fCoordinator; };
     std::string  GetRegisterDump();
     MCoordinator::mode_t GetCoordinatorMode() const;
 
@@ -137,15 +137,14 @@ protected:
 private:
     
 	std::weak_ptr<TBoardConfigMOSAIC> fBoardConfig;
-    std::shared_ptr<I2Cbus> fI2cBus;
-    std::shared_ptr<I2Cbus> fI2cBusAux;
-    std::shared_ptr<Pulser>	fPulser;
+    std::unique_ptr<I2Cbus> fI2cBus;
+    std::unique_ptr<Pulser>	fPulser;
     DummyReceiver* fDummyReceiver;
-    std::shared_ptr<ControlInterface> fControlInterface[(int)MosaicBoardConfig::MAX_CTRLINT];
-    std::shared_ptr<ALPIDErcv>	fAlpideRcv[(int)MosaicBoardConfig::MAX_TRANRECV];
-    std::shared_ptr<TrgRecorder> fTrgRecorder;
+    std::unique_ptr<ControlInterface> fControlInterface[(int)MosaicBoardConfig::MAX_CTRLINT];
+    std::unique_ptr<ALPIDErcv>	fAlpideRcv[(int)MosaicBoardConfig::MAX_TRANRECV];
+    std::unique_ptr<TrgRecorder> fTrgRecorder;
     TrgRecorderParser* fTrgDataParser;
-    std::shared_ptr<MCoordinator> fCoordinator;
+    std::unique_ptr<MCoordinator> fCoordinator;
     TAlpideDataParser* fAlpideDataParser[(int)MosaicBoardConfig::MAX_TRANRECV];
 	//TBoardHeader 		theHeaderOfReadData;  // This will host the info catch from Packet header/trailer YCM: FIXME, not used
     std::string fTheVersionId;  // Version properties

@@ -131,6 +131,7 @@ public:
     inline unsigned int             GetLadderId() const { return fLadderId; }
     bool                            IsValidChipIndex( const common::TChipIndex idx ) const;
     bool                            IsValidChipId( const unsigned int chipId ) const;
+    int                             GetChipReceiverById( const unsigned int chipId );
     
 };
 

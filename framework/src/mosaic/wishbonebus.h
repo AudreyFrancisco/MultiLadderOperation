@@ -45,7 +45,7 @@ public:
 	virtual void addNIRead(int size, uint32_t address, uint32_t *data) = 0;
 	virtual void addRMWbits(uint32_t address, uint32_t mask, uint32_t data, uint32_t *rData = 0) = 0;
 	virtual void addRMWsum(uint32_t address, uint32_t data, uint32_t *rData = 0) = 0;
-	virtual int  getBufferSize() = 0;
+	virtual int  getBufferSize() const = 0;
 	virtual void execute() = 0;
 };
 

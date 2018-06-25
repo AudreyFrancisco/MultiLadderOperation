@@ -42,8 +42,8 @@
 class IPbusUDP : public IPbus
 {
 public:
-    IPbusUDP(const int pktSize = (int)MosaicIPbus::DEFAULT_PACKET_SIZE);
-    IPbusUDP(const char *brdName, const int port = (int)MosaicIPbus::DEFAULT_UDP_PORT, const int pktsize = (int)MosaicIPbus::DEFAULT_PACKET_SIZE);
+    IPbusUDP();
+    IPbusUDP(const char *brdName, const int port = (int)MosaicIPbus::DEFAULT_UDP_PORT);
     virtual ~IPbusUDP();
     void setIPaddress(const char *brdName, const int port = (int)MosaicIPbus::DEFAULT_UDP_PORT);
 	void execute();

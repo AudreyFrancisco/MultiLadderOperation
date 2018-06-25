@@ -41,7 +41,7 @@ TDeviceChipVisitor::TDeviceChipVisitor( shared_ptr<TDevice> aDevice ) : TVerbosi
 TDeviceChipVisitor::~TDeviceChipVisitor()
 {
     if ( fDevice ) fDevice.reset();
-}
+ }
 
 #pragma mark - setters
 
@@ -90,7 +90,7 @@ void TDeviceChipVisitor::Init()
     fIsInitDone = true;
 
     ConfigureChips();
-    if ( GetVerboseLevel() > kSILENT ) {
+    if ( GetVerboseLevel() > kTERSE ) {
         DoDumpConfig();
     }
     
@@ -288,6 +288,7 @@ void TDeviceChipVisitor::DoBroadcastReset()
         // -- global reset chips
         
         myBoard->SendBroadcastReset();
+        myBoard->SendBroadcastROReset();
         
         // TODO: check if AlpideOpCode::PRST is needed ?
         // -- pixel matrix reset

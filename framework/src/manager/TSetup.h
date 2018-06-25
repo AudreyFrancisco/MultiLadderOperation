@@ -50,14 +50,14 @@ public:
     virtual void SetVerboseLevel( const int level );
 
     #pragma mark - getters
-    std::weak_ptr<TDevice> GetDevice() { return fDevice; }
-    std::weak_ptr<TScanConfig> GetScanConfig() { return fScanConfig; }
+    std::shared_ptr<TDevice> GetDevice() { return fDevice; }
+    std::shared_ptr<TScanConfig> GetScanConfig() { return fScanConfig; }
     
     #pragma mark - other public methods
     void DecodeCommandParameters( int argc, char **argv );
     void DumpConfigToFile( std::string fName );
     void ReadConfigFile();
-    
+
 private:
     
     #pragma mark - private methods

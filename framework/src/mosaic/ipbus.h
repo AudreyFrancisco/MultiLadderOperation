@@ -69,7 +69,7 @@ private:
 class IPbus : public WishboneBus
 {
 public:
-    IPbus( int pktSize = (int)MosaicIPbus::DEFAULT_PACKET_SIZE );
+	IPbus();
     virtual ~IPbus();
 	void addIdle();
 	void addWrite(uint32_t address, uint32_t data);
@@ -81,12 +81,11 @@ public:
 	void addRMWbits(uint32_t address, uint32_t mask, uint32_t data, uint32_t *rData = NULL);
 	void addRMWsum(uint32_t address, uint32_t data, uint32_t *rData = NULL);
 	virtual void execute() = 0;
-	int  getBufferSize() { return bufferSize; }
+	int  getBufferSize() const { return bufferSize; }
 	virtual const std::string name() = 0;
 
 	// test functions
   	void addBadIdle(bool sendWrongVersion = false, bool sendWrongInfoCode = false);
-  	void setBufferSize(int s) { bufferSize = s; }
   	void cutTX(int size) { txSize -= size; }
 
 protected:
@@ -112,7 +111,7 @@ protected:
 	std::recursive_mutex mutex;
 	
 private:
-	int bufferSize;
+	static const int bufferSize;
 	IPbusTransaction* transactionList;
 	int numTransactions;
 	uint8_t transactionId;

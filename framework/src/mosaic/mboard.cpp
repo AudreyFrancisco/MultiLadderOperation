@@ -111,7 +111,7 @@ void MBoard::addDataReceiver(int id, MDataReceiver *dr)
 void MBoard::flushDataReceivers()
 {
 	for (int i = 0; i < numReceivers; i++)
-		if (receivers[i] !=NULL){
+		if ( receivers[i] !=NULL ) {
 			receivers[i]->dataBufferUsed = 0;
 			receivers[i]->flush();
 		}	

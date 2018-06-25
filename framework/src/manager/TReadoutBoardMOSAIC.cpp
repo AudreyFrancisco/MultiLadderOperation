@@ -47,7 +47,6 @@
 #include "TChipConfig.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TBoardConfig.h"
-#include "TAlpide.h"
 #include "mexception.h"
 #include "pexception.h"
 #include "mservice.h"
@@ -131,27 +130,13 @@ TReadoutBoardMOSAIC::TReadoutBoardMOSAIC( shared_ptr<TBoardConfigMOSAIC> boardCo
 //___________________________________________________________________
 TReadoutBoardMOSAIC::~TReadoutBoardMOSAIC()
 {
-    shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
-
-    fCoordinator.reset();
+    delete fDummyReceiver;
     delete fTrgDataParser;
 
     for (int i=0; i<(int)MosaicBoardConfig::MAX_TRANRECV; i++)
         delete fAlpideDataParser[i];
 
-    delete fDummyReceiver;
 
-    fTrgRecorder.reset();
-
-    for (int i=0; i<(int)MosaicBoardConfig::MAX_TRANRECV; i++)
-        fAlpideRcv[i].reset();
-    
-    fPulser.reset();
-    
-    for(int i = 0; i < spBoardConfig->GetCtrlInterfaceNum(); i++)
-        fControlInterface[i].reset();
-    
-    fI2cBus.reset();
 }
 
 #pragma mark - public methods
@@ -475,30 +460,30 @@ void TReadoutBoardMOSAIC::init()
     cout << "TReadoutBoardMOSAIC::init() - MOSAIC firmware version: " << getFirmwareVersion() << endl;
     
     // I2C master (WBB slave) and connected peripherals
-    fI2cBus = make_shared<I2Cbus>(mIPbus, WbbBaseAddress::add_i2cMaster);
+    fI2cBus = make_unique<I2Cbus>(mIPbus, WbbBaseAddress::add_i2cMaster);
     
     // CMU Control interface
-    fControlInterface[0] = make_shared<ControlInterface>(mIPbus, WbbBaseAddress::add_controlInterface);
-    fControlInterface[1] = make_shared<ControlInterface>(mIPbus, WbbBaseAddress::add_controlInterfaceB);
+    fControlInterface[0] = make_unique<ControlInterface>(mIPbus, WbbBaseAddress::add_controlInterface);
+    fControlInterface[1] = make_unique<ControlInterface>(mIPbus, WbbBaseAddress::add_controlInterfaceB);
     int addDisp = 0;
     for (int i = 2; i < spBoardConfig->GetCtrlInterfaceNum(); i++) {
-        fControlInterface[i] = make_shared<ControlInterface>(mIPbus, WbbBaseAddress::add_controlInterface_0 + (addDisp << 24));
+        fControlInterface[i] = make_unique<ControlInterface>(mIPbus, WbbBaseAddress::add_controlInterface_0 + (addDisp << 24));
         addDisp++;
     }
 
     // Pulser
-    fPulser = make_shared<Pulser>(mIPbus, WbbBaseAddress::pulser);
+    fPulser = make_unique<Pulser>(mIPbus, WbbBaseAddress::pulser);
     
     // ALPIDE Hi Speed data receiver
     for (int i=0; i<(int)MosaicBoardConfig::MAX_TRANRECV; i++){  
-        fAlpideRcv[i] = make_shared<ALPIDErcv>(mIPbus, WbbBaseAddress::add_alpideRcv+(i<<24));
+        fAlpideRcv[i] = make_unique<ALPIDErcv>(mIPbus, WbbBaseAddress::add_alpideRcv+(i<<24));
         fAlpideRcv[i]->addEnable(false);
         fAlpideRcv[i]->addInvertInput(false);
         fAlpideRcv[i]->execute();
     }
 
     // Trigger recorder
-    fTrgRecorder = make_shared<TrgRecorder>(mIPbus, WbbBaseAddress::add_trgRecorder);
+    fTrgRecorder = make_unique<TrgRecorder>(mIPbus, WbbBaseAddress::add_trgRecorder);
     fTrgRecorder->addEnable( spBoardConfig->IsTrgRecorderEnable() );
 
     // The data consumer for hardware generators
@@ -520,7 +505,7 @@ void TReadoutBoardMOSAIC::init()
     if ( spBoardConfig->IsMasterSlaveModeOn() ) {
         try {
             // Master/Slave coordinator
-            fCoordinator = make_shared<MCoordinator>(mIPbus, WbbBaseAddress::add_coordinator);
+            fCoordinator = make_unique<MCoordinator>(mIPbus, WbbBaseAddress::add_coordinator);
             switch ( (int)spBoardConfig->GetMasterSlaveMode() ) {
                 case 0 : fCoordinator->setMode(MCoordinator::Alone);  break;
                 case 1 : fCoordinator->setMode(MCoordinator::Master); break;
