@@ -69,16 +69,16 @@ private:					// WBB Slave registers map
 		};
 
 	enum readFlagsBits_e {
-		FLAG_SYNC_BIT	= (1<<3),
-		FLAG_CHIPID_BIT	= (1<<2),
-		FLAG_DATAL_BIT	= (1<<1),
-		FLAG_DATAH_BIT	= (1<<0)
+		FLAG_SYNC_BIT	= (1 << 3),
+		FLAG_CHIPID_BIT	= (1 << 2),
+		FLAG_DATAL_BIT	= (1 << 1),
+		FLAG_DATAH_BIT	= (1 << 0)
 	};
 
 	enum configBits_e {
 		CFG_PHASE_MASK	= 0x03,
-		CFG_EN			= (1<<3),	
-		CFG_DISABLE_ME	= (1<<4)	
+		CFG_EN			= (1 << 3),	
+		CFG_DISABLE_ME	= (1 << 4)	
 	};
 
 private:

@@ -40,8 +40,8 @@ class I2Cbus: public MWbbSlave
 public:
     I2Cbus(WishboneBus *wbbPtr, uint32_t baseAddress);
 	void addAddress(uint8_t address, MosaicReadWriteN rw);
-	void addWriteData(uint8_t d, uint32_t flags=0);
-	void addRead(uint32_t *d, uint32_t flags=0);
+	void addWriteData(uint8_t d, uint32_t flags = 0);
+	void addRead(uint32_t *d, uint32_t flags = 0);
 	void addReadParIn(uint32_t *d);
 	void execute();
 

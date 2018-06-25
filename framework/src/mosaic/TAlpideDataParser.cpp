@@ -52,12 +52,12 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
 	unsigned char h;
     int lastRegion = -1, lastDataField = -1;
 
-	for (int closed=0;!closed;){
-		if (p-dBuffer > dataBufferUsed)
+	for (int closed = 0;!closed;){
+		if (p - dBuffer > dataBufferUsed)
 			throw MDataParserError("TAlpideDataParser::checkEvent() - Try to parse more bytes than received size");
 			
 		h = *p++;
-		if ( (h>>DSHIFT_CHIP_EMPTY) == DCODE_CHIP_EMPTY ) {
+		if ( (h >> DSHIFT_CHIP_EMPTY) == DCODE_CHIP_EMPTY ) {
             p++;
             closed=1;
             int d = h&0x0f;
@@ -67,19 +67,19 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
             }
             lastRegion = -1;
             lastDataField = -1;
-		} else if ( (h>>DSHIFT_CHIP_HEADER) == DCODE_CHIP_HEADER ) {
+		} else if ( (h >> DSHIFT_CHIP_HEADER) == DCODE_CHIP_HEADER ) {
             p++;
             int d = h&0x0f;
             int fsd = *p;
             if ( GetVerboseLevel() >= kCHATTY ) {
                 cout << endl << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_HEADER ID:" << d << " frame start data:" << std::hex << fsd << endl;
             }
-		} else if ((h>>DSHIFT_CHIP_TRAILER) == DCODE_CHIP_TRAILER ) {
+		} else if ((h >> DSHIFT_CHIP_TRAILER) == DCODE_CHIP_TRAILER ) {
             int d = h&0x0f;
             if ( GetVerboseLevel() >= kCHATTY ) {
                 cout << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_TRAILER Flags:" << d << endl;
             }
-			closed=1;
+			closed = 1;
 			// additional trailer
 			*evFlagsPtr = *p++;
             uint16_t fsd = *evFlagsPtr;
@@ -90,7 +90,7 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
                 if (fsd & 0x02)
                     cout << std::dec << fId << " =================== 10b8b Decoder error" << endl;
             }
-		} else if ((h>>DSHIFT_REGION_HEADER) == DCODE_REGION_HEADER ) {
+		} else if ((h >> DSHIFT_REGION_HEADER) == DCODE_REGION_HEADER ) {
             int d = h&0x1f;
             if ( GetVerboseLevel() >= kCHATTY )
                 cout << std::dec << fId << " TAlpideDataParser::checkEvent() - REGION_HEADER Region:" << d << endl;
@@ -99,7 +99,7 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
             }
             lastRegion = d;
             lastDataField = -1;
-		} else if ((h>>DSHIFT_DATA_SHORT) == DCODE_DATA_SHORT ) {
+		} else if ((h >> DSHIFT_DATA_SHORT) == DCODE_DATA_SHORT ) {
 			p++;
             uint16_t dShort = ((h&0x3f) << 8) | *p;
             if ( GetVerboseLevel() >= kCHATTY )
@@ -113,7 +113,7 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
                 printf("dShort:%x lastDataField:%x\n", dShort, lastDataField);
             }
             lastDataField = dShort;
-		} else if ((h>>DSHIFT_DATA_LONG) == DCODE_DATA_LONG ) {
+		} else if ((h >> DSHIFT_DATA_LONG) == DCODE_DATA_LONG ) {
             //p+=2;
             // TODO: check incrementation done by next 2 lines <=> line above
             uint16_t dShort = ((h&0x3f) << 8) | *p++;
@@ -137,7 +137,7 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
 		}
 	}	
 	
-	return(p-dBuffer);
+	return(p - dBuffer);
 }
 
 // parse all data starting from begin of buffer
@@ -154,7 +154,7 @@ long TAlpideDataParser::parse(int numClosed)
 		numClosed--;
 	}
 
-	return(p-dBuffer);
+	return(p - dBuffer);
 }
 
 //
@@ -167,7 +167,7 @@ int  TAlpideDataParser::ReadEventData(int &nBytes, unsigned char *buffer)
 	long evSize;
 	unsigned char evFlags;
 
-	if (numClosedData==0)	
+	if (numClosedData == 0)	
 		return 0;
 
 	evSize = checkEvent(p, &evFlags);
@@ -181,7 +181,7 @@ int  TAlpideDataParser::ReadEventData(int &nBytes, unsigned char *buffer)
 
 	// move unused bytes to the begin of buffer
 	size_t bytesToMove = dataBufferUsed - evSize;
-	if (bytesToMove>0)
+	if (bytesToMove > 0)
 		memmove(&dataBuffer[0], &dataBuffer[evSize], bytesToMove);
 	dataBufferUsed -= evSize;
 	numClosedData--;

@@ -45,9 +45,9 @@ ControlInterface::ControlInterface()
 ControlInterface::ControlInterface(WishboneBus *wbbPtr, uint32_t baseAdd) : 
 			MWbbSlave(wbbPtr, baseAdd)
 {
-	readRequestSize = wbb->getBufferSize() / (5*4);	// every read on IPBus requires 5 word
-	readReqest = new CiReadRequest [readRequestSize];	
-	numReadRequest = 0;
+	readRequestSize = wbb->getBufferSize() / (5 * 4);	// every read on IPBus requires 5 word
+	readReqest      = new CiReadRequest [readRequestSize];	
+	numReadRequest  = 0;
 }
 
 void ControlInterface::setBusAddress(WishboneBus *wbbPtr, uint32_t baseAdd)
@@ -55,7 +55,7 @@ void ControlInterface::setBusAddress(WishboneBus *wbbPtr, uint32_t baseAdd)
 	// set the WBB 
 	MWbbSlave::setBusAddress(wbbPtr, baseAdd);
 
-	readRequestSize = wbbPtr->getBufferSize() / (5*4);	// every read on IPBus requires 5 word
+	readRequestSize = wbbPtr->getBufferSize() / (5 * 4);	// every read on IPBus requires 5 word
 	if (readReqest)
 		delete readReqest;
 	readReqest = new CiReadRequest [readRequestSize];	
@@ -193,7 +193,7 @@ void ControlInterface::execute()
         	}
 
         	// check the sender
-        	if (rxChipID!=readReqest[i].chipID) {
+        	if (rxChipID != readReqest[i].chipID) {
             	throw runtime_error("ControlInterface::execute() - ChipID mismatch");
         	}
         	*readReqest[i].readDataPtr = (d & 0xffff);

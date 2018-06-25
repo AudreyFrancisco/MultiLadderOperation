@@ -84,7 +84,7 @@ MCoordinator::mode_t MCoordinator::getMode() const
 
 void MCoordinator::addSync()
 {
-	wbb->addWrite(baseAddress+regSync, 1);	
+	wbb->addWrite(baseAddress + regSync, 1);	
 }
 
 void MCoordinator::sync()

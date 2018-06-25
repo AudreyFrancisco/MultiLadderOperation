@@ -92,7 +92,7 @@ long TrgRecorderParser::parse(int numClosed)
 
 
 	// check avalaible data size
-	if (dataBufferUsed < numClosed*evSize){
+	if (dataBufferUsed < numClosed * evSize){
 		std::stringstream sstm;
 		sstm << "TrgRecorderParser::parse() - Parser called with " << numClosed << " closed events of " <<
 							evSize << " bytes but datasize is only " << 
@@ -102,7 +102,7 @@ long TrgRecorderParser::parse(int numClosed)
 
 	while (numClosed) {
 		trgNum = buf2uint32(p);	
-		trgTime = buf2uint64(p+4);
+		trgTime = buf2uint64(p + 4);
 
 		if ( GetVerboseLevel() > TVerbosity::kTERSE )
 			printf("TrgRecorderParser::parse() - Trigger %d @ %ld\n", trgNum, trgTime);
@@ -111,5 +111,5 @@ long TrgRecorderParser::parse(int numClosed)
 		numClosed--;
 	}
 
-	return(p-dBuffer);
+	return(p - dBuffer);
 }

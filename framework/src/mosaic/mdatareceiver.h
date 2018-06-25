@@ -40,7 +40,7 @@ typedef std::vector<char> dataBuffer_t;
 
 class MDataReceiver
 {
-friend class MBoard;
+	friend class MBoard;
 
 public:
 	MDataReceiver();

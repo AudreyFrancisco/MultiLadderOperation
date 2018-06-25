@@ -51,7 +51,7 @@ long MDataSave::parse(int numClosed)
 	// check avalaible data size
 	if (dataBufferUsed < numClosed * eventSize){
 		std::stringstream sstm;
-		sstm << "Parser called with " << numClosed << " closed events of " <<
+		sstm << "MDataSave::parse() - Parser called with " << numClosed << " closed events of " <<
 							eventSize << " bytes but datasize is only " << 
 							dataBufferUsed << " bytes";
 		throw MDataParserError(sstm.str());

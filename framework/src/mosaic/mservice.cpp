@@ -51,7 +51,7 @@ MSrvcError::MSrvcError(const string& arg)
 MService::MService() 
 {
 	sockfd = -1;
-	seqNumber = (uint8_t) 0;
+	seqNumber = (uint8_t)0;
 }
 
 MService::MService(const char *IPaddr, int port) 
@@ -86,10 +86,10 @@ MService::~MService()
 int MService::sockRead(unsigned char *rxBuffer, int bufSize)
 {
 	struct sockaddr_in peer_addr;
-	socklen_t peer_addr_len;
-	struct pollfd ufds;
-	int rv;
-	int rxSize=0;
+	socklen_t          peer_addr_len;
+	struct pollfd      ufds;
+	int                rv;
+	int                rxSize = 0;
 
 	ufds.fd = sockfd;
 	ufds.events = POLLIN; // check for normal
@@ -108,7 +108,7 @@ int MService::sockRead(unsigned char *rxBuffer, int bufSize)
 			(struct sockaddr *)&peer_addr, (socklen_t *) &peer_addr_len);
 	}
 	
-	if (rxSize<0)
+	if (rxSize < 0)
 		throw MSrvcError("MService::sockRead() - Datagram receive system call");
 
 	if (rxBuffer[0] != seqNumber)
@@ -141,23 +141,23 @@ void MService::readFWinfo(fw_info_t *info)
 	/*
 		setup the request message
 	*/
-	txSize=1;								// the sequence number
+	txSize             = 1;								// the sequence number
 	txBuffer[txSize++] = CMD_FW_INFO;
 	sockWrite(txBuffer, txSize);
 
 	/*
 		wait a response from the socket
 	*/
-	nread=sockRead(rxBuffer, pktSize);
+	nread = sockRead(rxBuffer, pktSize);
 
 	rcvTimoutTime = (int)MosaicIPbus::RCV_SHORT_TIMEOUT;
 	
 	if (nread < 8)
 		throw MSrvcError("MService::readFWinfo() - Response datagram too short");
 
-	i=2;
-	info->ver_maj = rxBuffer[i++];
-	info->ver_min = rxBuffer[i++];
+	i                 = 2;
+	info->ver_maj     = rxBuffer[i++];
+	info->ver_min     = rxBuffer[i++];
 	info->flash_id[0] = rxBuffer[i++];
 	info->flash_id[1] = rxBuffer[i++];
 	info->flash_id[2] = rxBuffer[i++];
@@ -167,10 +167,10 @@ void MService::readFWinfo(fw_info_t *info)
 	if (nread > i+2){
 		memcpy(info->sw_identity, rxBuffer+i, 32);
 		info->sw_identity[32] = 0;
-		i+=32;
+		i += 32;
 		memcpy(info->fw_identity, rxBuffer+i, 32);
 		info->fw_identity[32] = 0;
-		i+=32;
+		i += 32;
 	} else {
 		info->sw_identity[0] = 0;
 		info->fw_identity[0] = 0;

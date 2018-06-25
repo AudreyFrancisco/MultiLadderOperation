@@ -84,7 +84,7 @@ void Pulser::getConfig(uint32_t *triggerDelay, uint32_t *pulseDelay, uint32_t *o
 }
 
 //
-// generate N pulses. If N==0 stop the generator
+// generate N pulses. If N == 0 stop the generator
 //
 void Pulser::run(uint32_t numPulses)
 {

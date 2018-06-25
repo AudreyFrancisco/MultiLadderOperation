@@ -58,10 +58,8 @@ void I2Cbus::addAddress(uint8_t address, MosaicReadWriteN rw)
 void I2Cbus::addWriteData(uint8_t d, uint32_t flags)
 {
 	// add the data to write
-	wbb->addWrite(baseAddress + regWriteAdd,
-					(d) | 
-					((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_stop)) ? I2C_STOP_BIT : 0)
-					);	
+	wbb->addWrite(baseAddress + regWriteAdd, 
+				  (d) | ((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_stop)) ? I2C_STOP_BIT : 0));
 }
 
 //
@@ -71,13 +69,13 @@ void I2Cbus::addRead(uint32_t *d, uint32_t flags)
 {
 	// add the data to read
 	wbb->addWrite(baseAddress + regWriteAdd,
-					(0xff) | 
-					((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_start))   ? I2C_START_BIT : 0) |
-					((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_stop))    ? I2C_STOP_BIT  : 0) |
-					((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_dontAck)) ? I2C_IGNORE_ACK_BIT : I2C_MASTER_ACK_BIT)
+					(0xff) 
+					| ((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_start)) ? I2C_START_BIT : 0)
+					| ((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_stop))  ? I2C_STOP_BIT  : 0) 
+					| ((flags & MosaicDict::instance().readWriteFlags(MosaicReadWriteFlags::RWF_dontAck)) ? I2C_IGNORE_ACK_BIT : I2C_MASTER_ACK_BIT)
 					);	
 
-	wbb->addRead(baseAddress+regReadAdd, d);	
+	wbb->addRead(baseAddress + regReadAdd, d);	
 }
 
 //
