@@ -80,7 +80,7 @@ void I2CSysPll::setup(pllRegisters_t regs)
   // Verify
   for (int i = 0; i < 20; i++) {
     readReg(i, &r);
-    if (r != regs.reg[i]) throw MBoardInitError("System PLL verify error");
+    if (r != regs.reg[i]) throw MBoardInitError("I2CSysPll::setup() - System PLL verify error");
   }
 
   // Cycle the reset
