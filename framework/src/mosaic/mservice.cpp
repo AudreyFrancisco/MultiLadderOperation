@@ -66,10 +66,10 @@ void MService::setIPaddress(const char *IPaddr, int port)
 	struct hostent *he;
 
 	if ((he=gethostbyname(IPaddr)) == NULL)   // get the host address
-		throw MSrvcError("Can not resolve board IP address");
+		throw MSrvcError("MService::setIPaddress() - Can not resolve board IP address");
 
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-		throw MSrvcError("Can not create socket");
+		throw MSrvcError("MService::setIPaddress() - Can not create socket");
 
 	sockAddress.sin_family = AF_INET;	 	// host byte order
 	sockAddress.sin_port = htons(port); 	// short, network byte order
@@ -96,7 +96,7 @@ int MService::sockRead(unsigned char *rxBuffer, int bufSize)
 	rv = poll(&ufds, 1, rcvTimoutTime);	
 
 	if (rv == -1)
-		throw MSrvcError("Poll system call");
+		throw MSrvcError("MService::sockRead() - Poll system call");
 
 	if (rv == 0)
 		throw MIPBusUDPTimeout();
@@ -109,13 +109,13 @@ int MService::sockRead(unsigned char *rxBuffer, int bufSize)
 	}
 	
 	if (rxSize<0)
-		throw MSrvcError("Datagram receive system call");
+		throw MSrvcError("MService::sockRead() - Datagram receive system call");
 
 	if (rxBuffer[0] != seqNumber)
-		throw MSrvcError("Wrong sequence number");
+		throw MSrvcError("MService::sockRead() - Wrong sequence number");
 
 	if (rxBuffer[1] != PKT_ACK)
-		throw MSrvcError("NACK on response\n");
+		throw MSrvcError("MService::sockRead() - NACK on response\n");
 
 	return rxSize;
 }
@@ -124,7 +124,7 @@ void MService::sockWrite(unsigned char *txBuffer, int txSize)
 {
 	txBuffer[0] = ++seqNumber;
 	if (sendto(sockfd, txBuffer, txSize, 0, (struct sockaddr *)&sockAddress, sizeof (struct sockaddr)) == -1)
-		throw MSrvcError("Datagram send system call");
+		throw MSrvcError("MService::sockWrite() - Datagram send system call");
 }
 
 void MService::readFWinfo(fw_info_t *info)
@@ -153,7 +153,7 @@ void MService::readFWinfo(fw_info_t *info)
 	rcvTimoutTime = (int)MosaicIPbus::RCV_SHORT_TIMEOUT;
 	
 	if (nread < 8)
-		throw MSrvcError("Response datagram too short");
+		throw MSrvcError("MService::readFWinfo() - Response datagram too short");
 
 	i=2;
 	info->ver_maj = rxBuffer[i++];
