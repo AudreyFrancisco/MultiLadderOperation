@@ -37,7 +37,9 @@
 MCoordinator::MCoordinator(WishboneBus *wbbPtr, uint32_t baseAdd) : 
   MWbbSlave(wbbPtr, baseAdd),
   fMyBoardMode(Alone)
-{}
+{ 
+  setMode(fMyBoardMode); 
+} 
 
 void MCoordinator::addEnableExtClock(bool en)
 {
