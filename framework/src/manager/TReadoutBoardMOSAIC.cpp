@@ -230,7 +230,8 @@ int TReadoutBoardMOSAIC::SetTriggerConfig (bool enablePulse, bool enableTrigger,
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
     if ( spBoardConfig->IsMasterSlaveModeOn() ) {
         // only Master can send trigger in Master/Slave board config
-        if ( GetCoordinatorMode() == MCoordinator::Master ) {
+        // if mode is Alone, the board can also send trigger
+        if ((GetCoordinatorMode() == MCoordinator::Master) || (GetCoordinatorMode() == MCoordinator::Alone)) {
             fPulser->setConfig(triggerDelay, pulseDelay, pulseMode);
         }
     } else {
@@ -269,12 +270,15 @@ int  TReadoutBoardMOSAIC::Trigger (int nTriggers)
         throw runtime_error( "TReadoutBoardMOSAIC::Trigger() - clock outputs disabled" );
     }
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
-    if ( spBoardConfig->IsMasterSlaveModeOn() ) {
-        // only Master can send trigger in Master/Slave board config
+    if ( spBoardConfig->IsMasterSlaveModeOn() ) { // Master/Slave exists in the firmware
         if ( GetCoordinatorMode() == MCoordinator::Master ) { // Boards synchronization
             fCoordinator->addSync(); // prepend this command to the next "pulser->run(nPulses)" 
                                      // to have a fixed delay from sync to first trigger sent by Master
                                      // it can be replaced by "fCoordinator->sync()"
+        }
+        // only Master can send trigger in Master/Slave board config
+        // if mode is Alone, the board can also send trigger
+        if ((GetCoordinatorMode() == MCoordinator::Master) || (GetCoordinatorMode() == MCoordinator::Alone)) {
             fPulser->run(nTriggers);
         }
     } else {
@@ -336,7 +340,8 @@ void TReadoutBoardMOSAIC::StopRun()
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
     if ( spBoardConfig->IsMasterSlaveModeOn() ) {
         // only Master can send trigger in Master/Slave board config
-        if ( GetCoordinatorMode() == MCoordinator::Master ) { 
+        // if mode is Alone, the board can also send trigger
+        if ((GetCoordinatorMode() == MCoordinator::Master) || (GetCoordinatorMode() == MCoordinator::Alone)) { 
             fPulser->run(0);
         }
     } else {
@@ -548,7 +553,7 @@ void TReadoutBoardMOSAIC::init()
                 default : fCoordinator->setMode(MCoordinator::Alone); break;
             }
         } catch (...) {
-            throw runtime_error( "TReadoutBoardMOSAIC::init() - Could not communicate with the Master/Slave coordinator, please upgrade your firmware!");
+            throw runtime_error( "TReadoutBoardMOSAIC::init() - Could not communicate with the Master/Slave coordinator, please upgrade your firmware or disable MASTERSLAVEMODEON setting for the MOSAIC board!");
         }
     } else {
         // clock is always sent in old firmware
