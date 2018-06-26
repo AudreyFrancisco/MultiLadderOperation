@@ -182,7 +182,14 @@ class TReadoutBoardDAQ : public TUSBBoard, public TReadoutBoard {
   void SetTriggerSource  (TTriggerSource triggerSource);
   int  Trigger           (int nTriggers);
   int  ReadEventData     (int &nBytes, unsigned char *buffer);
-
+  void EnableClockOutputs(const bool en)
+  { 
+    (void)en;
+    return; 
+  }
+  void SendBroadcastReset()   { return; }
+  void SendBroadcastROReset() { return; }
+  void SendBroadcastBCReset() { return; }
 
 
   //// methods only for Cagliari DAQ board

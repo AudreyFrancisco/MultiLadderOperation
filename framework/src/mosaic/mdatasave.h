@@ -31,8 +31,8 @@
 #ifndef MDATASAVE_H
 #define MDATASAVE_H
 
-#include <stdint.h>
 #include "mdatareceiver.h"
+#include <stdint.h>
 
 // function pointer
 typedef void (*saveFunction_t)(char* hdr, int hdrLen, char* data, int dataLen);
@@ -56,10 +56,5 @@ public:
 	uint32_t expectedData;
 
 };
-
-
-
-
-
 
 #endif // MDATASAVE_H

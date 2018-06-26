@@ -32,16 +32,8 @@
 #define MRUNCONTROL_H
 
 #include <stdint.h>
+#include <string>
 #include "mwbbslave.h"
-
-namespace Mosaic {
-  typedef enum rcvRate_e {			// Receiver data rate (in Mbps)
-    RCV_RATE_400,
-    RCV_RATE_600,
-    RCV_RATE_1200
-  }  TReceiverSpeed;
-}
-
 
 class MRunControl : public MWbbSlave
 {
@@ -51,14 +43,15 @@ public:
 	void clearErrors();
 	void setConfigReg(uint32_t d);
 	void getConfigReg(uint32_t *d);
+	void rmwConfigReg(uint32_t mask, uint32_t data);
 	void setAFThreshold(uint32_t d);
 	void getAFThreshold(uint32_t *d);
 	void setLatency(uint8_t mode, uint32_t d);
 	void getLatency(uint8_t *mode, uint32_t *d);
 	void getStatus(uint32_t *st);
-        void setSpeed (Mosaic::TReceiverSpeed ASpeed);
 	void startRun();
 	void stopRun();
+	std::string dumpRegisters();
 
 private:					// WBB Slave registers map 
 	enum regAddress_e {
@@ -78,26 +71,6 @@ private:					// WBB Slave registers map
 		RUN_CTRL_RUN			= (1<<0),
 		RUN_CTRL_PAUSE			= (1<<1)	 
 	};
-
-public:
-	enum configBits_e {
-		CFG_EXTCLOCK_SEL_BIT	= (1<<0),		// 0: internal clock - 1: external clock
-		CFG_CLOCK_20MHZ_BIT		= (1<<1),		// 0: 40 MHz clock	- 1: 20 MHz clock	
-		CFG_RATE_MASK			= (0x03<<2),
-		CFG_RATE_1200			= (0<<2),
-		CFG_RATE_600			= (0x01<<2),
-		CFG_RATE_400			= (0x02<<2)
-	};
-
-	enum latencyMode_e {
-		latencyModeEoe			= 0,
-		latencyModeTimeout		= 1,
-		latencyModeMemory		= 2
-	};
-
-
 };
-
-
 
 #endif // MRUNCONTROL_H

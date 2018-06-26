@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     mySetup.DecodeCommandParameters(argc, argv);
     mySetup.ReadConfigFile();
     
-    shared_ptr<TDevice> theDevice = (mySetup.GetDevice()).lock();
+    shared_ptr<TDevice> theDevice = mySetup.GetDevice();
 
     const int nBoards = theDevice->GetNBoards( false );
     if ( !nBoards ) {
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    shared_ptr<TScanConfig> theScanConfig = (mySetup.GetScanConfig()).lock();
+    shared_ptr<TScanConfig> theScanConfig = mySetup.GetScanConfig();
 
     if ( !theScanConfig ) {
         cout << "No scan config found, exit!" << endl;

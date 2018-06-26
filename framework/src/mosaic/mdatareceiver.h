@@ -31,16 +31,16 @@
 #ifndef MDATARECEIVER_H
 #define MDATARECEIVER_H
 
+#include "ipbus.h"
+#include "mboard.h"
 #include <vector>
 #include <stdlib.h>
-#include "mboard.h"
-#include "ipbus.h"
 
 typedef std::vector<char> dataBuffer_t;
 
 class MDataReceiver
 {
-friend class MBoard;
+	friend class MBoard;
 
 public:
 	MDataReceiver();
@@ -56,18 +56,18 @@ protected:
 	long blockFlags;
 	long blockSrc;
 	dataBuffer_t dataBuffer;
-    unsigned char blockHeader[MosaicIPbus::HEADER_SIZE];
+    unsigned char blockHeader[(unsigned int)MosaicIPbus::HEADER_SIZE];
 
 protected:
 	void *getWritePtr(size_t size) 
-		{
-			// resize the buffer if needed
-			if (dataBufferUsed+size > dataBuffer.size()){
-				dataBuffer.resize(dataBufferUsed+size);
-			}  
-			// return a pointer to the free area
-			return (void*) &dataBuffer[dataBufferUsed];
-		};
+	{
+		// resize the buffer if needed
+		if (dataBufferUsed + size > dataBuffer.size()){
+			dataBuffer.resize(dataBufferUsed+size);
+		}  
+		// return a pointer to the free area
+		return (void*) &dataBuffer[dataBufferUsed];
+	};
 };
 
 

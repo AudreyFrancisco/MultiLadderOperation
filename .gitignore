@@ -4,3 +4,7 @@ build*/
 # Xcode files
 *.xcworkspace
 *.xcodeproj
+
+# Microsoft Visual Studio Code
+*.code-workspace
+.vscode/*

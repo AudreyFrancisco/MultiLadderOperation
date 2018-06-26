@@ -27,13 +27,12 @@
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
+#include "mwbbslave.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "mwbbslave.h"
 #include <stdexcept>
 
 using namespace std;
-
 
 MWbbSlave::MWbbSlave()
 {

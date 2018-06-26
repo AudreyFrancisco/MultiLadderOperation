@@ -303,7 +303,11 @@ void TSCurveAnalysis::DrawDistributions()
     fHThreshold->SetMarkerColor( kAzure-3 );
     fHThreshold->SetLineColor( kAzure-3 );
     fHThreshold->SetFillColor( kAzure-3 );
-    fHThreshold->GetXaxis()->SetRangeUser( 0, 400 );
+    if ( fMaxInjCharge <= 50 ) {
+        fHThreshold->GetXaxis()->SetRangeUser( 0, 400 );
+    } else {
+        fHThreshold->GetXaxis()->SetRangeUser( 0, 800 );
+    }
     fHThreshold->GetYaxis()->SetRangeUser( 0, 1.1*fHThreshold->GetMaximum() );
     fHThreshold->Draw("hist");
     
@@ -437,7 +441,7 @@ void TSCurveAnalysis::PrepareCanvas()
 //___________________________________________________________________
 void TSCurveAnalysis::PrepareHistos()
 {
-    int nbinT = 100; int minT = 0; int maxT = 600; // threshold
+    int nbinT = 160; int minT = 0; int maxT = 800; // threshold
     int nbinN = 60; int minN = 0; int maxN = 60; // noise
     
     if ( !fDACtoElectronsConversionIsUsed ) {

@@ -28,42 +28,40 @@
  *
  * 21/12/2015	Added mutex for multithread operation
  */
-#include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <string.h>
-#include <poll.h>
 #include "ipbusudp.h"
 #include "mexception.h"
+#include <arpa/inet.h>
+#include <iostream>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstring>
+#include <sys/socket.h>
 
-IPbusUDP::IPbusUDP(int pktSize) 
-		: IPbus(pktSize)
+IPbusUDP::IPbusUDP() 
+		: IPbus()
 {
 	sockfd = -1;
-    port = MosaicIPbus::DEFAULT_UDP_PORT;
 }
 
-IPbusUDP::IPbusUDP(const char *IPaddr, int aport, int pktSize)
-		: IPbus(pktSize)
+IPbusUDP::IPbusUDP(const char *IPaddr, const int aport)
+		: IPbus()
 {
 	sockfd = -1;
 	setIPaddress(IPaddr, aport);
 }
 
-void IPbusUDP::setIPaddress(const char *IPaddr, int aport)
+void IPbusUDP::setIPaddress(const char *IPaddr, int port)
 {
 	struct hostent *he;
-    port = aport;
 
-	if ((he=gethostbyname(IPaddr)) == NULL)   // get the host address
-		throw MIPBusUDPError("Can not resolve board IP address");
+	if ((he = gethostbyname(IPaddr)) == NULL)   // get the host address
+		throw MIPBusUDPError("IPbusUDP::setIPaddress() - Can not resolve board IP address");
 
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-		throw MIPBusUDPError("Can not create socket");
+		throw MIPBusUDPError("IPbusUDP::setIPaddress() - Can not create socket");
 
 	sockAddress.sin_family = AF_INET;	 	// host byte order
 	sockAddress.sin_port = htons(port); 	// short, network byte order
@@ -74,7 +72,6 @@ void IPbusUDP::setIPaddress(const char *IPaddr, int aport)
 	testConnection();
 }
 
-
 IPbusUDP::~IPbusUDP()
 {
 }
@@ -82,12 +79,12 @@ IPbusUDP::~IPbusUDP()
 void IPbusUDP::testConnection()
 {
 	try {
-		rcvTimoutTime = RCV_LONG_TIMEOUT;
+		rcvTimoutTime = MosaicDict::instance().iPbus(MosaicIPbus::RCV_LONG_TIMEOUT);
 		addIdle();
 		execute();
-		rcvTimoutTime = RCV_SHORT_TIMEOUT;
+		rcvTimoutTime = MosaicDict::instance().iPbus(MosaicIPbus::RCV_SHORT_TIMEOUT);
 	} catch (MIPBusUDPError) {
-		throw MIPBusUDPError("Board connection error in IPbusUDP::testConnection");
+		throw MIPBusUDPError("IPbusUDP::testConnection() - Board connection error");
 	}
 	
 }
@@ -104,7 +101,7 @@ void IPbusUDP::sockRead()
 	rv = poll(&ufds, 1, rcvTimoutTime);	
 
 	if (rv == -1)
-		throw MIPBusUDPError("poll system call");
+		throw MIPBusUDPError("IPbusUDP::sockRead() - poll system call");
 
 	if (rv == 0)
 		throw MIPBusUDPTimeout();
@@ -117,13 +114,13 @@ void IPbusUDP::sockRead()
 	}
 	
 	if (rxSize<0)
-		throw MIPBusUDPError("Datagram receive system call");
+		throw MIPBusUDPError("IPbusUDP::sockRead() - Datagram receive system call");
 }
 
 void IPbusUDP::sockWrite()
 {
 	if (sendto(sockfd, txBuffer, txSize, 0, (struct sockaddr *)&sockAddress, sizeof (struct sockaddr)) == -1)
-		throw MIPBusUDPError("Datagram send system call");
+		throw MIPBusUDPError("IPbusUDP::sockRead() - Datagram send system call");
 }
 
 void IPbusUDP::execute()
@@ -133,7 +130,7 @@ void IPbusUDP::execute()
 	if (txSize==0)
 		return;
 
-	for (int i=0; i<3; i++){
+	for (int i = 0; i < 3; i++){
 		try {
 			// Send the UDP datagram
 			sockWrite();	
@@ -152,7 +149,7 @@ void IPbusUDP::execute()
 			// cout << "Timeout from sockRead" << endl;			
 		}
 	}
-	throw MIPBusUDPError("Board comunication error in IPbusUDP::execute");	
+	throw MIPBusUDPError("IPbusUDP::execute() - Board comunication error");	
 }
 
 

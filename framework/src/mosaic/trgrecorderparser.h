@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014
+ * Copyright (C) 2017
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,24 +24,30 @@
  * /_/ /_/ |__/ /_/    /_/ |__/  	 
  *
  * ====================================================
- * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
+ * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2017.
  *
  */
+
+#ifndef TRGRECORDERPARSER_H
+#define TRGRECORDERPARSER_H
+
 #include "mdatareceiver.h"
+#include <stdint.h>
+#include "TVerbosity.h"
 
-MDataReceiver::MDataReceiver()
+class TrgRecorderParser : public MDataReceiver, public TVerbosity
 {
-	dataBufferUsed = 0;
-	numClosedData  = 0;
-	blockFlags     = 0;
-	blockSrc       = 0;
-}
+public:
+	TrgRecorderParser();
+	void flush();
+	
+protected:
+	long parse(int numClosed);
+	
+private:
+	uint32_t buf2uint32(unsigned char *buf);
+	uint64_t buf2uint64(unsigned char *buf);
+	static const int TRIGGERDATA_SIZE = 12;	// 4 bytes: Trigger number. 8 bytes: Time stamp
+};
 
-MDataReceiver::~MDataReceiver()
-{
-}
-
-void MDataReceiver::flush()
-{
-}
-
+#endif // TRGRECORDERPARSER_H

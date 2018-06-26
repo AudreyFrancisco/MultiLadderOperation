@@ -110,6 +110,36 @@ void TDevice::SetLadderId( const unsigned int number )
     fLadderId = number;
 }
 
+//___________________________________________________________________
+void TDevice::EnableClockOutputs( const bool en )
+{
+    if ( !IsConfigFrozen() ) {
+        cerr << "TDevice::EnableClockOutputs() - not allowed: config not created/frozen yet !" << endl;
+        return;
+    }
+    if ( fBoards.size() == 0 ) {
+        throw runtime_error( "TDevice::EnableClockOutputs() - no board available!" );
+    }
+    for ( int i = 0; i < (int)fBoards.size(); i++ ) {
+        GetBoard(i)->EnableClockOutputs(en);
+    }
+}
+
+//___________________________________________________________________
+void TDevice::SendBroadcastReset()
+{
+    if ( !IsConfigFrozen() ) {
+        cerr << "TDevice::SendBroadcastReset() - not allowed: config not created/frozen yet !" << endl;
+        return;
+    }
+    if ( fBoards.size() == 0 ) {
+        throw runtime_error( "TDevice::SendBroadcastReset() - no board available!" );
+    }
+    for ( int i = 0; i < (int)fBoards.size(); i++ ) {
+        GetBoard(i)->SendBroadcastReset();
+    }
+}
+
 #pragma mark - add an item to one of the vectors
 
 //___________________________________________________________________
@@ -414,7 +444,7 @@ common::TChipIndex TDevice::GetWorkingChipIndexdByBoardReceiver( const unsigned 
 common::TChipIndex TDevice::GetWorkingChipIndex( const unsigned iChip ) const
 {
     if ( !GetNWorkingChips() ) {
-        throw runtime_error( "TDevice::GetChipIdByBoardReceiver() - no existing working chip!" );
+        throw runtime_error( "TDevice::GetWorkingChipIndex() - no existing working chip!" );
     }
     if ( iChip >= GetNWorkingChips() ) {
         cerr << "TDevice::GetWorkingChipIndex() - iChip = " << iChip << endl;
@@ -551,4 +581,11 @@ bool TDevice::IsValidChipId( const unsigned int chipId ) const
         }
     }
     return false;
+}
+
+//___________________________________________________________________
+int TDevice::GetChipReceiverById( const unsigned int chipId )
+{
+    int rcv = GetChipConfigById( chipId )->GetReceiver();
+    return rcv;
 }

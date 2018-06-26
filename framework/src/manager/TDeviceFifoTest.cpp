@@ -38,15 +38,11 @@ fErrCountF( (MAX_REGION+1)*(MAX_OFFSET+1) ),
 fRegion( 0 ),
 fOffset( 0 ),
 fBitPattern( kTEST_ALL_ZERO )
-{
-    
-}
+{ }
 
 //___________________________________________________________________
 TDeviceFifoTest::~TDeviceFifoTest()
-{
-    
-}
+{ }
 
 //___________________________________________________________________
 void TDeviceFifoTest::Go()
@@ -57,7 +53,7 @@ void TDeviceFifoTest::Go()
 
     // loop over all chips
     for ( unsigned int iChip = 0; iChip < fDevice->GetNChips() ; iChip++ ) {
-        
+
         fCurrentChipIndex = iChip;
 
         // count error per chip => reset counters for each new chip
@@ -65,16 +61,29 @@ void TDeviceFifoTest::Go()
         fErrCount5 = (MAX_REGION+1)*(MAX_OFFSET+1);
         fErrCountF = (MAX_REGION+1)*(MAX_OFFSET+1);
 
+        fIdx.boardIndex = fDevice->GetBoardIndexByChip(fCurrentChipIndex);
+        fIdx.dataReceiver = fDevice->GetChipReceiverById( fDevice->GetChip(fCurrentChipIndex)->GetChipId() );
+        fIdx.ladderId = fDevice->GetLadderId();
+        fIdx.chipId = fDevice->GetChip(fCurrentChipIndex)->GetChipId();
+        
         if ( !((fDevice->GetChipConfig(iChip))->IsEnabled()) ) {
             if ( GetVerboseLevel() > kTERSE ) {
-                cout << "TDeviceFifoTest::Go() - Chip ID "
-                << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << " : disabled chip, skipped." <<  endl;
+                cout << std::dec 
+                     << "TDeviceFifoTest::Go() - Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId
+                     << " : disabled chip, skipped." <<  endl;
             }
             continue;
-        }
+        }        
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TDeviceFifoTest::Go() - Testing chip ID "
-            << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() <<  endl;
+            cout << std::dec 
+                 << "TDeviceFifoTest::Go() - Testing : Board " << fIdx.boardIndex
+                 << " RCV " << fIdx.dataReceiver
+                 << " Ladder ID " << fIdx.ladderId
+                 << " Chip ID "<< fIdx.chipId
+                 <<  endl;
         }
         
         // write and read the DPRAM memories of the RRU modules can only
@@ -84,16 +93,24 @@ void TDeviceFifoTest::Go()
         MemTestPerChip();
         
         if ( fErrCount0 + fErrCount5 + fErrCountF > 0 ) {
-            cout << "TDeviceFifoTest::Go() - FIFO test finished for chip ID "
-            << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+            cout << std::dec 
+                 << "TDeviceFifoTest::Go() - FIFO test finished for : Board " << fIdx.boardIndex
+                 << " RCV " << fIdx.dataReceiver
+                 << " Ladder ID " << fIdx.ladderId
+                 << " Chip ID "<< fIdx.chipId
+                 <<  endl;
             cout << "TDeviceFifoTest::Go() - error counters : " << endl;
             cout << "\t pattern 0x0:      " << fErrCount0 << endl;
             cout << "\t pattern 0x555555: " << fErrCount5 << endl;
             cout << "\t pattern 0xffffff: " << fErrCountF << endl;
             cout << "(total number of tested memories: 32 * 128 = 4096)" << endl;
         } else {
-            cout << "TDeviceFifoTest::Go() - FIFO test successful for chip ID "
-            << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+            cout << std::dec 
+                 << "TDeviceFifoTest::Go() - FIFO test successful for : Board " << fIdx.boardIndex
+                 << " RCV " << fIdx.dataReceiver
+                 << " Ladder ID " << fIdx.ladderId
+                 << " Chip ID "<< fIdx.chipId
+                 <<  endl;
         }
     } // end of the loop on chips    
 }
@@ -108,21 +125,34 @@ void TDeviceFifoTest::WriteMemPerChip()
     
     if ( !((fDevice->GetChipConfig(fCurrentChipIndex))->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
-            cout << "TDeviceFifoTest::WriteMemPerChip() - Chip ID "
-            << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << " : disabled chip, skipped." <<  endl;
+            cout << std::dec 
+                 << "TDeviceFifoTest::WriteMemPerChip() - Board " << fIdx.boardIndex
+                 << " RCV " << fIdx.dataReceiver
+                 << " Ladder ID " << fIdx.ladderId
+                 << " Chip ID "<< fIdx.chipId
+                     << " : disabled chip, skipped." <<  endl;
         }
         return;
     }
     if ( GetVerboseLevel() > kTERSE ) {
         switch ( fBitPattern ) {
             case (int)kTEST_ALL_ZERO:
-                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x0, chip ID " << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x0,      Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId << endl;
                 break;
             case (int)kTEST_ONE_ZERO:
-                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x555555, chip ID " << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x555555, Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId << endl;
                 break;
             case (int)kTEST_ALL_ONE:
-                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0xffffff, chip ID " << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+                cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0xffffff, Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId << endl;
                 break;
             default:
                 throw runtime_error( "TDeviceFifoTest::WriteMemPerChip() - Wrong bit pattern." );
@@ -148,7 +178,13 @@ void TDeviceFifoTest::WriteMemPerChip()
             fOffset = iadd;
 
             if ( GetVerboseLevel() > kVERBOSE ) {
-                cout << "\t writing chip:region:offset " << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << ":" << fRegion << ":" <<  fOffset << endl;
+                cout << "\t writing board:rcv:ladder:chip:region:offset " << std::dec 
+                     << fIdx.boardIndex
+                     << ":" << fIdx.dataReceiver
+                     << ":" << fIdx.ladderId
+                     << ":" << fIdx.chipId 
+                     << ":" << fRegion 
+                     << ":" << fOffset << endl;
             }
             
             if (  ( fRegion == TDeviceFifoTest::MAX_REGION )
@@ -168,7 +204,13 @@ void TDeviceFifoTest::WriteMemPerChip()
                 (fDevice->GetChip(fCurrentChipIndex))->WriteRegister( HighAdd, HighVal, doExecute );
             } catch ( exception& err ) {
                 cerr << err.what() << endl;
-                cerr << "TDeviceFifoTest::WriteMemPerChip() - chip:region:offset " << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << ":" << fRegion << ":" <<  fOffset << endl;
+                cerr << "TDeviceFifoTest::WriteMemPerChip() - board:rcv:ladder:chip:region:offset " << std::dec
+                     << fIdx.boardIndex
+                     << ":" << fIdx.dataReceiver
+                     << ":" << fIdx.ladderId
+                     << ":" << fIdx.chipId 
+                     << ":" << fRegion 
+                     << ":" << fOffset << endl;
                 throw runtime_error( "TDeviceFifoTest::WriteMemPerChip() - failed." );
             }
         }
@@ -179,29 +221,42 @@ void TDeviceFifoTest::WriteMemPerChip()
 void TDeviceFifoTest::ReadMemPerChip()
 {
     if ( fCurrentChipIndex >= fDevice->GetNChips() ) {
-        throw domain_error( "TDeviceFifoTest::ReadMemPerChip() - Invalid chip index !" );
+        throw domain_error( "TDeviceFifoTest::ReadMemPerChip()  - Invalid chip index !" );
     }
     
     if ( !((fDevice->GetChipConfig(fCurrentChipIndex))->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
-            cout << "TDeviceFifoTest::ReadMemPerChip() - Chip ID  "
-            << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << " : disabled chip, skipped." <<  endl;
+          cout << std::dec 
+                 << "TDeviceFifoTest::ReadMemPerChip() - Board " << fIdx.boardIndex
+                 << " RCV " << fIdx.dataReceiver
+                 << " Ladder ID " << fIdx.ladderId
+                 << " Chip ID "<< fIdx.chipId
+                 << " : disabled chip, skipped." <<  endl;      
         }
         return;
     }
     if ( GetVerboseLevel() > kTERSE ) {
         switch ( fBitPattern ) {
             case (int)kTEST_ALL_ZERO:
-                cout << "TDeviceFifoTest::ReadMemPerChip() - pattern 0x0, chip ID " << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+               cout << "TDeviceFifoTest::ReadMemPerChip()  - pattern 0x0,      Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId << endl;
                 break;
             case (int)kTEST_ONE_ZERO:
-                cout << "TDeviceFifoTest::ReadMemPerChip() - pattern 0x555555, chip ID " << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+                cout << "TDeviceFifoTest::ReadMemPerChip()  - pattern 0x555555, Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId << endl;
                 break;
             case (int)kTEST_ALL_ONE:
-                cout << "TDeviceFifoTest::ReadMemPerChip() - pattern 0xffffff, chip ID " << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << endl;
+                cout << "TDeviceFifoTest::ReadMemPerChip()  - pattern 0xffffff, Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId << endl;
                 break;
             default:
-                throw runtime_error( "TDeviceFifoTest::ReadMemPerChip() - wrong bit pattern." );
+                throw runtime_error( "TDeviceFifoTest::ReadMemPerChip()  - wrong bit pattern." );
                 break;
         }
     }
@@ -234,7 +289,13 @@ void TDeviceFifoTest::ReadMemPerChip()
             fOffset = iadd;
 
             if ( GetVerboseLevel() > kVERBOSE ) {
-                cout << "\t reading chip:region:offset " << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << ":" << fRegion << ":" <<  fOffset << endl;
+                cout << "\t reading board:rcv:ladder:chip:region:offset " << std::dec 
+                     << fIdx.boardIndex
+                     << ":" << fIdx.dataReceiver
+                     << ":" << fIdx.ladderId
+                     << ":" << fIdx.chipId 
+                     << ":" << fRegion 
+                     << ":" << fOffset << endl;
             }
             
             if (  ( fRegion == TDeviceFifoTest::MAX_REGION )
@@ -252,7 +313,13 @@ void TDeviceFifoTest::ReadMemPerChip()
                 (fDevice->GetChip(fCurrentChipIndex))->ReadRegister( HighAdd, HighVal.at(index), doExecute );
             } catch ( exception& err ) {
                 cerr << err.what() << endl;
-                cerr << "TDeviceFifoTest::ReadMemPerChip() - chip:region:offset " << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << ":" << fRegion << ":" <<  fOffset << endl;
+                cerr << "TDeviceFifoTest::ReadMemPerChip() - board:rcv:ladder:chip:region:offset " << std::dec
+                     << fIdx.boardIndex
+                     << ":" << fIdx.dataReceiver
+                     << ":" << fIdx.ladderId
+                     << ":" << fIdx.chipId 
+                     << ":" << fRegion 
+                     << ":" << fOffset << endl;
                 throw runtime_error( "TDeviceFifoTest::ReadMemPerChip() - failed." );
             }
             
@@ -280,8 +347,14 @@ void TDeviceFifoTest::ReadMemPerChip()
             bool success = true;
             if ( aValue != fBitPattern ) {
                 if ( GetVerboseLevel() > kSILENT ) {
-                    cout << "TDeviceFifoTest::ReadMemPerChip() - Error in mem chip:region:offset "
-                    << std::dec << fDevice->GetChip(fCurrentChipIndex)->GetChipId() << ":" << fRegion << ":" <<  fOffset
+                    cout << "TDeviceFifoTest::ReadMemPerChip() - Error in mem board:rcv:ladder:chip:region:offset "
+                     << std::dec
+                     << fIdx.boardIndex
+                     << ":" << fIdx.dataReceiver
+                     << ":" << fIdx.ladderId
+                     << ":" << fIdx.chipId 
+                     << ":" << fRegion 
+                     << ":" << fOffset
                     << " : wrote " << std::hex << fBitPattern
                     << " , read " << std::hex << aValue << endl;
                 }

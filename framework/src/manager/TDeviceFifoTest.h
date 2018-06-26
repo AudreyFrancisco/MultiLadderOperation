@@ -37,12 +37,13 @@
 #include <cstdint>
 #include <memory>
 #include "TDeviceChipVisitor.h"
+#include "Common.h"
 
 class TDeviceFifoTest : public TDeviceChipVisitor {
     
     /// index of the current chip being tested
     unsigned int fCurrentChipIndex;
-    
+   
     /// counter to keep tracks of the failure for the FIFO test pattern 0x0 per chip
     unsigned int fErrCount0;
 
@@ -60,6 +61,9 @@ class TDeviceFifoTest : public TDeviceChipVisitor {
     
     /// bit pattern currently used for the memory test
     int fBitPattern;
+
+    /// struct that gathers all info that identify the current chip being tested
+    common::TChipIndex fIdx;
     
 public:
     

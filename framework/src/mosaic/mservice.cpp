@@ -37,12 +37,9 @@
 #include <string.h>
 #include <poll.h>
 #include "mservice.h"
+#include "ipbus.h"
 
-#define PKT_ACK					0x06
-#define PKT_NAK					0x15
-
-#define CMD_FW_INFO				205
-
+using namespace std;
 
 // Service error - Remote Bus Write error
 MSrvcError::MSrvcError(const string& arg)
@@ -54,7 +51,7 @@ MSrvcError::MSrvcError(const string& arg)
 MService::MService() 
 {
 	sockfd = -1;
-	seqNumber = (uint8_t) 0;
+	seqNumber = (uint8_t)0;
 }
 
 MService::MService(const char *IPaddr, int port) 
@@ -69,10 +66,10 @@ void MService::setIPaddress(const char *IPaddr, int port)
 	struct hostent *he;
 
 	if ((he=gethostbyname(IPaddr)) == NULL)   // get the host address
-		throw MSrvcError("Can not resolve board IP address");
+		throw MSrvcError("MService::setIPaddress() - Can not resolve board IP address");
 
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-		throw MSrvcError("Can not create socket");
+		throw MSrvcError("MService::setIPaddress() - Can not create socket");
 
 	sockAddress.sin_family = AF_INET;	 	// host byte order
 	sockAddress.sin_port = htons(port); 	// short, network byte order
@@ -89,17 +86,17 @@ MService::~MService()
 int MService::sockRead(unsigned char *rxBuffer, int bufSize)
 {
 	struct sockaddr_in peer_addr;
-	socklen_t peer_addr_len;
-	struct pollfd ufds;
-	int rv;
-	int rxSize=0;
+	socklen_t          peer_addr_len;
+	struct pollfd      ufds;
+	int                rv;
+	int                rxSize = 0;
 
 	ufds.fd = sockfd;
 	ufds.events = POLLIN; // check for normal
 	rv = poll(&ufds, 1, rcvTimoutTime);	
 
 	if (rv == -1)
-		throw MSrvcError("Poll system call");
+		throw MSrvcError("MService::sockRead() - Poll system call");
 
 	if (rv == 0)
 		throw MIPBusUDPTimeout();
@@ -111,14 +108,14 @@ int MService::sockRead(unsigned char *rxBuffer, int bufSize)
 			(struct sockaddr *)&peer_addr, (socklen_t *) &peer_addr_len);
 	}
 	
-	if (rxSize<0)
-		throw MSrvcError("Datagram receive system call");
+	if (rxSize < 0)
+		throw MSrvcError("MService::sockRead() - Datagram receive system call");
 
 	if (rxBuffer[0] != seqNumber)
-		throw MSrvcError("Wrong sequence number");
+		throw MSrvcError("MService::sockRead() - Wrong sequence number");
 
 	if (rxBuffer[1] != PKT_ACK)
-		throw MSrvcError("NACK on response\n");
+		throw MSrvcError("MService::sockRead() - NACK on response\n");
 
 	return rxSize;
 }
@@ -127,7 +124,7 @@ void MService::sockWrite(unsigned char *txBuffer, int txSize)
 {
 	txBuffer[0] = ++seqNumber;
 	if (sendto(sockfd, txBuffer, txSize, 0, (struct sockaddr *)&sockAddress, sizeof (struct sockaddr)) == -1)
-		throw MSrvcError("Datagram send system call");
+		throw MSrvcError("MService::sockWrite() - Datagram send system call");
 }
 
 void MService::readFWinfo(fw_info_t *info)
@@ -139,28 +136,28 @@ void MService::readFWinfo(fw_info_t *info)
 	ssize_t nread;
 	int i;
 	
-	rcvTimoutTime = RCV_LONG_TIMEOUT;
+	rcvTimoutTime = (int)MosaicIPbus::RCV_LONG_TIMEOUT;
 
 	/*
 		setup the request message
 	*/
-	txSize=1;								// the sequence number
+	txSize             = 1;								// the sequence number
 	txBuffer[txSize++] = CMD_FW_INFO;
 	sockWrite(txBuffer, txSize);
 
 	/*
 		wait a response from the socket
 	*/
-	nread=sockRead(rxBuffer, pktSize);
+	nread = sockRead(rxBuffer, pktSize);
 
-	rcvTimoutTime = RCV_SHORT_TIMEOUT;
+	rcvTimoutTime = (int)MosaicIPbus::RCV_SHORT_TIMEOUT;
 	
 	if (nread < 8)
-		throw MSrvcError("Response datagram too short");
+		throw MSrvcError("MService::readFWinfo() - Response datagram too short");
 
-	i=2;
-	info->ver_maj = rxBuffer[i++];
-	info->ver_min = rxBuffer[i++];
+	i                 = 2;
+	info->ver_maj     = rxBuffer[i++];
+	info->ver_min     = rxBuffer[i++];
 	info->flash_id[0] = rxBuffer[i++];
 	info->flash_id[1] = rxBuffer[i++];
 	info->flash_id[2] = rxBuffer[i++];
@@ -170,10 +167,10 @@ void MService::readFWinfo(fw_info_t *info)
 	if (nread > i+2){
 		memcpy(info->sw_identity, rxBuffer+i, 32);
 		info->sw_identity[32] = 0;
-		i+=32;
+		i += 32;
 		memcpy(info->fw_identity, rxBuffer+i, 32);
 		info->fw_identity[32] = 0;
-		i+=32;
+		i += 32;
 	} else {
 		info->sw_identity[0] = 0;
 		info->fw_identity[0] = 0;

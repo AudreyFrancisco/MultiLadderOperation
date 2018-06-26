@@ -31,10 +31,10 @@
 #ifndef PULSER_H
 #define PULSER_H
 
-#include <stdint.h>
 #include "mwbbslave.h"
+#include <stdint.h>
+#include <string>
 #include "TVerbosity.h"
-
 
 class Pulser: public MWbbSlave, public TVerbosity
 {
@@ -43,20 +43,21 @@ public:
     Pulser(WishboneBus *wbbPtr, uint32_t baseAddress);
 	~Pulser();
 	void setBusAddress(WishboneBus *wbbPtr, uint32_t baseAddress);
-	void setConfig(uint32_t triggerDelay, uint32_t pulseDelay, uint32_t opMode=OPMODE_ENPLS_BIT|OPMODE_ENTRG_BIT);
+	void setConfig(uint32_t triggerDelay, uint32_t pulseDelay, 
+				   uint32_t opMode = OPMODE_ENPLS_BIT | OPMODE_ENTRG_BIT);
 	void getConfig(uint32_t *triggerDelay, uint32_t *pulseDelay, uint32_t *opMode);
 	void run(uint32_t numPulses);
 	void getStatus(uint32_t *numPulses);
-
+	std::string dumpRegisters();
 
 private:					// WBB Slave registers map 
 	enum regAddress_e {
-		regOpMode				= 0,
-		regTriggerDelay			= 1,
-		regPulseDelay			= 2,
-		regNumPulses			= 3,
-		regStatus				= 7
-		};
+		regOpMode		= 0,
+		regTriggerDelay	= 1,
+		regPulseDelay	= 2,
+		regNumPulses	= 3,
+		regStatus		= 7
+	};
 
 public:
 	enum readFlagsBits_e {
@@ -64,9 +65,6 @@ public:
 		OPMODE_ENTRG_BIT	= (1<<1),
 		OPMODE_ENEXTTRG_BIT	= (1<<2)
 	};
-
 };
-
-
 
 #endif // PULSER_H

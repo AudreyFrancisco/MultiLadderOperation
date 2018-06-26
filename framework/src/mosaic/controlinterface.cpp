@@ -27,14 +27,14 @@
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
+#include <iostream>
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
 #include "controlinterface.h"
-#include <iostream>
-#include <stdexcept>
+#include "mdictionary.h"
 
 using namespace std;
-
 
 ControlInterface::ControlInterface() 
 {
@@ -42,13 +42,12 @@ ControlInterface::ControlInterface()
 	numReadRequest = 0;
 }
 
-
 ControlInterface::ControlInterface(WishboneBus *wbbPtr, uint32_t baseAdd) : 
 			MWbbSlave(wbbPtr, baseAdd)
 {
-	readRequestSize = wbb->getBufferSize() / (5*4);	// every read on IPBus requires 5 word
-	readReqest = new CiReadRequest [readRequestSize];	
-	numReadRequest = 0;
+	readRequestSize = wbb->getBufferSize() / (5 * 4);	// every read on IPBus requires 5 word
+	readReqest      = new CiReadRequest [readRequestSize];	
+	numReadRequest  = 0;
 }
 
 void ControlInterface::setBusAddress(WishboneBus *wbbPtr, uint32_t baseAdd)
@@ -56,7 +55,7 @@ void ControlInterface::setBusAddress(WishboneBus *wbbPtr, uint32_t baseAdd)
 	// set the WBB 
 	MWbbSlave::setBusAddress(wbbPtr, baseAdd);
 
-	readRequestSize = wbbPtr->getBufferSize() / (5*4);	// every read on IPBus requires 5 word
+	readRequestSize = wbbPtr->getBufferSize() / (5 * 4);	// every read on IPBus requires 5 word
 	if (readReqest)
 		delete readReqest;
 	readReqest = new CiReadRequest [readRequestSize];	
@@ -70,11 +69,27 @@ ControlInterface::~ControlInterface()
 }
 
 //
+//	Control the output of FE clock to ALPIDE chip
+//
+void ControlInterface::addEnable(bool en)
+{
+	wbb->addRMWbits(baseAddress + regConfig, ~CFG_EN, en ? CFG_EN : 0);
+}
+
+//
+//	Control the Manchester encoding
+//
+void ControlInterface::addDisableME(bool dis)
+{
+	wbb->addRMWbits(baseAddress + regConfig, ~CFG_DISABLE_ME, dis ? CFG_DISABLE_ME : 0);
+}
+
+//
 //	set the output phase
 //
 void ControlInterface::setPhase(uint8_t phase)
 {
-	wbb->addWrite(baseAddress+regDataPhase, phase);
+	wbb->addRMWbits(baseAddress + regConfig, ~CFG_PHASE_MASK, phase);
 	wbb->execute();
 }
 
@@ -83,7 +98,7 @@ void ControlInterface::setPhase(uint8_t phase)
 //
 void ControlInterface::addGetErrorCounter(uint32_t *ctr)
 {
-    wbb->addRead(baseAddress+regDataPhase, ctr);
+    wbb->addRead(baseAddress + regConfig, ctr);
 }
 
 //
@@ -94,8 +109,8 @@ void ControlInterface::addSendCmd(uint8_t cmd)
 	if (!wbb)
 		throw runtime_error("ControlInterface::addSendCmd() - No IPBus configured");
 
-	wbb->addWrite(baseAddress+regWriteCtrl, cmd << 24);
-// printf("Sd_com-> 0x%04x : 0x%04x\n", regWriteCtrl, cmd);
+	wbb->addWrite(baseAddress + regWriteCtrl, cmd << 24);
+	// printf("Sd_com-> 0x%04x : 0x%04x\n", regWriteCtrl, cmd);
 }
 
 //
@@ -103,25 +118,27 @@ void ControlInterface::addSendCmd(uint8_t cmd)
 //
 void ControlInterface::addWriteReg(uint8_t chipID, uint16_t address, uint16_t data)
 {
+	std::lock_guard<std::recursive_mutex> lock(mutex);
+
 	if (!wbb)
 		throw runtime_error("ControlInterface::addWriteReg() - No IPBus configured");
 
-	wbb->addWrite(baseAddress+regWriteData, data);
-	wbb->addWrite(baseAddress+regWriteCtrl, 
-					(OPCODE_WROP << 24) |
+	wbb->addWrite(baseAddress + regWriteData, data);
+	wbb->addWrite(baseAddress + regWriteCtrl, 
+					( MosaicDict::instance().opCode(MosaicOpCode::OPCODE_WROP)<< 24) |
 					((chipID & 0xff) << 16) |
 					(address & 0xffff)
 					);
 // printf("wr_reg-> 0x%04x : 0x%04x : 0x%04x\n", chipID, address, data);
 }
 
-
-
 //
 // schedule a register read
 //
 void ControlInterface::addReadReg(uint8_t chipID, uint16_t address, uint16_t *dataPtr)
 {
+	std::lock_guard<std::recursive_mutex> lock(mutex);
+	
 	if (!wbb)
 		throw runtime_error("ControlInterface::addReadReg() - No IPBus configured");
 
@@ -129,13 +146,13 @@ void ControlInterface::addReadReg(uint8_t chipID, uint16_t address, uint16_t *da
 		execute();
 
 	// queue read command
-	wbb->addWrite(baseAddress+regWriteCtrl, 
-					(OPCODE_RDOP << 24) |
+	wbb->addWrite(baseAddress + regWriteCtrl, 
+					(MosaicDict::instance().opCode(MosaicOpCode::OPCODE_RDOP) << 24) |
 					((chipID & 0xff) << 16) |
 					(address & 0xffff)
 					);
 	// read answer
-	wbb->addRead(baseAddress+regReadData, &readReqest[numReadRequest].IPBusReadData); 
+	wbb->addRead(baseAddress + regReadData, &readReqest[numReadRequest].IPBusReadData); 
 
 	// Put the request into the list
 	readReqest[numReadRequest].chipID = chipID;
@@ -147,42 +164,45 @@ void ControlInterface::addReadReg(uint8_t chipID, uint16_t address, uint16_t *da
 
 void ControlInterface::execute()
 {
+	std::lock_guard<std::recursive_mutex> lock(mutex);
+
 	try {
 		MWbbSlave::execute();
+
+		// check the read results
+    	for (int i = 0; i < numReadRequest; i++){
+        	uint32_t d = readReqest[i].IPBusReadData;
+        	uint8_t rxChipID = (d >> 16) & 0xff;
+        	uint8_t rxFlags  = (d >> 24) & 0x0f;
+        
+        	// check the flags
+        	if ((rxFlags & FLAG_SYNC_BIT) == 0) {
+            	throw runtime_error("ControlInterface::execute() - Sync error reading data");
+        	}
+        
+        	if ((rxFlags & FLAG_CHIPID_BIT) == 0) {
+            	throw runtime_error("ControlInterface::execute() - No ChipID reading data");
+        	}
+
+        	if ((rxFlags & FLAG_DATAL_BIT) == 0) {
+            	throw runtime_error("ControlInterface::execute() - No Data Low byte reading data");
+        	}
+
+        	if ((rxFlags & FLAG_DATAH_BIT) == 0) {
+            	throw runtime_error("ControlInterface::execute() - No Data High byte reading data");
+        	}
+
+        	// check the sender
+        	if (rxChipID != readReqest[i].chipID) {
+            	throw runtime_error("ControlInterface::execute() - ChipID mismatch");
+        	}
+        	*readReqest[i].readDataPtr = (d & 0xffff);
+    	}
+    	numReadRequest = 0;
     } catch ( std::runtime_error &err ) {
         numReadRequest = 0;
         throw err;
     }
-    // check the read results
-    for (int i=0; i<numReadRequest; i++){
-        uint32_t d = readReqest[i].IPBusReadData;
-        uint8_t rxChipID = (d >> 16) & 0xff;
-        uint8_t rxFlags  = (d >> 24) & 0x0f;
-        
-        // check the flags
-        if ((rxFlags & FLAG_SYNC_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - Sync error reading data");
-        }
-        
-        if ((rxFlags & FLAG_CHIPID_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - No ChipID reading data");
-        }
-
-        if ((rxFlags & FLAG_DATAL_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - No Data Low byte reading data");
-        }
-
-        if ((rxFlags & FLAG_DATAH_BIT) == 0) {
-            throw runtime_error("ControlInterface::execute() - No Data High byte reading data");
-        }
-
-        // check the sender
-        if (rxChipID!=readReqest[i].chipID) {
-            throw runtime_error("ControlInterface::execute() - ChipID mismatch");
-        }
-        *readReqest[i].readDataPtr = (d & 0xffff);
-    }
-    numReadRequest = 0;
 }
 
 

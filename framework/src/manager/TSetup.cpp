@@ -18,7 +18,7 @@
 
 using namespace std;
 
-const string TSetup::NEWALPIDEVERSION = "1.0_mft";
+const string TSetup::NEWALPIDEVERSION = "dev2.0_mft";
 
 #pragma mark - Constructors/destructor
 
@@ -44,7 +44,7 @@ TSetup::~TSetup()
     fScanConfig.reset();
     if ( fConfigFile ) {
         fclose( fConfigFile );
-    }
+    }    
 }
 
 #pragma mark - setters

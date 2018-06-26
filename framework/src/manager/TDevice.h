@@ -71,11 +71,11 @@ class TDevice : public TVerbosity {
     std::vector<common::TChipIndex> fWorkingChipIndexList;
     
 public:
-    #pragma mark - Constructors/destructor
+    // Constructors/destructor
     TDevice();
     virtual ~TDevice();
 
-    #pragma mark - setters
+    // setters
     void SetNChips( const unsigned int number );
     void SetNModules( const unsigned int number );
     void SetStartChipId( const unsigned int Id );
@@ -84,11 +84,17 @@ public:
     void SetNickName( const std::string name );
     void SetLadderId( const unsigned int number );
 
-    #pragma mark - toggle config creation and setup initialisation to true
+    // toggle config creation and setup initialisation to true
     inline void FreezeConfig() { fCreatedConfig = true; }
     inline void FreezeSetup() { fInitialisedSetup = true; }
+
+    // (de)activate clock on the readout board(s)
+    void EnableClockOutputs( const bool en );
     
-    #pragma mark - add an item to one of the vectors
+    // send global reset
+    void SendBroadcastReset();
+
+    // add an item to one of the vectors
     void AddBoard( std::shared_ptr<TReadoutBoard> newBoard );
     void AddBoardConfig( std::shared_ptr<TBoardConfig> newBoardConfig );
     void AddChip( std::shared_ptr<TAlpide> newChip );
@@ -96,7 +102,7 @@ public:
     void AddNWorkingChipCounterPerBoard( const unsigned int nChips );
     void AddWorkingChipIndex( const common::TChipIndex idx );
 
-    #pragma mark - getters
+    // getters
     std::shared_ptr<TReadoutBoard>  GetBoard( const unsigned int iBoard );
     std::shared_ptr<TBoardConfig>   GetBoardConfig( const unsigned int iBoard );
     std::shared_ptr<TReadoutBoard>  GetBoardByChip( const unsigned int iChip );
@@ -128,6 +134,7 @@ public:
     inline unsigned int             GetLadderId() const { return fLadderId; }
     bool                            IsValidChipIndex( const common::TChipIndex idx ) const;
     bool                            IsValidChipId( const unsigned int chipId ) const;
+    int                             GetChipReceiverById( const unsigned int chipId );
     
 };
 

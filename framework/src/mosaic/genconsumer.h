@@ -21,27 +21,33 @@
  *    / / /  | / / / ___/ /  | / / SEZIONE di BARI
  *   / / / | |/ / / /_   / | |/ /
  *  / / / /| / / / __/  / /| / /
- * /_/ /_/ |__/ /_/    /_/ |__/  	 
+ * /_/ /_/ |__/ /_/    /_/ |__/
  *
  * ====================================================
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
+
+#ifndef GENCONSUMER_H
+#define GENCONSUMER_H
+
 #include "mdatareceiver.h"
+#include <stdint.h>
 
-MDataReceiver::MDataReceiver()
-{
-	dataBufferUsed = 0;
-	numClosedData  = 0;
-	blockFlags     = 0;
-	blockSrc       = 0;
-}
+class GenConsumer : public MDataReceiver {
+public:
+  GenConsumer();
+  void setEventSize(long evSize) { eventSize = evSize; }
+  void                   flush();
 
-MDataReceiver::~MDataReceiver()
-{
-}
+protected:
+  long parse(int numClosed);
 
-void MDataReceiver::flush()
-{
-}
+private:
+  long eventSize;
 
+public:
+  uint32_t expectedData;
+};
+
+#endif // GENCONSUMER_H

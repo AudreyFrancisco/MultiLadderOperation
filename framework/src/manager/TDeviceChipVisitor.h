@@ -66,9 +66,9 @@ protected:
     #pragma mark - readout board and chip configuration
     virtual void ConfigureBoards() = 0;
     virtual void ConfigureChips() = 0;
-    void HardwareGlobalReset();
     virtual void StartReadout() = 0;
     virtual void StopReadout() = 0;
+    virtual void DoBroadcastReset();
     
     
 };

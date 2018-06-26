@@ -101,7 +101,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
     
     shared_ptr<TBoardConfigMOSAIC> boardConfig = ((dynamic_pointer_cast<TBoardConfigMOSAIC>) (fCurrentDevice->GetBoardConfig(0)));
     boardConfig->SetInvertedData( false );
-    boardConfig->SetSpeedMode( Mosaic::RCV_RATE_400 );
+    boardConfig->SetSpeedMode( MosaicReceiverSpeed::RCV_RATE_400 );
     
     auto myBoard = make_shared<TReadoutBoardMOSAIC>( boardConfig );
     fCurrentDevice->AddBoard( myBoard );
@@ -111,6 +111,7 @@ void TDeviceBuilderOBSingleMosaic::InitSetup()
     fCurrentDevice->AddChip(alpide);
     (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
+    fCurrentDevice->EnableClockOutputs( true );
     try {
         CheckControlInterface();
     } catch ( runtime_error &err ) {

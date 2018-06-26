@@ -17,48 +17,12 @@ class TAlpide : public TVerbosity {
     int fChipId;
 
     // ADC calibration parameters
-    int fADCBias; ///< ADC calibration parameter.
+    int fADCOffset; ///< ADC calibration parameter.
     bool fADCHalfLSB; ///< ADC calibration parameter.
     bool fADCSign; ///< ADC calibration parameter.
 
     std::weak_ptr<TChipConfig> fConfig;
     std::weak_ptr<TReadoutBoard> fReadoutBoard;
-    
-    enum DACMonIref {
-        IREF_025uA = 0,
-        IREF_075uA = 1,
-        IREF_100uA = 2,
-        IREF_125uA = 3
-    };
-    enum ADCMode {
-        MANUAL      = 0,
-        CALIBRATE   = 1,
-        AUTO        = 2,
-        SUPERMANUAL = 3
-    };
-    enum ADCComparator {
-        COMP_180uA = 0,
-        COMP_190uA = 1,
-        COMP_296uA = 2,
-        COMP_410uA = 3
-    };
-    enum ADCRampSpeed {
-        RAMP_500ms = 0,
-        RAMP_1us = 1,
-        RAMP_2us = 2,
-        RAMP_4us = 3
-    };
-    enum ADCInput {
-        AVSS = 0,
-        DVSS = 1,
-        AVDD = 2,
-        DVDD = 3,
-        VBGthVolScal = 4,
-        DACMONV = 5,
-        DACMONI = 6,
-        Bandgap = 7,
-        Temperature = 8
-    };
     
     static const char* fRegName[];
     static const char* fDACsRegName[];
@@ -83,7 +47,7 @@ class TAlpide : public TVerbosity {
     // getter
     std::weak_ptr<TChipConfig> GetConfig() { return fConfig; }
     std::weak_ptr<TReadoutBoard> GetReadoutBoard() { return fReadoutBoard; }
-    int GetADCBias() const { return fADCBias; }
+    int GetADCOffset() const { return fADCOffset; }
     int GetChipId() const { return fChipId; }
 
     #pragma mark - dump
@@ -223,10 +187,10 @@ private:
      \param ComparatorCurrent [0:180uA 1:190uA 2:296uA 3:410uA]
      \param RampSpeed [0:500ms 1:1us 2:2us 3:4us]
      */
-    uint16_t SetTheADCCtrlRegister( ADCMode Mode,
-                                    ADCInput SelectInput,
-                                    ADCComparator ComparatorCurrent,
-                                    ADCRampSpeed RampSpeed );
+    uint16_t SetTheADCCtrlRegister( AlpideADCMode Mode,
+                                    AlpideADCInput SelectInput,
+                                    AlpideADCComparator ComparatorCurrent,
+                                    AlpideADCRampSpeed RampSpeed );
 
     /// Sets the DAC Monitor multiplexer.
     /**
@@ -234,7 +198,7 @@ private:
      \param IRef the IRef value [Iref =  0:0.25ua 1:0.75uA 2:1.00uA 3:1.25uA]
      */
     void SetTheDacMonitor( AlpideRegister ADac,
-                            DACMonIref IRef = DACMonIref::IREF_100uA );
+                           AlpideDACMonIref IRef = AlpideDACMonIref::IREF_100uA );
     
     #pragma mark - needed for chip config. operations
     

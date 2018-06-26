@@ -27,11 +27,10 @@
  * Written by Giuseppe De Robertis <Giuseppe.DeRobertis@ba.infn.it>, 2014.
  *
  */
+#include "mdatasave.h"
+#include "mexception.h"
 #include <stdio.h>
 #include <sstream>
-//#include "../MOSAICboard.h"
-#include "mexception.h"
-#include "mdatasave.h"
 
 
 MDataSave::MDataSave()
@@ -44,31 +43,29 @@ void MDataSave::flush()
 {
 }
 
-
 // parse the data starting from begin of buffer
 long MDataSave::parse(int numClosed)
 {
 	unsigned char *p = (unsigned char*) &dataBuffer[0];
 
 	// check avalaible data size
-	if (dataBufferUsed < numClosed*eventSize){
+	if (dataBufferUsed < numClosed * eventSize){
 		std::stringstream sstm;
-		sstm << "Parser called with " << numClosed << " closed events of " <<
+		sstm << "MDataSave::parse() - Parser called with " << numClosed << " closed events of " <<
 							eventSize << " bytes but datasize is only " << 
 							dataBufferUsed << " bytes";
 		throw MDataParserError(sstm.str());
 	}
 
-
 	// save the data
-	for (int i=0; i<numClosed; i++){
-		if (saveFunction!=NULL){
+	for (int i = 0; i < numClosed; i++){
+		if (saveFunction != NULL){
 			saveFunction(NULL, 0, (char *) p, eventSize);
 		}
-		p+=eventSize;
+		p += eventSize;
 	}
 
-	if ((dataBufferUsed - numClosed*eventSize) > eventSize){
+	if ((dataBufferUsed - numClosed * eventSize) > eventSize){
 		std::stringstream sstm;
 		sstm << "after parsing buffer content lenght (" << (dataBufferUsed - numClosed*eventSize) << 
 				") is greater then eventSize(" << eventSize << ")";
@@ -76,5 +73,5 @@ long MDataSave::parse(int numClosed)
 		// printf("ERROR: GenConsumer::parse after parsing buffer content lenght (%ld) is greater then eventSize(%ld)\n", 
 		//					dataBufferUsed - numClosed*eventSize, eventSize);
 	}
-	return 	numClosed*eventSize;
+	return 	numClosed * eventSize;
 }

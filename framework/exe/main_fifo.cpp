@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     mySetup.DecodeCommandParameters(argc, argv);
     mySetup.ReadConfigFile();
     
-    shared_ptr<TDevice> theDevice = (mySetup.GetDevice()).lock();
+    shared_ptr<TDevice> theDevice = mySetup.GetDevice();
     
     const int nBoards = theDevice->GetNBoards( false );
     if ( !nBoards ) {
