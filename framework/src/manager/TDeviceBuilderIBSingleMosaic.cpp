@@ -143,6 +143,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
     fCurrentDevice->AddChip( alpide );
     (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     
+    fCurrentDevice->EnableClockOutputs( true );
     try {
         CheckControlInterface();
     } catch ( runtime_error &err ) {

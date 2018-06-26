@@ -130,6 +130,7 @@ void TDeviceBuilderHalfStave::InitSetup()
     for (unsigned int i = 0; i < fCurrentDevice->GetNChips(); i++) {
         EnableSlave( i );
     }
+    fCurrentDevice->EnableClockOutputs( true );
     try {
         CheckControlInterface();
     } catch ( runtime_error &err ) {

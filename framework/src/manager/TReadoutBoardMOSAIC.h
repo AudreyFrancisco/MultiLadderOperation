@@ -104,6 +104,7 @@ public:
     void EnableControlInterface(const unsigned int interface, const bool en);
     void EnableClockOutputs(const bool en);
     void EnableClockOutput(const unsigned int interface, const bool en);
+    bool ClockOutputsEnabled() const { return fClockOuputsEnabled; }
     
     virtual void SetVerboseLevel( const int level );
 
@@ -151,5 +152,6 @@ private:
     int	fTheVersionMaj;
     int	fTheVersionMin;
     static I2CSysPll::pllRegisters_t sysPLLregContent;
+    bool fClockOuputsEnabled;
 };
 #endif    /* READOUTBOARDMOSAIC_H */

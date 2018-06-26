@@ -108,7 +108,8 @@ TReadoutBoardMOSAIC::TReadoutBoardMOSAIC() :
     fCoordinator( nullptr ),
     fTheVersionId(""),
     fTheVersionMaj( 0 ),
-    fTheVersionMin( 0 )
+    fTheVersionMin( 0 ),
+    fClockOuputsEnabled( false )
 { }
 
 //___________________________________________________________________
@@ -122,7 +123,8 @@ TReadoutBoardMOSAIC::TReadoutBoardMOSAIC( shared_ptr<TBoardConfigMOSAIC> boardCo
     fCoordinator( nullptr ),
     fTheVersionId(""),
     fTheVersionMaj( 0 ),
-    fTheVersionMin( 0 )
+    fTheVersionMin( 0 ),
+    fClockOuputsEnabled( false )
 {
     init();
 }
@@ -147,6 +149,9 @@ TReadoutBoardMOSAIC::~TReadoutBoardMOSAIC()
 //___________________________________________________________________
 int TReadoutBoardMOSAIC::WriteChipRegister (uint16_t address, uint16_t value, uint8_t chipId, const bool doExecute )
 {
+    if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::WriteChipRegister() - clock outputs disabled" );
+    }
     uint_fast16_t Cii = GetControlInterface(chipId);
     try {
         fControlInterface[Cii]->addWriteReg(chipId, address, value);
@@ -161,6 +166,9 @@ int TReadoutBoardMOSAIC::WriteChipRegister (uint16_t address, uint16_t value, ui
 //___________________________________________________________________
 int TReadoutBoardMOSAIC::ReadChipRegister (uint16_t address, uint16_t &value, uint8_t chipId, const bool doExecute )
 {
+    if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::ReadChipRegister() - clock outputs disabled" );
+    }
     uint_fast16_t Cii = GetControlInterface(chipId);
     try {
         fControlInterface[Cii]->addReadReg( chipId,  address,  &value);
@@ -175,6 +183,9 @@ int TReadoutBoardMOSAIC::ReadChipRegister (uint16_t address, uint16_t &value, ui
 //___________________________________________________________________
 int TReadoutBoardMOSAIC::SendOpCode (uint16_t  OpCode, uint8_t chipId)
 {
+    if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::SendOpCode() - clock outputs disabled" );
+    }
     uint_fast16_t Cii = GetControlInterface(chipId);
     try {
         fControlInterface[Cii]->addWriteReg(chipId, (uint16_t)AlpideRegister::COMMAND, OpCode);
@@ -189,6 +200,9 @@ int TReadoutBoardMOSAIC::SendOpCode (uint16_t  OpCode, uint8_t chipId)
 //___________________________________________________________________
 int TReadoutBoardMOSAIC::SendOpCode (uint16_t  OpCode)
 {
+    if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::SendOpCode() - clock outputs disabled" );
+    }
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
     uint8_t ShortOpCode = (uint8_t)OpCode;
     try {
@@ -251,6 +265,9 @@ uint32_t TReadoutBoardMOSAIC::GetTriggerCount()
 //___________________________________________________________________
 int  TReadoutBoardMOSAIC::Trigger (int nTriggers)
 {
+     if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::Trigger() - clock outputs disabled" );
+    }
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
     if ( spBoardConfig->IsMasterSlaveModeOn() ) {
         // only Master can send trigger in Master/Slave board config
@@ -304,6 +321,9 @@ int  TReadoutBoardMOSAIC::ReadEventData (int &nBytes, unsigned char *buffer)
 //___________________________________________________________________
 void TReadoutBoardMOSAIC::StartRun()
 {
+    if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::StartRun() - clock outputs disabled" );
+    }
     enableDefinedReceivers();
     connectTCP(); // open TCP connection
     mRunControl->startRun(); // start run
@@ -360,7 +380,13 @@ void TReadoutBoardMOSAIC::EnableControlInterface(const unsigned int interface, c
 void TReadoutBoardMOSAIC::EnableClockOutputs(const bool en)
 {
     // just a wrapper
+    if ( GetVerboseLevel() ) {
+        cout << "TReadoutBoardMOSAIC::EnableClockOutputs() - ";
+        if ( en ) cout << "true" << endl;
+        else cout << "false" << endl;
+    }
     EnableControlInterfaces(en);
+    fClockOuputsEnabled = en;
     return;
 } 
 
@@ -419,9 +445,12 @@ MCoordinator::mode_t TReadoutBoardMOSAIC::GetCoordinatorMode() const
 //___________________________________________________________________
 void TReadoutBoardMOSAIC::SendBroadcastReset()
 {
+    if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::SendBroadcastReset() - clock outputs disabled" );
+    }
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
 	for (int i = 0; i < spBoardConfig->GetCtrlInterfaceNum(); i++){
-		fControlInterface[i]->addSendCmd((uint8_t)MosaicOpCode::OPCODE_GRST);
+		fControlInterface[i]->addSendCmd((uint8_t)AlpideOpCode::GRST);
 		fControlInterface[i]->execute();
 	}
 }
@@ -429,9 +458,12 @@ void TReadoutBoardMOSAIC::SendBroadcastReset()
 //___________________________________________________________________
 void TReadoutBoardMOSAIC::SendBroadcastROReset()
 {
+     if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::SendBroadcastROReset() - clock outputs disabled" );
+    }
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
 	for (int i = 0; i < spBoardConfig->GetCtrlInterfaceNum(); i++){
-		fControlInterface[i]->addSendCmd((uint8_t)MosaicOpCode::OPCODE_RORST);
+		fControlInterface[i]->addSendCmd((uint8_t)AlpideOpCode::RORST);
 		fControlInterface[i]->execute();
 	}
 }
@@ -439,9 +471,12 @@ void TReadoutBoardMOSAIC::SendBroadcastROReset()
 //___________________________________________________________________
 void TReadoutBoardMOSAIC::SendBroadcastBCReset()
 {
+    if ( !ClockOutputsEnabled() ) {
+        throw runtime_error( "TReadoutBoardMOSAIC::SendBroadcastBCReset() - clock outputs disabled" );
+    }
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
 	for (int i = 0; i < spBoardConfig->GetCtrlInterfaceNum(); i++){
-		fControlInterface[i]->addSendCmd((uint8_t)MosaicOpCode::OPCODE_BCRST);
+		fControlInterface[i]->addSendCmd((uint8_t)AlpideOpCode::BCRST);
 		fControlInterface[i]->execute();
 	}
 }
@@ -515,6 +550,9 @@ void TReadoutBoardMOSAIC::init()
         } catch (...) {
             throw runtime_error( "TReadoutBoardMOSAIC::init() - Could not communicate with the Master/Slave coordinator, please upgrade your firmware!");
         }
+    } else {
+        // clock is always sent in old firmware
+        fClockOuputsEnabled = true;
     }
 
 #ifdef ENABLE_EXTERNAL_CLOCK
