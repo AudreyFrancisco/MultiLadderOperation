@@ -91,6 +91,9 @@ public:
     // (de)activate clock on the readout board(s)
     void EnableClockOutputs( const bool en );
     
+    // send global reset
+    void SendBroadcastReset();
+
     // add an item to one of the vectors
     void AddBoard( std::shared_ptr<TReadoutBoard> newBoard );
     void AddBoardConfig( std::shared_ptr<TBoardConfig> newBoardConfig );

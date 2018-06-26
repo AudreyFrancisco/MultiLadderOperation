@@ -125,6 +125,21 @@ void TDevice::EnableClockOutputs( const bool en )
     }
 }
 
+//___________________________________________________________________
+void TDevice::SendBroadcastReset()
+{
+    if ( !IsConfigFrozen() ) {
+        cerr << "TDevice::SendBroadcastReset() - not allowed: config not created/frozen yet !" << endl;
+        return;
+    }
+    if ( fBoards.size() == 0 ) {
+        throw runtime_error( "TDevice::SendBroadcastReset() - no board available!" );
+    }
+    for ( int i = 0; i < (int)fBoards.size(); i++ ) {
+        GetBoard(i)->SendBroadcastReset();
+    }
+}
+
 #pragma mark - add an item to one of the vectors
 
 //___________________________________________________________________
