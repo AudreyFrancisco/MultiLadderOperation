@@ -79,7 +79,7 @@ public:
 	void SetMasterSlaveModeOn  (const int AMasterSlaveModeOn)              { MasterSlaveModeOn = AMasterSlaveModeOn; }
 	void SetMasterSlaveMode    (const std::uint32_t AMasterSlaveMode)      { MasterSlaveMode = (int)AMasterSlaveMode; }
 	void SetTrgRecorderEnable  (const int ATrgRecorderEnable)              { TrgRecorderEnable = ATrgRecorderEnable; }
-    void SetInvertedData       (const bool IsInverted)                     { Inverted = (int)IsInverted; }
+    void SetInvertedData       (const bool value)                          { Inverted = (int)value; }
 	void SetSpeedMode          (const MosaicReceiverSpeed ASpeedMode);
 };
 
