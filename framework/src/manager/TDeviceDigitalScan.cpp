@@ -191,20 +191,19 @@ void TDeviceDigitalScan::Go()
         }
         
         
-        //uint16_t Value;
-        //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_CMU_DMU_CONFIG, Value );
-        //cout << "CMU DMU Config: 0x" << std::hex << Value << std::dec << endl;
-        //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_FROMU_STATUS1, Value );
-        //cout << "Trigger counter before: " << Value << endl;
+        // uint16_t Value;
+        // (fDevice->GetChip(0))->ReadRegister( AlpideRegister::CMU_DMU_CONFIG, Value );
+        // cout << "CMU DMU Config: 0x" << std::hex << Value << std::dec << endl;
+        // (fDevice->GetChip(0))->ReadRegister( AlpideRegister::CMU_DMU_STATUS, Value );
+        // cout << "Trigger counter before: " << Value << endl;
         for ( unsigned int ib = 0; ib < fDevice->GetNBoards(false); ib++ ) {
             // Send triggers for all boards
             (fDevice->GetBoard( ib ))->Trigger(fNTriggers);
         }
-        //(fDevice->GetChip(0))->ReadRegister( Alpide::REG_FROMU_STATUS1, Value );
-        //cout << "Trigger counter after: " << Value << endl;
-        
-        //(fDevice->GetBoard( 0 ))->SendOpCode( (uint16_t)Alpide::OPCODE_DEBUG );
-        //(fDevice->GetChip(0))->PrintDebugStream();
+        // (fDevice->GetChip(0))->ReadRegister( AlpideRegister::CMU_DMU_STATUS, Value );
+        // cout << "Trigger counter after: " << Value << endl;
+        // (fDevice->GetBoard( 0 ))->SendOpCode( (uint16_t)AlpideOpCode::DEBUG );
+        // (fDevice->GetChip(0))->PrintDebugStream();
         
         if ( istage ) {
             nHitsLastStage = fChipDecoder->GetNHits();
