@@ -444,7 +444,7 @@ common::TChipIndex TDevice::GetWorkingChipIndexdByBoardReceiver( const unsigned 
 common::TChipIndex TDevice::GetWorkingChipIndex( const unsigned iChip ) const
 {
     if ( !GetNWorkingChips() ) {
-        throw runtime_error( "TDevice::GetChipIdByBoardReceiver() - no existing working chip!" );
+        throw runtime_error( "TDevice::GetWorkingChipIndex() - no existing working chip!" );
     }
     if ( iChip >= GetNWorkingChips() ) {
         cerr << "TDevice::GetWorkingChipIndex() - iChip = " << iChip << endl;

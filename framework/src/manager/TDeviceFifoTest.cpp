@@ -61,24 +61,22 @@ void TDeviceFifoTest::Go()
         fErrCount5 = (MAX_REGION+1)*(MAX_OFFSET+1);
         fErrCountF = (MAX_REGION+1)*(MAX_OFFSET+1);
 
+        fIdx.boardIndex = fDevice->GetBoardIndexByChip(fCurrentChipIndex);
+        fIdx.dataReceiver = fDevice->GetChipReceiverById( fDevice->GetChip(fCurrentChipIndex)->GetChipId() );
+        fIdx.ladderId = fDevice->GetLadderId();
+        fIdx.chipId = fDevice->GetChip(fCurrentChipIndex)->GetChipId();
+        
         if ( !((fDevice->GetChipConfig(iChip))->IsEnabled()) ) {
             if ( GetVerboseLevel() > kTERSE ) {
                 cout << std::dec 
-                     << "TDeviceFifoTest::Go() - Board " << fDevice->GetBoardIndexByChip(fCurrentChipIndex)
-                     << " RCV " << fDevice->GetChipReceiverById( fDevice->GetChip(fCurrentChipIndex)->GetChipId() )
-                     << " Ladder ID " << fDevice->GetLadderId()
-                     << " Chip ID "<< fDevice->GetChip(fCurrentChipIndex)->GetChipId()
+                     << "TDeviceFifoTest::Go() - Board " << fIdx.boardIndex
+                     << " RCV " << fIdx.dataReceiver
+                     << " Ladder ID " << fIdx.ladderId
+                     << " Chip ID "<< fIdx.chipId
                      << " : disabled chip, skipped." <<  endl;
             }
             continue;
-        }
-        try {
-            fIdx = fDevice->GetWorkingChipIndex( iChip );
-        } catch ( std::exception &err ) {
-            cerr << "TDeviceFifoTest::Go() - " << err.what() << endl;
-            exit( EXIT_FAILURE );
-        }
-        
+        }        
         if ( GetVerboseLevel() > kSILENT ) {
             cout << std::dec 
                  << "TDeviceFifoTest::Go() - Testing : Board " << fIdx.boardIndex
@@ -128,10 +126,10 @@ void TDeviceFifoTest::WriteMemPerChip()
     if ( !((fDevice->GetChipConfig(fCurrentChipIndex))->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
             cout << std::dec 
-                 << "TDeviceFifoTest::WriteMemPerChip() - Board " << fDevice->GetBoardIndexByChip(fCurrentChipIndex)
-                     << " RCV " << fDevice->GetChipReceiverById( fDevice->GetChip(fCurrentChipIndex)->GetChipId() )
-                     << " Ladder ID " << fDevice->GetLadderId()
-                     << " Chip ID "<< fDevice->GetChip(fCurrentChipIndex)->GetChipId()
+                 << "TDeviceFifoTest::WriteMemPerChip() - Board " << fIdx.boardIndex
+                 << " RCV " << fIdx.dataReceiver
+                 << " Ladder ID " << fIdx.ladderId
+                 << " Chip ID "<< fIdx.chipId
                      << " : disabled chip, skipped." <<  endl;
         }
         return;
@@ -229,11 +227,11 @@ void TDeviceFifoTest::ReadMemPerChip()
     if ( !((fDevice->GetChipConfig(fCurrentChipIndex))->IsEnabled()) ) {
         if ( GetVerboseLevel() > kTERSE ) {
           cout << std::dec 
-                 << "TDeviceFifoTest::ReadMemPerChip() - Board " << fDevice->GetBoardIndexByChip(fCurrentChipIndex)
-                     << " RCV " << fDevice->GetChipReceiverById( fDevice->GetChip(fCurrentChipIndex)->GetChipId() )
-                     << " Ladder ID " << fDevice->GetLadderId()
-                     << " Chip ID "<< fDevice->GetChip(fCurrentChipIndex)->GetChipId()
-                     << " : disabled chip, skipped." <<  endl;      
+                 << "TDeviceFifoTest::ReadMemPerChip() - Board " << fIdx.boardIndex
+                 << " RCV " << fIdx.dataReceiver
+                 << " Ladder ID " << fIdx.ladderId
+                 << " Chip ID "<< fIdx.chipId
+                 << " : disabled chip, skipped." <<  endl;      
         }
         return;
     }
