@@ -289,6 +289,7 @@ void TDeviceChipVisitor::DoBroadcastReset()
         
         myBoard->SendBroadcastReset();
         myBoard->SendBroadcastROReset();
+        myBoard->SendBroadcastBCReset();
         
         // TODO: check if AlpideOpCode::PRST is needed ?
         // -- pixel matrix reset
