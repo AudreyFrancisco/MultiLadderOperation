@@ -177,8 +177,7 @@ void TChipErrorCounter::ClassifyCorruptedHits()
 void TChipErrorCounter::Dump()
 {
     if ( !fFilledErrorCounters ) {
-        cerr << "TChipErrorCounter::Dump() - counters empty ! Please use FindCorruptedHits() first. " << endl;
-        return;
+        cerr << "TChipErrorCounter::Dump() - corrupted hit counters empty ! Please use FindCorruptedHits() first. " << endl;
     }
     cout << endl;
     cout << "------------------------------- TChipErrorCounter::Dump() " << endl;
@@ -193,7 +192,7 @@ void TChipErrorCounter::Dump()
     }
     cout << "Number of priority encoder errors: " << fNPrioEncoder << endl;
     cout << "Number of 8b10b encoder errors: " << fN8b10b << endl;
-    if ( fCorruptedHits.size() ) {
+    if ( fCorruptedHits.size()  && fFilledErrorCounters ) {
         cout << "Number of hits with bad region id flag: " << fNBadRegionIdFlag << endl;
         cout << "Number of hits with bad col id flag: " << fNBadColIdFlag << endl;
         cout << "Number of hits with bad address flag: " << fNBadAddressIdFlag << endl;
