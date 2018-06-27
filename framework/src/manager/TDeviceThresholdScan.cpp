@@ -196,6 +196,8 @@ void TDeviceThresholdScan::Terminate()
 {
     TDeviceChipVisitor::Terminate();
     AnalyzeData();
+    cout << endl;
+    fErrorCounter->Dump();
 }
 
 //___________________________________________________________________
@@ -381,6 +383,8 @@ void TDeviceThresholdScan::AddChipSCurveAnalyzer( const common::TChipIndex idx )
 //___________________________________________________________________
 void TDeviceThresholdScan::AnalyzeData()
 {
+    if ( GetVerboseLevel() > kTERSE ) 
+        cout << "TDeviceThresholdScan::AnalyzeData() - start ... " << endl;
     for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         
         common::TChipIndex chipIndex = fDevice->GetWorkingChipIndex( ichip );
