@@ -201,6 +201,7 @@ void TDeviceOccupancyScan::InitScanParameters()
     fNTriggers = fScanConfig->GetNTriggers();
     fNTriggersPerTrain = fScanConfig->GetNTriggersPerTrain();
     fTriggerSource = fDevice->GetBoardConfig(0)->GetTriggerSource(); 
+    cout << " -------------- fTriggerSource = " << (int)fTriggerSource << endl;
 } 
 
 //___________________________________________________________________
@@ -244,7 +245,7 @@ void TDeviceOccupancyScan::ConfigureBoards()
             const int pulseDelay = 10 * (fDevice->GetBoardConfig(iboard)->GetParamValue("PULSEDELAY"));
             theBoard->SetTriggerConfig( enablePulse, enableTrigger, triggerDelay, pulseDelay );
             if ( IsInternalTrigger() ) theBoard->SetTriggerSource( TTriggerSource::kTRIG_INT );
-            else theBoard->SetTriggerSource( TTriggerSource::kTRIG_EXT );
+            else theBoard->SetTriggerSource( TTriggerSource::kTRIG_EXT );            
         }
     }
 }

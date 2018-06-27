@@ -9,7 +9,7 @@ TBoardConfig::TBoardConfig()
 {
   fTriggerDelay  = fSTROBEDELAY;
   fPulseDelay    = fPULSEDELAY;
-  fTriggerSource = TTriggerSource::kTRIG_INT;
+  fTriggerSource = (int)TTriggerSource::kTRIG_INT;
 }
 
 
@@ -18,9 +18,7 @@ void TBoardConfig::InitParamMap()
 {
   fSettings["STROBEDELAYBOARD"] = &fTriggerDelay;
   fSettings["PULSEDELAY"]       = &fPulseDelay;
-  int trig = 0;
-  fSettings["TRIGGERSOURCE"]    = &trig;
-  fTriggerSource = ( trig == 0 )  ? TTriggerSource::kTRIG_EXT : TTriggerSource::kTRIG_INT; 
+  fSettings["TRIGGERSOURCE"]    = &fTriggerSource;
 }
 
 
