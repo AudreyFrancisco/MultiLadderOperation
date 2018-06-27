@@ -410,6 +410,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
                 singleHit->DumpPixHit();
                 cerr << "\t -- previous hit pixel :" << endl;
                 (fHits.back())->DumpPixHit();
+                fErrorCounter->IncrementNPrioEncoder(singleHit); 
             }
             else if ( (singleHit->GetRegion() == (fHits.back())->GetRegion() )
                      && (singleHit->GetDoubleColumn() == (fHits.back())->GetDoubleColumn())
@@ -421,6 +422,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
                 singleHit->DumpPixHit();
                 cerr << "\t -- previous hit pixel :" << endl;
                 (fHits.back())->DumpPixHit();
+                fErrorCounter->IncrementNPrioEncoder(singleHit); 
             }
         }
         // check if chip index (board id, receiver id, ladder id, chip id) matches
