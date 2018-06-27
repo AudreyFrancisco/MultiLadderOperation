@@ -9,17 +9,21 @@ const int TScanConfig::CHARGE_STOP    = 50;
 const int TScanConfig::CHARGE_STEP    = 1;
 const int TScanConfig::N_MASK_STAGES  = 3;
 const int TScanConfig::PIX_PER_REGION = 32;
+const int TScanConfig::N_TRIGGERS = 1000000;
+const int TScanConfig::N_TRIGGERS_PER_TRAIN = 100;
 
 //___________________________________________________________________
 TScanConfig::TScanConfig()
 {
-    // dummy values for first tests
-    fNInj         = NINJ;
-    fChargeStart  = CHARGE_START;
-    fChargeStop   = CHARGE_STOP;
-    fChargeStep   = CHARGE_STEP;
-    fNMaskStages  = N_MASK_STAGES;
-    fPixPerRegion = PIX_PER_REGION;
+    // default values
+    fNInj              = NINJ;
+    fChargeStart       = CHARGE_START;
+    fChargeStop        = CHARGE_STOP;
+    fChargeStep        = CHARGE_STEP;
+    fNMaskStages       = N_MASK_STAGES;
+    fPixPerRegion      = PIX_PER_REGION;
+    fNTriggers         = N_TRIGGERS;
+    fNTriggersPerTrain = N_TRIGGERS_PER_TRAIN;
     InitParamMap();
 }
 
@@ -32,6 +36,8 @@ void TScanConfig::InitParamMap()
     fSettings["CHARGESTEP"]   = &fChargeStep;
     fSettings["NMASKSTAGES"]  = &fNMaskStages;
     fSettings["PIXPERREGION"] = &fPixPerRegion;
+    fSettings["NTRIGGERS"]    = &fNTriggers;
+    fSettings["NTRGPERTRAIN"] = &fNTriggersPerTrain;
 }
 
 //___________________________________________________________________
