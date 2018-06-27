@@ -127,10 +127,10 @@ void TDeviceFifoTest::WriteMemPerChip()
         if ( GetVerboseLevel() > kTERSE ) {
             cout << std::dec 
                  << "TDeviceFifoTest::WriteMemPerChip() - Board " << fIdx.boardIndex
-                 << " RCV " << fIdx.dataReceiver
-                 << " Ladder ID " << fIdx.ladderId
+                 << " RCV " << fIdx.dataReceiver 
+                 << " Ladder ID " << fIdx.ladderId 
                  << " Chip ID "<< fIdx.chipId
-                     << " : disabled chip, skipped." <<  endl;
+                 << " : disabled chip, skipped." <<  endl;
         }
         return;
     }
@@ -138,14 +138,14 @@ void TDeviceFifoTest::WriteMemPerChip()
         switch ( fBitPattern ) {
             case (int)kTEST_ALL_ZERO:
                 cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x0,      Board " << fIdx.boardIndex
-                     << " RCV " << fIdx.dataReceiver
-                     << " Ladder ID " << fIdx.ladderId
+                     << " RCV " << fIdx.dataReceiver 
+                     << " Ladder ID " << fIdx.ladderId 
                      << " Chip ID "<< fIdx.chipId << endl;
                 break;
             case (int)kTEST_ONE_ZERO:
                 cout << "TDeviceFifoTest::WriteMemPerChip() - pattern 0x555555, Board " << fIdx.boardIndex
                      << " RCV " << fIdx.dataReceiver
-                     << " Ladder ID " << fIdx.ladderId
+                     << " Ladder ID " << fIdx.ladderId 
                      << " Chip ID "<< fIdx.chipId << endl;
                 break;
             case (int)kTEST_ALL_ONE:
