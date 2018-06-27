@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 
-enum class TTriggerSource { kTRIG_INT, kTRIG_EXT };
+enum class TTriggerSource { kTRIG_EXT = 0, kTRIG_INT = 1 };
 enum class TBoardType { kBOARD_DAQ, kBOARD_MOSAIC, kBOARD_UNKNOWN };
 
 class TBoardConfig {

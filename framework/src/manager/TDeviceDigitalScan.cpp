@@ -127,11 +127,20 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
         if ( !fp ) {
             throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - output file not found." );
         }
+        TPixHit pixhit;
+        pixhit.SetBoardIndex( aChipIndex.boardIndex );
+        pixhit.SetBoardReceiver( aChipIndex.dataReceiver );
+        pixhit.SetLadderId( aChipIndex.ladderId );
+        pixhit.SetChipId( aChipIndex.chipId );
         for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
             for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
+                pixhit.SetDoubleColumn( icol );
+                pixhit.SetAddress( iaddr );
+                unsigned int column = pixhit.GetColumn();
+                unsigned int row = pixhit.GetRow();
                 double hits = (*fScanHisto)(aChipIndex,icol,iaddr);
                 if (hits > 0) {
-                    fprintf(fp, "%d %d %d\n", icol, iaddr, (int)hits);
+                    fprintf(fp, "%d %d %d\n", row, column, (int)hits);
                 }
             }
         }

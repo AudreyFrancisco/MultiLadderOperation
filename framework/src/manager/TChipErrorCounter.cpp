@@ -460,8 +460,8 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     for ( unsigned int i = 0; i < fCorruptedHits.size(); i++ ) {
         if ( (fCorruptedHits.at(i))->GetPixFlag() == flag ) {
             fprintf(fp, "%d %d %d\n",
-                    (fCorruptedHits.at(i))->GetDoubleColumn(),
-                    (fCorruptedHits.at(i))->GetAddress(), nhit);
+                    (fCorruptedHits.at(i))->GetRow(),
+                    (fCorruptedHits.at(i))->GetColumn(), nhit);
         }
     }
     if (fp) fclose (fp);

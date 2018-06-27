@@ -112,15 +112,17 @@ void TDeviceHitScan::ConfigureChips()
 }
 
 //___________________________________________________________________
-unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard )
+unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTriggers )
 {
     unsigned char buffer[1024*4000];
     int n_bytes_data, n_bytes_header, n_bytes_trailer;
         
     unsigned int itrg = 0;
     unsigned int nTrials = 0;
+
+    if ( nTriggers <= 0 ) nTriggers = fNTriggers;
     
-    while( itrg < fNTriggers * fDevice->GetNWorkingChipsPerBoard( iboard ) ) {
+    while( itrg < nTriggers * fDevice->GetNWorkingChipsPerBoard( iboard ) ) {
         
         unsigned int nBad       = 0;
         
@@ -136,7 +138,7 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard )
                     << " , reached " << nTrials
                     << " timeouts, giving up on this point." << endl;
                 }
-                itrg = fNTriggers * fDevice->GetNWorkingChipsPerBoard( iboard ) ;
+                itrg = nTriggers * fDevice->GetNWorkingChipsPerBoard( iboard ) ;
                 fErrorCounter->IncrementNTimeout();
                 nTrials = 0;
             }

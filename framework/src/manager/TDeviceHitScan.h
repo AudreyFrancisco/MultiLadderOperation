@@ -93,8 +93,8 @@ protected:
     /// configure chips
     void ConfigureChips();
     
-    /// read data from a given readout board
-    unsigned int ReadEventData( const unsigned int iboard );
+    /// read data from a given readout board, for a given number of triggers (all if 0 is asked)
+    unsigned int ReadEventData( const unsigned int iboard, int nTriggers = 0 );
     
     /// start the readout
     void StartReadout();

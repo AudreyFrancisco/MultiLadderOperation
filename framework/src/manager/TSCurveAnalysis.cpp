@@ -346,11 +346,13 @@ void TSCurveAnalysis::SaveToFile( const char *fName )
     string filename = common::GetFileName( fIdx, suffix, "", ".pdf" );
     strcpy( fNameChip, filename.c_str() );
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TChipErrorCounter::DrawAndSaveToFile() - Chip ID = " << fIdx.chipId ;
-        if ( fIdx.ladderId ) {
-            cout << " , Ladder ID = " << fIdx.ladderId;
-        }
-        cout << " to file " << fNameChip << endl;
+        cout << "TSCurveAnalysis::DrawAndSaveToFile() - [board.rcv.ladder]chip = [" 
+             << fIdx.boardIndex
+             << "." << fIdx.chipId 
+             << "." << fIdx.dataReceiver
+             << "." << fIdx.ladderId
+             << "]" << fIdx.chipId   
+             << " to file " << fNameChip << endl;
     }
     
     char fNameOpen[101], fNameClose[101];

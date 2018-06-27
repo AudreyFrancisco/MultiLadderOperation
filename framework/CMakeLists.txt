@@ -86,10 +86,10 @@ foreach (EXECNAME
     digitalscan
     roottest
     thresholdscan
+    noiseocc
 #    scantest
 #    dacscan
 #    noiseocc_ext
-#    noiseocc
 #    poweron
 #    pulselength
 #    source
