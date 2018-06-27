@@ -37,9 +37,7 @@ fChargeStart( 0 ),
 fChargeStep( 0 ),
 fChargeStop( 0 ),
 fNChargeSteps( 0 )
-{
-    fChipDecoder = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
-}
+{ }
 
 //___________________________________________________________________
 TDeviceThresholdScan::~TDeviceThresholdScan()

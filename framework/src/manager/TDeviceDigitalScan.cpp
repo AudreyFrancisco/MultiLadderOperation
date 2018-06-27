@@ -32,7 +32,6 @@ TDeviceMaskScan( aDevice, aScanConfig ),
 fScanHisto( nullptr )
 {
     fScanHisto = make_shared<TScanHisto>();
-    fChipDecoder = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
     fChipDecoder->SetScanHisto( fScanHisto );
 }
 
@@ -53,7 +52,7 @@ void TDeviceDigitalScan::SetVerboseLevel( const int level )
 void TDeviceDigitalScan::Init()
 {
     try {
-        TDeviceMaskScan::Init();
+        TDeviceHitScan::Init();
     } catch ( std::exception &err ) {
         cerr << err.what() << endl;
         exit( EXIT_FAILURE );
@@ -102,21 +101,21 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
 
         if ( !HasData( aChipIndex ) ) {
             if ( GetVerboseLevel() > kSILENT ) {
-                cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID = "
-                << aChipIndex.chipId ;
-                if ( aChipIndex.ladderId ) {
-                    cout << " , Ladder ID = " << aChipIndex.ladderId;
-                }
-                cout << " : no data, skipped." <<  endl;
+                cout << "TDeviceDigitalScan::WriteDataToFile() - [board.rcv.ladder]chip = ["
+                     << aChipIndex.boardIndex
+                     << "." << aChipIndex.dataReceiver
+                     << "." << aChipIndex.ladderId
+                     << "]" << aChipIndex.chipId
+                     << " : no data, skipped." <<  endl; 
             }
             continue;  // write files only for chips with data
         }
         string filename = common::GetFileName( aChipIndex, suffix );
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TDeviceDigitalScan::WriteDataToFile() - Chip ID = "<< aChipIndex.chipId ;
-            if ( aChipIndex.ladderId ) {
-                cout << " , Ladder ID = " << aChipIndex.ladderId;
-            }
+            cout << "TDeviceDigitalScan::WriteDataToFile() - [board.rcv.ladder]chip = ["<< aChipIndex.boardIndex
+                 << "." << aChipIndex.dataReceiver
+                 << "." << aChipIndex.ladderId
+                 << "]" << aChipIndex.chipId;
             cout << endl;
         }
         strcpy( fNameChip, filename.c_str());

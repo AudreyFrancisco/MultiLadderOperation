@@ -39,7 +39,7 @@ public:
     void SetVerboseLevel( const int level );
     
     /// initialization
-    virtual void Init();
+    void Init();
 
     /// terminate
     void Terminate();
