@@ -213,6 +213,7 @@ void TDeviceBuilder::CheckControlInterface()
     
     
     if ( fCurrentDevice->GetNWorkingChips() == 0 ) {
+        fCurrentDevice->EnableClockOutputs( false );
         throw runtime_error( "TDeviceBuilder::CheckControlInterface() - no working chip found!" );
     }
 }
