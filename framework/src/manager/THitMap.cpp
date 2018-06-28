@@ -110,12 +110,15 @@ void THitMap::SetNInjections( const unsigned int value )
 //___________________________________________________________________
 void THitMap::SetHicChipName()
 {
+    fHicChipName = "Board ";
+    fHicChipName += std::to_string( fIdx.boardIndex );
+    fHicChipName = " RCV ";
+    fHicChipName += std::to_string( fIdx.dataReceiver );
     if ( fIdx.ladderId ) {
-        fHicChipName = "Hic ";
+        fHicChipName = " Hic ";
         fHicChipName += std::to_string( fIdx.ladderId );
-        fHicChipName += " ";
     }
-    fHicChipName += "Chip ";
+    fHicChipName += " Chip ";
     fHicChipName += std::to_string( fIdx.chipId );
 }
 
@@ -150,6 +153,11 @@ string THitMap::GetHistoTitle( const std::string prefix ) const
 string THitMap::GetName( const string prefix ) const
 {
     string name = prefix;
+
+    name += "_board ";
+    name += std::to_string( fIdx.boardIndex );
+    name += "_rcv";
+    name += std::to_string( fIdx.dataReceiver );
     if ( fIdx.ladderId ) {
         name += "_hic";
         name += std::to_string( fIdx.ladderId );

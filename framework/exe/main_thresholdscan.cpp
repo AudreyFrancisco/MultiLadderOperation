@@ -25,7 +25,7 @@
 
 using namespace std;
 
-// Example of usage : if 25 is the id of the tested ladder
+// Example of usage : if 25 is the id of the tested ladder and you want verbosity level 1
 // ./test_thresholdscan -v 1 -c ../config/ConfigMFTladder_ThresholdScan.cfg -l 25
 //
 // If you want to see the available options, do :

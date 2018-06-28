@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 
-enum class TTriggerSource { kTRIG_INT, kTRIG_EXT };
+enum class TTriggerSource { kTRIG_EXT = 0, kTRIG_INT = 1 };
 enum class TBoardType { kBOARD_DAQ, kBOARD_MOSAIC, kBOARD_UNKNOWN };
 
 class TBoardConfig {
@@ -17,7 +17,7 @@ protected:
     int            fNTriggers;
     int            fTriggerDelay;
     int            fPulseDelay;
-    TTriggerSource fTriggerSource;
+    int            fTriggerSource;
     TBoardType     fBoardType;
     static const int fPULSEDELAY  = 1000;
     static const int fSTROBEDELAY = 20;
@@ -39,14 +39,14 @@ public:
     int            GetNTriggers    () {return fNTriggers;};
     int            GetTriggerDelay () {return fTriggerDelay;};
     int            GetPulseDelay   () {return fPulseDelay;};
-    TTriggerSource GetTriggerSource() {return fTriggerSource;};
+    TTriggerSource GetTriggerSource() {return (TTriggerSource)fTriggerSource;};
     
     void SetTriggerEnable(bool trigEnable)  {fTriggerEnable = trigEnable;};
     void SetPulseEnable  (bool pulseEnable) {fPulseEnable   = pulseEnable;};
     void SetNTriggers    (int  nTriggers)   {fNTriggers     = nTriggers;};
     void SetTriggerDelay (int  trigDelay)   {fTriggerDelay  = trigDelay;};   // obsolete
     void SetPulseDelay   (int  pulseDelay)  {fPulseDelay    = pulseDelay;};  // obsolete
-    void SetTriggerSource(TTriggerSource trigSource)  {fTriggerSource = trigSource;};
+    void SetTriggerSource(TTriggerSource trigSource)  {fTriggerSource = (int)trigSource;};
 
 };
 
