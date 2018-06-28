@@ -11,6 +11,26 @@
 
 #include <string>
 
+// definition of standard setup types:
+//   - single chip in OB mode with MOSAIC
+//   - single chip in IB mode with MOSAIC
+//   - MFT 5-chips ladder with MOSAIC
+//   - etc ...
+enum class TDeviceType {
+    kCHIP_DAQ,
+    kTELESCOPE,
+    kOBHIC,
+    kIBHIC,
+    kMFT_LADDER5,
+    kMFT_LADDER4,
+    kMFT_LADDER3,
+    kMFT_LADDER2,
+    kOBCHIP_MOSAIC,
+    kIBCHIP_MOSAIC,
+    kHALFSTAVE,
+    kUNKNOWN
+};
+
 class TPixHit;
 
 namespace common {
@@ -20,18 +40,28 @@ namespace common {
     typedef struct {
         unsigned int boardIndex;
         unsigned int dataReceiver;
-        unsigned int ladderId;
+        TDeviceType deviceType; // not taken into account for the mapping
+        unsigned int deviceId; // for e.g. ladder Id
         unsigned int chipId;
     } TChipIndex;
     
     /// Function that helps to generate part of the filename from TChipIndex
-    extern std::string GetFileName( TChipIndex aChipIndex,
+    extern std::string GetFileName( const TChipIndex aChipIndex,
                                    std::string suffix, std::string optional = "",
                                    std::string fileExtention = ".dat");
     
     /// Compare two TChipIndex structures
     extern bool SameChipIndex( const TChipIndex lhs, const TChipIndex rhs );
+
+    /// Check if the device type corresponds to a MFT ladder
+    extern bool IsMFTladder( const TChipIndex aChipIndex );
     
+    /// Check if the device type corresponds to an ITS IB hic or an IB-like telescope
+    extern bool IsIBhic( const TChipIndex aChipIndex );
+
+    /// dump to screen the id
+    extern void DumpId( const TChipIndex aChipIndex );
+
     /// id of the last region of the chip
     const unsigned int MAX_REGION = 31;  // [0 .. 31] 32 regions
     
@@ -51,7 +81,7 @@ namespace common {
     const unsigned int NLINES = 512;
     
     /// return the integer that indexes the TChipIndex in the map
-    extern int GetMapIntIndex( const common::TChipIndex idx );
+    extern int GetMapIntIndex( const TChipIndex idx );
     
     /// return the TChipIndex that corresponds to the integer that is used as map index
     extern TChipIndex GetChipIndexFromMapInt( const int intIndex );

@@ -61,12 +61,9 @@ void THitMapView::BuildCanvas()
 {
     if ( !HasData() ) {
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::BuildCanvas() - [board.rcv.ladder]chip = ["
-                 << fChipIndex.boardIndex
-                 << "." << fChipIndex.dataReceiver
-                 << "." << fChipIndex.ladderId
-                 << "]" << fChipIndex.chipId
-                 << " : no data => no hit map." <<  endl; 
+            cout << "THitMapView::BuildCanvas() - ";
+            common::DumpId( fChipIndex );
+            cout << " : no data => no hit map." <<  endl; 
         }
         return;
     }
@@ -104,12 +101,9 @@ void THitMapView::Draw()
 {
     if ( !HasData() ) {
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::Draw() - [board.rcv.ladder]chip = ["
-                 << fChipIndex.boardIndex
-                 << "." << fChipIndex.dataReceiver
-                 << "." << fChipIndex.ladderId
-                 << "]" << fChipIndex.chipId
-                 << " : no data => no hit map." <<  endl; 
+            cout << "THitMapView::Draw() - ";
+            common::DumpId( fChipIndex );
+            cout << " : no data => no hit map." <<  endl; 
         }
         return;
     }
@@ -134,23 +128,16 @@ void THitMapView::FillHitMap()
 
     if ( !(fScanHisto->HasData(fChipIndex)) ) {
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::FillHitMap() - [board.rcv.ladder]chip = ["
-                 << fChipIndex.boardIndex
-                 << "." << fChipIndex.dataReceiver
-                 << "." << fChipIndex.ladderId
-                 << "]" << fChipIndex.chipId
-                 << " : no data => no hit map." <<  endl; 
+            cout << "THitMapView::FillHitMap() - ";
+            common::DumpId( fChipIndex );
+            cout << " : no data => no hit map." <<  endl; 
         }
         fHasData = false;
         return;
     }
 
     TPixHit pixhit;
-    pixhit.SetBoardIndex( fChipIndex.boardIndex );
-    pixhit.SetBoardReceiver( fChipIndex.dataReceiver );
-    pixhit.SetLadderId( fChipIndex.ladderId );
-    pixhit.SetChipId( fChipIndex.chipId );
-
+    pixhit.SetPixChipIndex( fChipIndex );
     for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
         for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
             pixhit.SetDoubleColumn( icol );
@@ -171,22 +158,17 @@ void THitMapView::WriteHitsToFile( const char *fName, const bool Recreate )
 {
     if ( !HasData() ) {
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::WriteHitsToFile() - [board.rcv.ladder]chip = ["
-                 << fChipIndex.boardIndex
-                 << "." << fChipIndex.dataReceiver
-                 << "." << fChipIndex.ladderId
-                 << "]" << fChipIndex.chipId
-                 << " : no data => no hit map." <<  endl; 
+            cout << "THitMapView::WriteHitsToFile() - ";
+            common::DumpId( fChipIndex );
+            cout << " : no data => no hit map." <<  endl; 
         }
         return;
     }
 
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "THitMapView::WriteHitsToFile() - [board.rcv.ladder]chip = [" 
-             << fChipIndex.boardIndex
-             << "." << fChipIndex.dataReceiver
-             << "." << fChipIndex.ladderId
-             << "]" << fChipIndex.chipId << endl;
+        cout << "THitMapView::WriteHitsToFile() - ";
+        common::DumpId( fChipIndex ); 
+        cout << endl;
     }
 
     char  fNameChip[100];    
@@ -208,11 +190,7 @@ void THitMapView::WriteHitsToFile( const char *fName, const bool Recreate )
     }
 
     TPixHit pixhit;
-    pixhit.SetBoardIndex( fChipIndex.boardIndex );
-    pixhit.SetBoardReceiver( fChipIndex.dataReceiver );
-    pixhit.SetLadderId( fChipIndex.ladderId );
-    pixhit.SetChipId( fChipIndex.chipId );
-
+    pixhit.SetPixChipIndex( fChipIndex );
     for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
         for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
             pixhit.SetDoubleColumn( icol );
@@ -233,12 +211,9 @@ void THitMapView::SaveToFile( const char *fName )
 {
     if ( !HasData() ) {
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::SaveToFile() - [board.rcv.ladder]chip = ["
-                 << fChipIndex.boardIndex
-                 << "." << fChipIndex.dataReceiver
-                 << "." << fChipIndex.ladderId
-                 << "]" << fChipIndex.chipId
-                 << " : no data => no hit map." <<  endl; 
+            cout << "THitMapView::SaveToFile() - ";
+            common::DumpId( fChipIndex );
+            cout << " : no data => no hit map." <<  endl; 
         }
         return;
     }

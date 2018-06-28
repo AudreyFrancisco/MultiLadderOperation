@@ -68,12 +68,12 @@ void TDeviceBuilderMFTLadder::SetVerboseLevel( const int level )
 }
 
 //___________________________________________________________________
-void TDeviceBuilderMFTLadder::SetLadderId( const unsigned int number )
+void TDeviceBuilderMFTLadder::SetDeviceId( const unsigned int number )
 {
     if ( GetVerboseLevel() > kTERSE ) {
-        cout << "TDeviceBuilderMFTLadder::SetLadderId() - " << number << endl;
+        cout << "TDeviceBuilderMFTLadder::SetDeviceId() - " << number << endl;
     }
-    fCurrentDevice->SetLadderId( number );
+    fCurrentDevice->SetDeviceId( number );
 }
 
 //___________________________________________________________________

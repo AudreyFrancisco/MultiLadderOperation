@@ -61,7 +61,8 @@ fSaveToFileReady( false )
 {
     fIdx.boardIndex = 0;
     fIdx.dataReceiver = 0;
-    fIdx.ladderId = 0;
+    fIdx.deviceType = TDeviceType::kUNKNOWN;
+    fIdx.deviceId = 0;
     fIdx.chipId = 0;
     
     SetBaseStyle();
@@ -105,7 +106,8 @@ fSaveToFileReady( false )
 {
     fIdx.boardIndex = aChipIndex.boardIndex;
     fIdx.dataReceiver = aChipIndex.dataReceiver;
-    fIdx.ladderId = aChipIndex.ladderId;
+    fIdx.deviceType = aChipIndex.deviceType;
+    fIdx.deviceId = aChipIndex.deviceId;
     fIdx.chipId = aChipIndex.chipId;
     
     SetNInjections( nInjectionsPerCharge );
@@ -280,15 +282,8 @@ void TSCurveAnalysis::DrawDistributions()
 
     cout << std::dec << endl;
     cout << "------------------------------- TSCurveAnalysis::DrawDistributions() " << endl;
-    if ( fIdx.ladderId ) {
-        cout << "Board . receiver . ladder / chip: "
-        << std::dec << fIdx.boardIndex << " . "
-        << fIdx.dataReceiver << " . " << fIdx.ladderId << " / " << fIdx.chipId << endl;
-    } else {
-        cout << "Board . receiver / chip: "
-        << std::dec << fIdx.boardIndex << " . "
-        << fIdx.dataReceiver << " / " << fIdx.chipId << endl;
-    }
+    common::DumpId( fIdx );
+    cout << endl;
     cout << "Start point found for:     " << fNPixels << " pixels " << endl;
     cout << "No start point found for:  " << fNNostart << " pixels " << endl;
     cout << "Chisq cut failed for:      " << fNChisq << " pixels " << endl;
@@ -346,13 +341,9 @@ void TSCurveAnalysis::SaveToFile( const char *fName )
     string filename = common::GetFileName( fIdx, suffix, "", ".pdf" );
     strcpy( fNameChip, filename.c_str() );
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TSCurveAnalysis::DrawAndSaveToFile() - [board.rcv.ladder]chip = [" 
-             << fIdx.boardIndex
-             << "." << fIdx.chipId 
-             << "." << fIdx.dataReceiver
-             << "." << fIdx.ladderId
-             << "]" << fIdx.chipId   
-             << " to file " << fNameChip << endl;
+        cout << "TSCurveAnalysis::DrawAndSaveToFile() - ";
+        common::DumpId( fIdx ); 
+        cout << " to file " << fNameChip << endl;
     }
     
     char fNameOpen[101], fNameClose[101];
@@ -376,12 +367,17 @@ void TSCurveAnalysis::SaveToFile( const char *fName )
 //___________________________________________________________________
 void TSCurveAnalysis::SetHicChipName()
 {
-    if ( fIdx.ladderId ) {
-        fHicChipName = "Hic ";
-        fHicChipName += std::to_string( fIdx.ladderId );
+    fHicChipName = "Board ";
+    fHicChipName += std::to_string( fIdx.boardIndex );
+    fHicChipName = " RCV ";
+    fHicChipName += std::to_string( fIdx.dataReceiver );
+    if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
+        if (  common::IsMFTladder( fIdx ) ) fHicChipName += "Ladder ";
+        if (  common::IsIBhic( fIdx ) ) fHicChipName += "IB hic ";
+        fHicChipName += std::to_string( fIdx.deviceId );
         fHicChipName += " ";
     }
-    fHicChipName += "Chip ";
+    fHicChipName += " Chip ";
     fHicChipName += std::to_string( fIdx.chipId );
 }
 
@@ -408,13 +404,17 @@ void TSCurveAnalysis::SetBaseStyle()
 string TSCurveAnalysis::GetName( const string prefix ) const
 {
     string name = prefix;
-    if ( fIdx.ladderId ) {
-        name += "_hic";
-        name += std::to_string( fIdx.ladderId );
+    name += "_board ";
+    name += std::to_string( fIdx.boardIndex );
+    name += "_rcv";
+    name += std::to_string( fIdx.dataReceiver );
+    if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
+        if (  common::IsMFTladder( fIdx ) ) name += "_ladder";
+        if (  common::IsIBhic( fIdx ) ) name += "_ibhic";
+        name += std::to_string( fIdx.deviceId );
     }
     name += "_chip";
-    name += std::to_string( fIdx.chipId );
-    return name;
+    name += std::to_string( fIdx.chipId );    return name;
 }
 
 //___________________________________________________________________

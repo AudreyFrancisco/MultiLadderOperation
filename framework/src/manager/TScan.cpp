@@ -69,6 +69,7 @@ void TScan::CreateScanHisto()
                 && (  board == currentDevice->GetBoard(iboard)) ) {
                 id.boardIndex       = iboard;
                 id.dataReceiver     = (currentDevice->GetChipConfig( ichip ))->GetParamValue("RECEIVER");
+                id.deviceType       = currentDevice->GetDeviceType();
                 id.chipId           = (currentDevice->GetChipConfig( ichip ))->GetChipId();
                 fHisto->AddHisto( id, histo );
             }

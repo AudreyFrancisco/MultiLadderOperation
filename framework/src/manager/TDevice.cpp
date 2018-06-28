@@ -25,7 +25,7 @@ TDevice::TDevice() : TVerbosity(),
     fBoardType( TBoardType::kBOARD_UNKNOWN ),
     fDeviceType( TDeviceType::kUNKNOWN ),
     fNickName( "" ),
-    fLadderId( 0 )
+    fDeviceId( 0 )
 { }
 
 //___________________________________________________________________
@@ -101,13 +101,13 @@ void TDevice::SetNickName( const std::string name )
 }
 
 //___________________________________________________________________
-void TDevice::SetLadderId( const unsigned int number )
+void TDevice::SetDeviceId( const unsigned int number )
 {
     if ( IsSetupFrozen() ) {
-        cerr << "TDevice::SetLadderId() - not allowed: setup already done !" << endl;
+        cerr << "TDevice::SetDeviceId() - not allowed: setup already done !" << endl;
         return;
     }
-    fLadderId = number;
+    fDeviceId = number;
 }
 
 //___________________________________________________________________

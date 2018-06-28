@@ -360,8 +360,9 @@ TScanHisto::~TScanHisto()
 double TScanHisto::operator() ( common::TChipIndex index, unsigned int i, unsigned int j ) const
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::operator(idx, i, j) - B " << std::dec << index.boardIndex
-        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+        std::cout << "TScanHisto::operator(idx, i, j) - " << std::dec;
+        common::DumpId( index );
+        std::cout << std::endl;
     }
     int int_index = common::GetMapIntIndex( index );
     return (fHistos.at(int_index))(i,j);
@@ -372,8 +373,9 @@ double TScanHisto::operator() ( common::TChipIndex index, unsigned int i, unsign
 double TScanHisto::operator() ( common::TChipIndex index, unsigned int i ) const
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::operator(idx, i) - B " << std::dec << index.boardIndex
-        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+        std::cout << "TScanHisto::operator(idx, i) - " << std::dec;
+        common::DumpId( index );
+        std::cout << std::endl;
     }
     int int_index =  common::GetMapIntIndex( index );
     return (fHistos.at(int_index))(i);
@@ -389,8 +391,9 @@ common::TChipIndex TScanHisto::GetChipIndex( const unsigned int i ) const
 unsigned int TScanHisto::GetChipNEntries( common::TChipIndex index ) const
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::GetChipNEntries() - B " << std::dec << index.boardIndex
-        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+        std::cout << "TScanHisto::GetChipNEntries() - " << std::dec;
+        common::DumpId( index );
+        std::cout << std::endl;
     }
     int int_index =  common::GetMapIntIndex( index );
     return (fHistos.at(int_index)).GetNEntries();
@@ -409,8 +412,9 @@ bool TScanHisto::HasData( common::TChipIndex index ) const
 void TScanHisto::AddHisto( common::TChipIndex index, THisto histo )
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::AddHisto() - B " << std::dec << index.boardIndex
-        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+        std::cout << "TScanHisto::AddHisto() - " << std::dec ;
+        common::DumpId( index );
+        std::cout << std::endl;
     }
     int int_index =  common::GetMapIntIndex( index );
     fHistos.insert (std::pair<int, THisto>(int_index, histo));
@@ -422,8 +426,9 @@ void TScanHisto::AddHisto( common::TChipIndex index, THisto histo )
 void TScanHisto::Incr( common::TChipIndex index, unsigned int i, unsigned int j )
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::Incr() - B " << std::dec << index.boardIndex
-        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+        std::cout << "TScanHisto::Incr() - " << std::dec ;
+        common::DumpId( index );
+        std::cout << std::endl;
     }
    int int_index =  common::GetMapIntIndex( index );
     (fHistos.at(int_index)).Incr(i,j);
@@ -433,8 +438,9 @@ void TScanHisto::Incr( common::TChipIndex index, unsigned int i, unsigned int j 
 void TScanHisto::Incr( common::TChipIndex index, unsigned int i )
 {
     if ( GetVerboseLevel() > kULTRACHATTY ) {
-        std::cout << "TScanHisto::Incr() - B " << std::dec << index.boardIndex
-        << " Rx " << index.dataReceiver << " chipId " << index.chipId << std::endl;
+        std::cout << "TScanHisto::Incr() - " << std::dec;
+        common::DumpId( index );
+        std::cout << std::endl;
     }
    int int_index = common::GetMapIntIndex( index );
     (fHistos.at(int_index)).Incr(i);

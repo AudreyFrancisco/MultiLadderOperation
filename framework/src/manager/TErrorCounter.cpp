@@ -41,7 +41,8 @@ void TErrorCounter::AddCorruptedHit( shared_ptr<TPixHit> badHit )
             common::TChipIndex idx;
             idx.boardIndex    = badHit->GetBoardIndex();
             idx.dataReceiver  = badHit->GetBoardReceiver();
-            idx.ladderId      = badHit->GetLadderId();
+            idx.deviceType    = badHit->GetDeviceType();
+            idx.deviceId      = badHit->GetDeviceId();
             idx.chipId        = badHit->GetChipId();
             try {
                 (fCounterCollection.at( common::GetMapIntIndex(idx) )).AddCorruptedHit( badHit );
@@ -117,7 +118,8 @@ void TErrorCounter::IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit,
     common::TChipIndex idx;
     idx.boardIndex    = badHit->GetBoardIndex();
     idx.dataReceiver  = badHit->GetBoardReceiver();
-    idx.ladderId      = badHit->GetLadderId();
+    idx.deviceType    = badHit->GetDeviceType();
+    idx.deviceId      = badHit->GetDeviceId();
     idx.chipId        = badHit->GetChipId();
     try {
         (fCounterCollection.at( common::GetMapIntIndex(idx) )).IncrementNPrioEncoder( value );

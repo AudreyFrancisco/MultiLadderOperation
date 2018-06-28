@@ -101,21 +101,16 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
 
         if ( !HasData( aChipIndex ) ) {
             if ( GetVerboseLevel() > kSILENT ) {
-                cout << "TDeviceDigitalScan::WriteDataToFile() - [board.rcv.ladder]chip = ["
-                     << aChipIndex.boardIndex
-                     << "." << aChipIndex.dataReceiver
-                     << "." << aChipIndex.ladderId
-                     << "]" << aChipIndex.chipId
-                     << " : no data, skipped." <<  endl; 
+                cout << "TDeviceDigitalScan::WriteDataToFile() - ";
+                common::DumpId( aChipIndex );
+                cout << " : no data, skipped." <<  endl; 
             }
             continue;  // write files only for chips with data
         }
         string filename = common::GetFileName( aChipIndex, suffix );
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TDeviceDigitalScan::WriteDataToFile() - [board.rcv.ladder]chip = ["<< aChipIndex.boardIndex
-                 << "." << aChipIndex.dataReceiver
-                 << "." << aChipIndex.ladderId
-                 << "]" << aChipIndex.chipId;
+            cout << "TDeviceDigitalScan::WriteDataToFile() - ";
+            common::DumpId( aChipIndex );
             cout << endl;
         }
         strcpy( fNameChip, filename.c_str());
@@ -128,10 +123,7 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
             throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - output file not found." );
         }
         TPixHit pixhit;
-        pixhit.SetBoardIndex( aChipIndex.boardIndex );
-        pixhit.SetBoardReceiver( aChipIndex.dataReceiver );
-        pixhit.SetLadderId( aChipIndex.ladderId );
-        pixhit.SetChipId( aChipIndex.chipId );
+        pixhit.SetPixChipIndex( aChipIndex );
         for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
             for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
                 pixhit.SetDoubleColumn( icol );
@@ -245,7 +237,8 @@ void TDeviceDigitalScan::AddHisto()
         if ( fDevice->GetChipConfig(ichip)->IsEnabled() ) {
             id.boardIndex   = fDevice->GetBoardIndexByChip(ichip);
             id.dataReceiver = fDevice->GetChipConfig(ichip)->GetParamValue("RECEIVER");
-            id.ladderId     = fDevice->GetLadderId();
+            id.deviceType   = fDevice->GetDeviceType();
+            id.deviceId     = fDevice->GetDeviceId();
             id.chipId       = fDevice->GetChipId(ichip);
             fScanHisto->AddHisto( id, histo );
         }

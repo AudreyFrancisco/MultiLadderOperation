@@ -81,7 +81,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 SetVerboseLevel( atoi(optarg) );
                 break;
             case 'l':  // sets the ladder id
-                SetLadderId( atoi(optarg) );
+                SetDeviceId( atoi(optarg) );
                 break;
             case 'c':  // the name of Configuration file
                 char ConfigurationFileName[1024];
@@ -369,7 +369,7 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
     }
     if ( dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder) ) {
         // restricted to MFT ladders
-        dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder)->SetLadderId( fLadderId );
+        dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder)->SetDeviceId( fdeviceId );
     }
 }
 
@@ -408,15 +408,15 @@ void TSetup::SetDeviceNickName( const string name )
 }
 
 //___________________________________________________________________
-void TSetup::SetLadderId( const int number )
+void TSetup::SetDeviceId( const int number )
 {
     if ( number < 0 ) {
-        cout << "TSetup::SetLadderId() - user gave an id < 0, which is forbidden. The ladder will remain the default id = 0." << endl;
+        cout << "TSetup::SetDeviceId() - user gave an id < 0, which is forbidden. The ladder will remain the default id = 0." << endl;
         return;
     }
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TSetup::SetLadderId() - " << number << endl;
+        cout << "TSetup::SetDeviceId() - " << number << endl;
     }
-    fLadderId = (unsigned int)number;
+    fdeviceId = (unsigned int)number;
 }
 

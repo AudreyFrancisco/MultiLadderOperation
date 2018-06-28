@@ -226,7 +226,8 @@ void TDeviceBuilder::FillWorkingChipIndexList()
         common::TChipIndex idx;
         idx.boardIndex = fCurrentDevice->GetBoardIndexByChip(i);
         idx.dataReceiver = (fCurrentDevice->GetChipConfig(i))->GetReceiver();
-        idx.ladderId = fCurrentDevice->GetLadderId();
+        idx.deviceType = fCurrentDevice->GetDeviceType();
+        idx.deviceId = fCurrentDevice->GetDeviceId();
         idx.chipId = fCurrentDevice->GetChipId(i);
         fCurrentDevice->AddWorkingChipIndex( idx );
     }

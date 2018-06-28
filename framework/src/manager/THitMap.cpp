@@ -35,7 +35,7 @@ fSaveToFileReady( false )
 {
     fIdx.boardIndex = 0;
     fIdx.dataReceiver = 0;
-    fIdx.ladderId = 0;
+    fIdx.deviceId = 0;
     fIdx.chipId = 0;
     fMapCanvas = new TCanvas( "cv" );
     fH2Dummy = new TH2F ( "h2dummy", "",
@@ -64,7 +64,8 @@ fSaveToFileReady( false )
     
     fIdx.boardIndex = aChipIndex.boardIndex;
     fIdx.dataReceiver = aChipIndex.dataReceiver;
-    fIdx.ladderId = aChipIndex.ladderId;
+    fIdx.deviceType = aChipIndex.deviceType;
+    fIdx.deviceId = aChipIndex.deviceId;
     fIdx.chipId = aChipIndex.chipId;
     
     fMapCanvas = new TCanvas( "cv" );
@@ -114,9 +115,10 @@ void THitMap::SetHicChipName()
     fHicChipName += std::to_string( fIdx.boardIndex );
     fHicChipName = " RCV ";
     fHicChipName += std::to_string( fIdx.dataReceiver );
-    if ( fIdx.ladderId ) {
-        fHicChipName = " Hic ";
-        fHicChipName += std::to_string( fIdx.ladderId );
+    if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
+        if (  common::IsMFTladder( fIdx ) ) fHicChipName += " Ladder ";
+        if (  common::IsIBhic( fIdx ) ) fHicChipName += " IB hic ";
+        fHicChipName += std::to_string( fIdx.deviceId );
     }
     fHicChipName += " Chip ";
     fHicChipName += std::to_string( fIdx.chipId );
@@ -158,9 +160,10 @@ string THitMap::GetName( const string prefix ) const
     name += std::to_string( fIdx.boardIndex );
     name += "_rcv";
     name += std::to_string( fIdx.dataReceiver );
-    if ( fIdx.ladderId ) {
-        name += "_hic";
-        name += std::to_string( fIdx.ladderId );
+    if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
+        if (  common::IsMFTladder( fIdx ) ) name += "_ladder";
+        if (  common::IsIBhic( fIdx ) ) name += "_ibhic";
+        name += std::to_string( fIdx.deviceId );
     }
     name += "_chip";
     name += std::to_string( fIdx.chipId );
