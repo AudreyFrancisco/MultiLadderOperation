@@ -1273,9 +1273,8 @@ void TAlpide::BaseConfigMask()
         }
         return;
     }
-    // disable mask
-    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,  true );
-    // enable pulse
+    // initialisation of fixed mask
+    WritePixRegAll( AlpidePixConfigReg::MASK_ENABLE,  false );
     WritePixRegAll( AlpidePixConfigReg::PULSE_ENABLE, false );
 }
 

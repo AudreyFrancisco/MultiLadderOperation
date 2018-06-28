@@ -177,23 +177,18 @@ void TChipErrorCounter::ClassifyCorruptedHits()
 void TChipErrorCounter::Dump()
 {
     if ( !fFilledErrorCounters ) {
-        cerr << "TChipErrorCounter::Dump() - counters empty ! Please use FindCorruptedHits() first. " << endl;
-        return;
+        cerr << "TChipErrorCounter::Dump() - corrupted hit counters empty ! Please use FindCorruptedHits() first. " << endl;
     }
     cout << endl;
     cout << "------------------------------- TChipErrorCounter::Dump() " << endl;
-    if ( fIdx.ladderId ) {
-        cout << "Board . receiver . ladder / chip: "
-        << std::dec << fIdx.boardIndex << " . "
-        << fIdx.dataReceiver << " . " << fIdx.ladderId << " / " << fIdx.chipId << endl;
-    } else {
-        cout << "Board . receiver / chip: "
-        << std::dec << fIdx.boardIndex << " . "
-        << fIdx.dataReceiver << " / " << fIdx.chipId << endl;
-    }
+    cout << "[board.rcv.ladder]chip = [" 
+             << fIdx.boardIndex
+             << "." << fIdx.dataReceiver
+             << "." << fIdx.ladderId
+             << "]" << fIdx.chipId << endl;
     cout << "Number of priority encoder errors: " << fNPrioEncoder << endl;
     cout << "Number of 8b10b encoder errors: " << fN8b10b << endl;
-    if ( fCorruptedHits.size() ) {
+    if ( fCorruptedHits.size()  && fFilledErrorCounters ) {
         cout << "Number of hits with bad region id flag: " << fNBadRegionIdFlag << endl;
         cout << "Number of hits with bad col id flag: " << fNBadColIdFlag << endl;
         cout << "Number of hits with bad address flag: " << fNBadAddressIdFlag << endl;
@@ -225,7 +220,12 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const char *fName, bool Recrea
 void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
 {
     if ( !fCorruptedHits.size() ) {
-        cout << "TChipErrorCounter::DrawAndSaveToFile() - no bad hits => no file will be written !" << endl;
+        cout << "TChipErrorCounter::DrawAndSaveToFile() - [board.rcv.ladder]chip = [" 
+             << fIdx.boardIndex
+             << "." << fIdx.dataReceiver
+             << "." << fIdx.ladderId
+             << "]" << fIdx.chipId 
+             << " , no bad hits => no file will be written !" << endl; 
         return;
     }
 
@@ -239,11 +239,12 @@ void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
     string filename = common::GetFileName( fIdx, suffix, "Error", ".pdf" );
     strcpy( fNameChip, filename.c_str() );
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TChipErrorCounter::DrawAndSaveToFile() - Chip ID = " << fIdx.chipId ;
-        if ( fIdx.ladderId ) {
-            cout << " , Ladder ID = " << fIdx.ladderId;
-        }
-        cout << " to file " << fNameChip << endl;
+        cout << "TChipErrorCounter::DrawAndSaveToFile() - [board.rcv.ladder]chip = [" 
+             << fIdx.boardIndex
+             << "." << fIdx.dataReceiver
+             << "." << fIdx.ladderId
+             << "]" << fIdx.chipId 
+             << " , to file " << fNameChip << endl;
     }
     fHitMap->Draw();
     fHitMap->SaveToFile( fNameChip );
@@ -352,8 +353,37 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     // file will only be written if there is any bad hit corresponding to the flag
     
     if ( !fCorruptedHits.size() ) {
-        cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - no bad hits => no file will be written !" << endl;
-        return;
+        if ( GetVerboseLevel() > kVERBOSE ) {
+            cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - [board.rcv.ladder]chip = [" 
+                << fIdx.boardIndex
+                << "." << fIdx.dataReceiver
+                << "." << fIdx.ladderId
+                << "]" << fIdx.chipId << endl;
+            cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - no bad hit of type ";
+            if ( flag == TPixFlag::kBAD_ADDRESS ) {
+                cout << "TPixFlag::kBAD_ADDRESS";
+            }
+            if ( flag == TPixFlag::kBAD_DCOLID ) {
+                cout << "TPixFlag::kBAD_DCOLID";
+            }
+            if ( flag == TPixFlag::kBAD_REGIONID ) {
+                cout << "TPixFlag::kBAD_REGIONID";
+            }
+            if ( flag == TPixFlag::kSTUCK ) {
+                cout << "TPixFlag::kSTUCK";
+            }
+            if ( flag == TPixFlag::kDEAD ) {
+                cout << "TPixFlag::kDEAD";
+            }
+            if ( flag == TPixFlag::kINEFFICIENT ) {
+                cout << "TPixFlag::kINEFFICIENT";
+            }
+            if ( flag == TPixFlag::kHOT ) {
+                cout << "TPixFlag::kHOT";
+            }
+                cout  << " => no file will be written !" << endl;
+            return;
+        }
     }
     if ( (flag == TPixFlag::kBAD_ADDRESS) && !fNBadAddressIdFlag ) {
         return;
@@ -388,11 +418,11 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     
     string filename = common::GetFileName( fIdx, suffix, flag_name.str() );
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - Chip ID = " << fIdx.chipId ;
-        if ( fIdx.ladderId ) {
-            cout << " , Ladder ID = " << fIdx.ladderId;
-        }
-        cout << endl;
+        cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - [board.rcv.ladder]chip = [" 
+             << fIdx.boardIndex
+             << "." << fIdx.dataReceiver
+             << "." << fIdx.ladderId
+             << "]" << fIdx.chipId << endl;
     }
     strcpy( fNameChip, filename.c_str() );
     
@@ -430,8 +460,8 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     for ( unsigned int i = 0; i < fCorruptedHits.size(); i++ ) {
         if ( (fCorruptedHits.at(i))->GetPixFlag() == flag ) {
             fprintf(fp, "%d %d %d\n",
-                    (fCorruptedHits.at(i))->GetDoubleColumn(),
-                    (fCorruptedHits.at(i))->GetAddress(), nhit);
+                    (fCorruptedHits.at(i))->GetRow(),
+                    (fCorruptedHits.at(i))->GetColumn(), nhit);
         }
     }
     if (fp) fclose (fp);

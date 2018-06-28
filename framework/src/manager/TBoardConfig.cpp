@@ -7,8 +7,9 @@ using namespace std;
 //___________________________________________________________________
 TBoardConfig::TBoardConfig()
 {
-  fTriggerDelay = fSTROBEDELAY;
-  fPulseDelay   = fPULSEDELAY;
+  fTriggerDelay  = fSTROBEDELAY;
+  fPulseDelay    = fPULSEDELAY;
+  fTriggerSource = (int)TTriggerSource::kTRIG_INT;
 }
 
 
@@ -17,6 +18,7 @@ void TBoardConfig::InitParamMap()
 {
   fSettings["STROBEDELAYBOARD"] = &fTriggerDelay;
   fSettings["PULSEDELAY"]       = &fPulseDelay;
+  fSettings["TRIGGERSOURCE"]    = &fTriggerSource;
 }
 
 

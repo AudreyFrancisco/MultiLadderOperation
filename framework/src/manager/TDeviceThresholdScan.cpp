@@ -37,9 +37,7 @@ fChargeStart( 0 ),
 fChargeStep( 0 ),
 fChargeStop( 0 ),
 fNChargeSteps( 0 )
-{
-    fChipDecoder = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
-}
+{ }
 
 //___________________________________________________________________
 TDeviceThresholdScan::~TDeviceThresholdScan()
@@ -196,6 +194,8 @@ void TDeviceThresholdScan::Terminate()
 {
     TDeviceChipVisitor::Terminate();
     AnalyzeData();
+    cout << endl;
+    fErrorCounter->Dump();
 }
 
 //___________________________________________________________________
@@ -240,21 +240,22 @@ void TDeviceThresholdScan::WriteDataToFile( const char *fName, bool Recreate )
         
         if ( !HasData( aChipIndex ) ) {
             if ( GetVerboseLevel() > kSILENT ) {
-                cout << "TDeviceThresholdScan::WriteDataToFile() - Chip ID = "
-                << aChipIndex.chipId ;
-                if ( aChipIndex.ladderId ) {
-                    cout << " , Ladder ID = " << aChipIndex.ladderId;
-                }
-                cout << " : no data, skipped." <<  endl;
+                cout << "TDeviceThresholdScan::WriteDataToFile() - [board.rcv.ladder]chip = ["
+                     << aChipIndex.boardIndex
+                     << "." << aChipIndex.dataReceiver
+                     << "." << aChipIndex.ladderId
+                     << "]" << aChipIndex.chipId
+                     << " : no data, skipped." <<  endl;
             }
             continue;  // write files only for chips with data
         }
         string filename = common::GetFileName( aChipIndex, suffix );
         if ( GetVerboseLevel() > kSILENT ) {
-            cout << "TDeviceThresholdScan::WriteDataToFile() - Chip ID = "<< aChipIndex.chipId ;
-            if ( aChipIndex.ladderId ) {
-                cout << " , Ladder ID = " << aChipIndex.ladderId;
-            }
+            cout << "TDeviceThresholdScan::WriteDataToFile() - [board.rcv.ladder]chip = ["
+                     << aChipIndex.boardIndex
+                     << "." << aChipIndex.dataReceiver
+                     << "." << aChipIndex.ladderId
+                     << "]" << aChipIndex.chipId;
             cout << endl;
         }
         strcpy( fNameChip, filename.c_str());
@@ -266,15 +267,25 @@ void TDeviceThresholdScan::WriteDataToFile( const char *fName, bool Recreate )
         if ( !fp ) {
             throw runtime_error( "TDeviceThresholdScan::WriteDataToFile() - output file not found." );
         }
+        TPixHit pixhit;
+        pixhit.SetBoardIndex( aChipIndex.boardIndex );
+        pixhit.SetBoardReceiver( aChipIndex.dataReceiver );
+        pixhit.SetLadderId( aChipIndex.ladderId );
+        pixhit.SetChipId( aChipIndex.chipId );
+
         for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
             for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
+                pixhit.SetDoubleColumn( icol );
+                pixhit.SetAddress( iaddr );
+                unsigned int column = pixhit.GetColumn();
+                unsigned int row = pixhit.GetRow();
                 double hits_at_max_charge = GetHits( aChipIndex, icol, iaddr, fNChargeSteps - 1 );
                 for ( unsigned int iampl = 0; iampl < fNChargeSteps; iampl ++ ) {
                     double hits = GetHits( aChipIndex, icol, iaddr, iampl );
                     // also write zero hit for pixels who are responding at max injected charge
                     if ( (hits_at_max_charge > 0) || (hits > 0) ) {
                         fprintf(fp, "%d %d %d %d\n",
-                                icol, iaddr, GetInjectedCharge(iampl), (int)hits);
+                                row, column, GetInjectedCharge(iampl), (int)hits);
                     }
                 }
             }
@@ -381,6 +392,8 @@ void TDeviceThresholdScan::AddChipSCurveAnalyzer( const common::TChipIndex idx )
 //___________________________________________________________________
 void TDeviceThresholdScan::AnalyzeData()
 {
+    if ( GetVerboseLevel() > kTERSE ) 
+        cout << "TDeviceThresholdScan::AnalyzeData() - start ... " << endl;
     for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         
         common::TChipIndex chipIndex = fDevice->GetWorkingChipIndex( ichip );
