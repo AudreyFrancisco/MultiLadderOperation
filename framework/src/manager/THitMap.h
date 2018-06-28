@@ -91,7 +91,7 @@ public:
     virtual void Draw() = 0;
     
     /// save the drawing(s) to PDF file(s)
-    virtual void SaveToFile( const char *fName ) = 0;
+    virtual void SaveToFile( const char *baseFName ) = 0;
 
 protected:
     
