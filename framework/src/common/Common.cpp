@@ -71,15 +71,15 @@ bool common::IsIBhic( common::TChipIndex aChipIndex )
 //___________________________________________________________________
 void common::DumpId( const TChipIndex aChipIndex )
 {
-    if ( common::IsMFTladder(aChipIndex) ) cout << "[board.rcv.ladder]chip = [" ;
+    if ( common::IsMFTladder(aChipIndex) ) cout << "[board.ladder.rcv]chip = [" ;
     else {
-            if ( common::IsIBhic(aChipIndex) ) cout << "[board.rcv.ibhic]chip = [" ;
+            if ( common::IsIBhic(aChipIndex) ) cout << "[board.ibhic.rcv]chip = [" ;
             else cout << "[board.rcv]chip = ["; 
         }
-    cout << aChipIndex.boardIndex
-         << "." << aChipIndex.dataReceiver;
+    cout << aChipIndex.boardIndex;
     if ( common::IsMFTladder(aChipIndex) || common::IsIBhic(aChipIndex) )
         cout << "." << aChipIndex.deviceId;
+    cout << "." << aChipIndex.dataReceiver;
     cout << "]" << aChipIndex.chipId;
 }
 
