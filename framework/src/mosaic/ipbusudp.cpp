@@ -39,6 +39,10 @@
 #include <stdlib.h>
 #include <cstring>
 #include <sys/socket.h>
+#include <iostream>
+#include <stdexcept>
+
+using namespace std;
 
 IPbusUDP::IPbusUDP() 
 		: IPbus()
@@ -69,7 +73,12 @@ void IPbusUDP::setIPaddress(const char *IPaddr, int port)
 	memset(sockAddress.sin_zero, '\0', sizeof sockAddress.sin_zero);
 	
 	// Check the connection
-	testConnection();
+	try {
+		testConnection();
+	} catch ( std::exception &err ) {
+		cerr << "IPbusUDP::setIPaddress() - " << err.what() << endl;
+		exit( EXIT_FAILURE );
+	}
 }
 
 IPbusUDP::~IPbusUDP()
