@@ -79,10 +79,6 @@ void THitMapView::BuildCanvas()
 
     fMapCanvas->SetFillColor( kWhite );
     fMapCanvas->SetFillStyle( kFSolid );
-    fMapCanvas->SetTopMargin( 0.08 );
-    fMapCanvas->SetBottomMargin( 0.02 );
-    fMapCanvas->SetLeftMargin( 0.02 );
-    fMapCanvas->SetRightMargin( 0.04 );
     fMapCanvas->cd();
 
     fH2Dummy->SetStats( kFALSE );
