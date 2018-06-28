@@ -60,6 +60,9 @@ public:
 
     /// perform the mask scan of the device
     void Go();
+
+    /// terminate
+    void Terminate();
     
     /// return true if the trigger is internally generated 
     bool IsInternalTrigger() const;

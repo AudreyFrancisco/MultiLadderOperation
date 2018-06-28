@@ -76,16 +76,16 @@ int main(int argc, char** argv) {
     struct tm *now = localtime( & t );
     sprintf(suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 
-    theDeviceTestor.Go(); // run the digital scan
+    theDeviceTestor.Go(); // run the noise scan
     theDeviceTestor.Terminate();
     
     const bool Recreate = true;
 
     if ( !(theDevice->GetNickName()).empty() ) {
         sprintf( chipName, "%s", (theDevice->GetNickName()).c_str() );
-        sprintf(fName, "digitalScan_%s_%s.dat", chipName, suffix);
+        sprintf(fName, "noiseScan_%s_%s.dat", chipName, suffix);
     } else {
-        sprintf(fName, "digitalScan_%s.dat", suffix);
+        sprintf(fName, "noiseScan_%s.dat", suffix);
     }
     theDeviceTestor.WriteDataToFile( fName, Recreate );
     theDeviceTestor.DrawAndSaveToFile( fName );

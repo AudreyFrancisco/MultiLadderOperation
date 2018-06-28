@@ -115,6 +115,15 @@ void TDeviceOccupancyScan::Go()
 }
 
 //___________________________________________________________________
+void TDeviceOccupancyScan::Terminate()
+{
+    TDeviceChipVisitor::Terminate();
+    FillHitMaps();
+    cout << endl;
+    fErrorCounter->Dump();
+}
+
+//___________________________________________________________________
 bool TDeviceOccupancyScan::IsInternalTrigger() const
 {
     if ( fTriggerSource == TTriggerSource::kTRIG_INT ) return true;
@@ -157,8 +166,14 @@ void TDeviceOccupancyScan::DrawAndSaveToFile( const char *fName )
         throw runtime_error( "TDeviceOccupancyScan::DrawAndSaveToFile() - not terminated ! Please use Terminate() first." );
     }
     for ( std::map<int, shared_ptr<THitMapView>>::iterator it = fHitMapCollection.begin(); it != fHitMapCollection.end(); ++it ) {
-        ((*it).second)->Draw();
-        ((*it).second)->SaveToFile( fName );
+        try {
+            ((*it).second)->BuildCanvas();
+            ((*it).second)->Draw();
+            ((*it).second)->SaveToFile( fName );
+        } catch ( std::exception &err ) {
+            cerr << err.what() << endl;
+            exit( EXIT_FAILURE );
+        }
     }
 }
 
@@ -201,7 +216,6 @@ void TDeviceOccupancyScan::InitScanParameters()
     fNTriggers = fScanConfig->GetNTriggers();
     fNTriggersPerTrain = fScanConfig->GetNTriggersPerTrain();
     fTriggerSource = fDevice->GetBoardConfig(0)->GetTriggerSource(); 
-    cout << " -------------- fTriggerSource = " << (int)fTriggerSource << endl;
 } 
 
 //___________________________________________________________________

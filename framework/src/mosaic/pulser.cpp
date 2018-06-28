@@ -58,7 +58,7 @@ void Pulser::setConfig(uint32_t triggerDelay, uint32_t pulseDelay, uint32_t opMo
 	if (!wbb)
 		throw MIPBusUDPError("Pulser::setConfig() - No IPBus configured");
 
-    if ( GetVerboseLevel() > TVerbosity::kTERSE ) {
+    if ( GetVerboseLevel() > TVerbosity::kVERBOSE ) {
         cout << "Pulser::setConfig() - triggerDelay = " << std::dec << triggerDelay << endl;
         cout << "Pulser::setConfig() - pulseDelay = " << pulseDelay << endl;
         cout << "Pulser::setConfig() - opMode = " <<  std::bitset<32>(opMode) << std::dec << endl;
