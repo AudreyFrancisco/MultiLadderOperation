@@ -27,12 +27,14 @@ fHitMap( nullptr )
 {
     fIdx.boardIndex = 0;
     fIdx.dataReceiver = 0;
-    fIdx.ladderId = 0;
+    fIdx.deviceType = TDeviceType::kUNKNOWN;
+    fIdx.deviceId = 0;
     fIdx.chipId = 0;
 }
 
 //___________________________________________________________________
-TChipErrorCounter::TChipErrorCounter( const common::TChipIndex aChipIndex,
+TChipErrorCounter::TChipErrorCounter( const TDeviceType dt,
+                                      const common::TChipIndex aChipIndex,
                                       const unsigned int nInjections ) :
 TVerbosity(),
 fNPrioEncoder( 0 ),
@@ -49,7 +51,8 @@ fHitMap( nullptr )
 {
     fIdx.boardIndex = aChipIndex.boardIndex;
     fIdx.dataReceiver = aChipIndex.dataReceiver;
-    fIdx.ladderId = aChipIndex.ladderId;
+    fIdx.deviceType = dt;
+    fIdx.deviceId = aChipIndex.deviceId;
     fIdx.chipId = aChipIndex.chipId;
     fHitMap = make_shared<THitMapDiscordant>( aChipIndex, nInjections );
     fHitMap->BuildCanvas();
@@ -68,6 +71,12 @@ void TChipErrorCounter::SetVerboseLevel( const int level )
         fHitMap->SetVerboseLevel( level );
     }
     TVerbosity::SetVerboseLevel( level );
+}
+
+//___________________________________________________________________
+void TChipErrorCounter::SetDeviceType( const TDeviceType dt )
+{
+    fIdx.deviceType = dt;
 }
 
 //___________________________________________________________________
@@ -90,10 +99,7 @@ void TChipErrorCounter::AddDeadPixel( const unsigned int icol, const unsigned in
         return;
     }
     auto hit = make_shared<TPixHit>();
-    hit->SetBoardIndex( fIdx.boardIndex );
-    hit->SetBoardReceiver( fIdx.dataReceiver );
-    hit->SetLadderId( fIdx.ladderId );
-    hit->SetChipId( fIdx.chipId );
+    hit->SetPixChipIndex( fIdx );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
     float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
@@ -113,10 +119,7 @@ void TChipErrorCounter::AddInefficientPixel( const unsigned int icol,
         return;
     }
     auto hit = make_shared<TPixHit>();
-    hit->SetBoardIndex( fIdx.boardIndex );
-    hit->SetBoardReceiver( fIdx.dataReceiver );
-    hit->SetLadderId( fIdx.ladderId );
-    hit->SetChipId( fIdx.chipId );
+    hit->SetPixChipIndex( fIdx );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
     float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
@@ -135,10 +138,7 @@ void TChipErrorCounter::AddHotPixel( const unsigned int icol, const unsigned int
         return;
     }
     auto hit = make_shared<TPixHit>();
-    hit->SetBoardIndex( fIdx.boardIndex );
-    hit->SetBoardReceiver( fIdx.dataReceiver );
-    hit->SetLadderId( fIdx.ladderId );
-    hit->SetChipId( fIdx.chipId );
+    hit->SetPixChipIndex( fIdx );
     hit->SetDoubleColumn( icol );
     hit->SetAddress( iaddr );
     float region = std::floor( ((float)icol)/((float)common::NDCOL_PER_REGION) );
@@ -181,11 +181,8 @@ void TChipErrorCounter::Dump()
     }
     cout << endl;
     cout << "------------------------------- TChipErrorCounter::Dump() " << endl;
-    cout << "[board.rcv.ladder]chip = [" 
-             << fIdx.boardIndex
-             << "." << fIdx.dataReceiver
-             << "." << fIdx.ladderId
-             << "]" << fIdx.chipId << endl;
+    common::DumpId(fIdx);
+    cout << endl;
     cout << "Number of priority encoder errors: " << fNPrioEncoder << endl;
     cout << "Number of 8b10b encoder errors: " << fN8b10b << endl;
     if ( fCorruptedHits.size()  && fFilledErrorCounters ) {
@@ -220,12 +217,9 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const char *fName, bool Recrea
 void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
 {
     if ( !fCorruptedHits.size() ) {
-        cout << "TChipErrorCounter::DrawAndSaveToFile() - [board.rcv.ladder]chip = [" 
-             << fIdx.boardIndex
-             << "." << fIdx.dataReceiver
-             << "." << fIdx.ladderId
-             << "]" << fIdx.chipId 
-             << " , no bad hits => no file will be written !" << endl; 
+        cout << "TChipErrorCounter::DrawAndSaveToFile() - "; 
+        common::DumpId( fIdx );
+        cout << " , no bad hits => no file will be written !" << endl; 
         return;
     }
 
@@ -239,12 +233,9 @@ void TChipErrorCounter::DrawAndSaveToFile( const char *fName )
     string filename = common::GetFileName( fIdx, suffix, "Error", ".pdf" );
     strcpy( fNameChip, filename.c_str() );
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TChipErrorCounter::DrawAndSaveToFile() - [board.rcv.ladder]chip = [" 
-             << fIdx.boardIndex
-             << "." << fIdx.dataReceiver
-             << "." << fIdx.ladderId
-             << "]" << fIdx.chipId 
-             << " , to file " << fNameChip << endl;
+        cout << "TChipErrorCounter::DrawAndSaveToFile() - " ;
+        common::DumpId( fIdx );
+        cout << " , to file " << fNameChip << endl;
     }
     fHitMap->Draw();
     fHitMap->SaveToFile( fNameChip );
@@ -261,12 +252,14 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
             cout << "------------------------------- TChipErrorCounter::ClassifyCorruptedHits() "
             << endl;
         }
+        bool first = true;
         switch ( (int)flag ) {
             case (int)TPixFlag::kUNKNOWN : // dump all hits, no matter what their flag is
+                first = true;
                 if ( GetVerboseLevel() > kCHATTY ) {
-                    cout << "\t hit board.receiver / chip / region.dcol.add (flag) " ;
                     for ( unsigned int i = 0; i < fCorruptedHits.size(); i++ ) {
-                        (fCorruptedHits.at(i))->DumpPixHit(false);
+                        (fCorruptedHits.at(i))->DumpPixHit(first);
+                        first = false;
                     }
                 }
                 break;
@@ -275,7 +268,7 @@ void TChipErrorCounter::FindCorruptedHits( const TPixFlag flag )
             case (int)TPixFlag::kBAD_CHIPID : // nothing to do, since a bad chip id can not be attached (and hence found) to (in) a given TChipErrorCounter
                 break;
             default: // select bad hits with the requested flag
-                bool first = true;
+                first = true;
                 unsigned int counter = 0;
                 for ( unsigned int i = 0; i < fCorruptedHits.size(); i++ ) {
                     if ( (fCorruptedHits.at(i))->GetPixFlag() == flag ) {
@@ -354,11 +347,9 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     
     if ( !fCorruptedHits.size() ) {
         if ( GetVerboseLevel() > kVERBOSE ) {
-            cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - [board.rcv.ladder]chip = [" 
-                << fIdx.boardIndex
-                << "." << fIdx.dataReceiver
-                << "." << fIdx.ladderId
-                << "]" << fIdx.chipId << endl;
+            cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - "; 
+            common::DumpId( fIdx );
+            cout << endl;
             cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - no bad hit of type ";
             if ( flag == TPixFlag::kBAD_ADDRESS ) {
                 cout << "TPixFlag::kBAD_ADDRESS";
@@ -418,11 +409,9 @@ void TChipErrorCounter::WriteCorruptedHitsToFile( const TPixFlag flag,
     
     string filename = common::GetFileName( fIdx, suffix, flag_name.str() );
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - [board.rcv.ladder]chip = [" 
-             << fIdx.boardIndex
-             << "." << fIdx.dataReceiver
-             << "." << fIdx.ladderId
-             << "]" << fIdx.chipId << endl;
+        cout << "TChipErrorCounter::WriteCorruptedHitsToFile() - "; 
+        common::DumpId( fIdx );
+        cout << endl;
     }
     strcpy( fNameChip, filename.c_str() );
     

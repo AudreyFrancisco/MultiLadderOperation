@@ -8,7 +8,16 @@ using namespace std;
 //___________________________________________________________________
 TErrorCounter::TErrorCounter() :
 fNTimeout( 0 ),
-fNCorruptEvent( 0 )
+fNCorruptEvent( 0 ),
+fDeviceType( TDeviceType::kUNKNOWN )
+{
+    
+}
+//___________________________________________________________________
+TErrorCounter::TErrorCounter( const TDeviceType dt ) :
+fNTimeout( 0 ),
+fNCorruptEvent( 0 ),
+fDeviceType( dt )
 {
     
 }
@@ -41,7 +50,8 @@ void TErrorCounter::AddCorruptedHit( shared_ptr<TPixHit> badHit )
             common::TChipIndex idx;
             idx.boardIndex    = badHit->GetBoardIndex();
             idx.dataReceiver  = badHit->GetBoardReceiver();
-            idx.ladderId      = badHit->GetLadderId();
+            idx.deviceType    = badHit->GetDeviceType();
+            idx.deviceId      = badHit->GetDeviceId();
             idx.chipId        = badHit->GetChipId();
             try {
                 (fCounterCollection.at( common::GetMapIntIndex(idx) )).AddCorruptedHit( badHit );
@@ -117,7 +127,8 @@ void TErrorCounter::IncrementNPrioEncoder( std::shared_ptr<TPixHit> badHit,
     common::TChipIndex idx;
     idx.boardIndex    = badHit->GetBoardIndex();
     idx.dataReceiver  = badHit->GetBoardReceiver();
-    idx.ladderId      = badHit->GetLadderId();
+    idx.deviceType    = badHit->GetDeviceType();
+    idx.deviceId      = badHit->GetDeviceId();
     idx.chipId        = badHit->GetChipId();
     try {
         (fCounterCollection.at( common::GetMapIntIndex(idx) )).IncrementNPrioEncoder( value );
@@ -176,11 +187,11 @@ void TErrorCounter::DrawAndSaveToFile( const char *fName )
 
 //___________________________________________________________________
 void TErrorCounter::AddChipErrorCounter( const common::TChipIndex idx,
-                                        const unsigned int nInjections )
+                                         const unsigned int nInjections )
 {
     int int_index = common::GetMapIntIndex( idx );
 
-    TChipErrorCounter chipCounter( idx, nInjections  );
+    TChipErrorCounter chipCounter( fDeviceType, idx, nInjections  );
     fCounterCollection.insert( std::pair<int, TChipErrorCounter>(int_index, chipCounter) );
 }
 

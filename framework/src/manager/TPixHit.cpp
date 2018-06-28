@@ -7,7 +7,8 @@ using namespace std;
 TPixHit::TPixHit() : TVerbosity(),
     fBoardIndex( 0 ),
     fBoardReceiver( 0 ),
-    fLadderId( 0 ),
+    fDeviceType( TDeviceType::kUNKNOWN ),
+    fdeviceId( 0 ),
     fChipId( ILLEGAL_CHIP_ID ),
     fRegion( 0 ),
     fDcol( 0 ),
@@ -22,7 +23,8 @@ TPixHit::TPixHit( const TPixHit& obj )
 {
     fBoardIndex = obj.fBoardIndex;
     fBoardReceiver = obj.fBoardReceiver;
-    fLadderId = obj.fLadderId;
+    fDeviceType = obj.fDeviceType;
+    fdeviceId = obj.fdeviceId;
     fChipId = obj.fChipId;
     fRegion = obj.fRegion;
     fDcol = obj.fDcol;
@@ -37,7 +39,8 @@ TPixHit::TPixHit( const shared_ptr<TPixHit> obj )
     if ( obj ) {
         fBoardIndex = obj->GetBoardIndex();
         fBoardReceiver = obj->GetBoardReceiver();
-        fLadderId = obj->fLadderId;
+        fDeviceType = obj->GetDeviceType();
+        fdeviceId = obj->GetDeviceId();
         fChipId = obj->GetChipId();
         fRegion = obj->GetRegion();
         fDcol = obj->GetDoubleColumn();
@@ -59,7 +62,8 @@ TPixHit& TPixHit::operator=( const TPixHit& rhs)
     if ( &rhs != this ) {
         fBoardIndex = rhs.fBoardIndex;
         fBoardReceiver = rhs.fBoardReceiver;
-        fLadderId = rhs.fLadderId;
+        fDeviceType = rhs.fDeviceType;
+        fdeviceId = rhs.fdeviceId;
         fChipId = rhs.fChipId;
         fRegion = rhs.fRegion;
         fDcol = rhs.fDcol;
@@ -118,7 +122,8 @@ void TPixHit::SetPixChipIndex( const common::TChipIndex idx )
 {
     SetBoardIndex( idx.boardIndex );
     SetBoardReceiver( idx.dataReceiver );
-    SetLadderId( idx.ladderId );
+    SetDeviceType( idx.deviceType );
+    SetDeviceId( idx.deviceId );
     SetChipId( idx.chipId );
 }
 
@@ -259,17 +264,28 @@ void TPixHit::DumpPixHit( const bool with_reminder )
     SetVerboseLevel( kSILENT );
     if ( with_reminder ) {
         cout << "\t TPixHit::DumpPixHit()" << endl;
-        if ( fLadderId ) {
+        if ( (fDeviceType ==  TDeviceType::kMFT_LADDER5)
+            || (fDeviceType ==  TDeviceType::kMFT_LADDER4)
+            || (fDeviceType ==  TDeviceType::kMFT_LADDER3)
+            || (fDeviceType ==  TDeviceType::kMFT_LADDER2) ) {
             cout << "\t board.receiver.ladder / chip / region.dcol.add (flag) \n" ;
         } else {
-            cout << "\t board.receiver / chip / region.dcol.add (flag) \n" ;
+            if ( fDeviceType ==  TDeviceType::kIBHIC ) {
+                cout << "\t board.receiver.ibhic / chip / region.dcol.add (flag) \n" ;
+            } else {
+                cout << "\t board.receiver / chip / region.dcol.add (flag) \n" ;
+            }
         }
     }
     cout << std::dec << "\t"
     << GetBoardIndex() << ".";
-    if ( fLadderId ) {
+    if ( (fDeviceType ==  TDeviceType::kMFT_LADDER5)
+         || (fDeviceType ==  TDeviceType::kMFT_LADDER4)
+         || (fDeviceType ==  TDeviceType::kMFT_LADDER3)
+         || (fDeviceType ==  TDeviceType::kMFT_LADDER2)
+         || (fDeviceType ==  TDeviceType::kIBHIC) ) {
         cout << GetBoardReceiver() << "."
-             << GetLadderId() << " / ";
+             << GetDeviceId() << " / ";
     } else {
         cout << GetBoardReceiver() << " / " ;
     }

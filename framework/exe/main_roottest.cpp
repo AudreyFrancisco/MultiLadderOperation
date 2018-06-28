@@ -41,7 +41,8 @@ int main() {
         common::TChipIndex idx;
         idx.boardIndex = 0;
         idx.dataReceiver = 3;
-        idx.ladderId = 35;
+        idx.deviceType = TDeviceType::kMFT_LADDER2;
+        idx.deviceId = 35;
         idx.chipId = 8;
         
         const unsigned int nInjections = 50;
@@ -58,7 +59,8 @@ int main() {
             std::shared_ptr<TPixHit> pix = make_shared<TPixHit>();
             pix->SetBoardIndex( idx.boardIndex );
             pix->SetBoardReceiver( idx.dataReceiver );
-            pix->SetLadderId( idx.ladderId );
+            pix->SetDeviceType( idx.deviceType );
+            pix->SetDeviceId( idx.deviceId );
             pix->SetDoubleColumn( dcol[ip] );
             pix->SetAddress( addr );
             float region = floor( ((float)dcol[ip])/((float)common::NDCOL_PER_REGION) );

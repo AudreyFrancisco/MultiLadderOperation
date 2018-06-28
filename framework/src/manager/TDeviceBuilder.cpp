@@ -213,6 +213,7 @@ void TDeviceBuilder::CheckControlInterface()
     
     
     if ( fCurrentDevice->GetNWorkingChips() == 0 ) {
+        fCurrentDevice->EnableClockOutputs( false );
         throw runtime_error( "TDeviceBuilder::CheckControlInterface() - no working chip found!" );
     }
 }
@@ -225,7 +226,8 @@ void TDeviceBuilder::FillWorkingChipIndexList()
         common::TChipIndex idx;
         idx.boardIndex = fCurrentDevice->GetBoardIndexByChip(i);
         idx.dataReceiver = (fCurrentDevice->GetChipConfig(i))->GetReceiver();
-        idx.ladderId = fCurrentDevice->GetLadderId();
+        idx.deviceType = fCurrentDevice->GetDeviceType();
+        idx.deviceId = fCurrentDevice->GetDeviceId();
         idx.chipId = fCurrentDevice->GetChipId(i);
         fCurrentDevice->AddWorkingChipIndex( idx );
     }

@@ -30,26 +30,6 @@ class TReadoutBoardDAQ;
 class TChipConfig;
 class TBoardConfig;
 
-// definition of standard setup types:
-//   - single chip in OB mode with MOSAIC
-//   - single chip in IB mode with MOSAIC
-//   - MFT 5-chips ladder with MOSAIC
-//   - etc ...
-enum class TDeviceType {
-    kCHIP_DAQ,
-    kTELESCOPE,
-    kOBHIC,
-    kIBHIC,
-    kMFT_LADDER5,
-    kMFT_LADDER4,
-    kMFT_LADDER3,
-    kMFT_LADDER2,
-    kOBCHIP_MOSAIC,
-    kIBCHIP_MOSAIC,
-    kHALFSTAVE,
-    kUNKNOWN
-};
-
 enum class TBoardType;
 
 class TDevice : public TVerbosity {
@@ -62,7 +42,7 @@ class TDevice : public TVerbosity {
     TBoardType fBoardType;
     TDeviceType fDeviceType;
     std::string fNickName;
-    unsigned int fLadderId;
+    unsigned int fDeviceId; // for e.g. ladder Id
     std::vector<std::shared_ptr<TReadoutBoard>> fBoards;
     std::vector<std::shared_ptr<TAlpide>> fChips;
     std::vector<std::shared_ptr<TBoardConfig>> fBoardConfigs;
@@ -82,8 +62,8 @@ public:
     void SetBoardType( const TBoardType bt );
     void SetDeviceType( const TDeviceType dt );
     void SetNickName( const std::string name );
-    void SetLadderId( const unsigned int number );
-
+    void SetDeviceId( const unsigned int number );
+    
     // toggle config creation and setup initialisation to true
     inline void FreezeConfig() { fCreatedConfig = true; }
     inline void FreezeSetup() { fInitialisedSetup = true; }
@@ -127,11 +107,12 @@ public:
         { return fWorkingChipIndexList.size(); }
     unsigned int                    GetStartChipId();
     bool                            IsMFTLadder() const;
+    bool                            IsIBHic() const;
     inline bool                     IsConfigFrozen() const { return fCreatedConfig; }
     inline bool                     IsSetupFrozen() const { return fInitialisedSetup; }
     unsigned int                    GetNWorkingChipsPerBoard( const unsigned int iBoard ) const;
     inline std::string              GetNickName() const { return fNickName; }
-    inline unsigned int             GetLadderId() const { return fLadderId; }
+    inline unsigned int             GetDeviceId() const { return fDeviceId; }
     bool                            IsValidChipIndex( const common::TChipIndex idx ) const;
     bool                            IsValidChipId( const unsigned int chipId ) const;
     int                             GetChipReceiverById( const unsigned int chipId );

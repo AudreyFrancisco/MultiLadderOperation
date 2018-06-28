@@ -375,7 +375,8 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 
     hit->SetBoardIndex( fCurrentChipIndex.boardIndex );
     hit->SetBoardReceiver( fCurrentChipIndex.dataReceiver );
-    hit->SetLadderId( fCurrentChipIndex.ladderId );
+    hit->SetDeviceType( fCurrentChipIndex.deviceType );    
+    hit->SetDeviceId( fCurrentChipIndex.deviceId );
     hit->SetChipId( fChipId ); // only basic checks on chip id done here
     hit->SetRegion( fRegion ); // can generate a bad region flag
     hit->SetDoubleColumn( (data_field & 0x3c00) >> 10 ); // can generate a bad dcol flag
@@ -476,7 +477,8 @@ void TAlpideDecoder::FillHistoWithEvent()
             
             idx.boardIndex    = (fHits.at(i))->GetBoardIndex();
             idx.dataReceiver  = (fHits.at(i))->GetBoardReceiver();
-            idx.ladderId      = (fHits.at(i))->GetLadderId();
+            idx.deviceType    = (fHits.at(i))->GetDeviceType();
+            idx.deviceId      = (fHits.at(i))->GetDeviceId();
             idx.chipId        = (fHits.at(i))->GetChipId();
             unsigned int dcol = (fHits.at(i))->GetDoubleColumn();
             unsigned int addr = (fHits.at(i))->GetAddress();
@@ -502,7 +504,9 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
     if ( hit ) {
         idx.boardIndex    = hit->GetBoardIndex();
         idx.dataReceiver  = hit->GetBoardReceiver();
-        idx.ladderId      = hit->GetLadderId();
+        idx.deviceType    = hit->GetDeviceType();
+        idx.deviceType    = hit->GetDeviceType();
+        idx.deviceId      = hit->GetDeviceId();
         idx.chipId        = hit->GetChipId();
         is_valid = common::SameChipIndex( idx, fCurrentChipIndex );
     }

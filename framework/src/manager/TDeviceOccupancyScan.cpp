@@ -190,7 +190,8 @@ void TDeviceOccupancyScan::AddHisto()
         if ( fDevice->GetChipConfig(ichip)->IsEnabled() ) {
             id.boardIndex   = fDevice->GetBoardIndexByChip(ichip);
             id.dataReceiver = fDevice->GetChipConfig(ichip)->GetParamValue("RECEIVER");
-            id.ladderId     = fDevice->GetLadderId();
+            id.deviceType   = fDevice->GetDeviceType();
+            id.deviceId     = fDevice->GetDeviceId();
             id.chipId       = fDevice->GetChipId(ichip);
             fScanHisto->AddHisto( id, histo );
         }
