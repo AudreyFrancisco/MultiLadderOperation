@@ -11,6 +11,8 @@
 #include "TROOT.h" // useful for global ROOT pointers (such as gPad)
 #include "TCanvas.h"
 #include "TH2F.h"
+#include "TString.h"
+#include "TFile.h"
 #include "RtypesCore.h"
 
 using namespace std;
@@ -40,6 +42,7 @@ fHasData( false )
             fXNbinDummy, fXMinDummy, fXMaxDummy,
             fYNbinDummy, fYMinDummy, fYMaxDummy );
     fHitMap->SetBit( kCanDelete );
+
     fChipIndex = aChipIndex;
 
     string name = GetName( "fHitMap" );
@@ -154,7 +157,7 @@ void THitMapView::FillHitMap()
 }
 
 //___________________________________________________________________
-void THitMapView::WriteHitsToFile( const char *fName, const bool Recreate )
+void THitMapView::WriteHitsToFile( const char *baseFName, const bool Recreate )
 {
     if ( !HasData() ) {
         if ( GetVerboseLevel() > kSILENT ) {
@@ -171,22 +174,22 @@ void THitMapView::WriteHitsToFile( const char *fName, const bool Recreate )
         cout << endl;
     }
 
-    char  fNameChip[100];    
-    char fNameTemp[100];
-    sprintf( fNameTemp,"%s", fName);
-    strtok( fNameTemp, "." );
-    string suffix( fNameTemp );
-    string filename = common::GetFileName( fChipIndex, suffix );
-    strcpy( fNameChip, filename.c_str());
+    char  filenameChip[100];    
+    char filenameTemp[100];
+    sprintf( filenameTemp,"%s", baseFName);
+    strtok( filenameTemp, "." );
+    string suffix( filenameTemp );
+    string filenamePlot = common::GetFileName( fChipIndex, suffix );
+    strcpy( filenameChip, filenamePlot.c_str());
 
     FILE *fp;
-    if ( Recreate ) fp = fopen(fNameChip, "w");
-    else            fp = fopen(fNameChip, "a");
+    if ( Recreate ) fp = fopen(filenameChip, "w");
+    else            fp = fopen(filenameChip, "a");
     if ( !fp ) {
         throw runtime_error( "THitMapView::WriteHitsToFile() - output file not found." );
     }
     if ( GetVerboseLevel() > kSILENT ) {
-        cout << "THitMapView::WriteDataToFile() - Writing data to file "<< fNameChip << endl;
+        cout << "THitMapView::WriteDataToFile() - Writing data to file "<< filenameChip << endl;
     }
 
     TPixHit pixhit;
@@ -207,7 +210,7 @@ void THitMapView::WriteHitsToFile( const char *fName, const bool Recreate )
 }
 
 //___________________________________________________________________
-void THitMapView::SaveToFile( const char *fName )
+void THitMapView::SaveToFile( const char *baseFName )
 {
     if ( !HasData() ) {
         if ( GetVerboseLevel() > kSILENT ) {
@@ -220,15 +223,24 @@ void THitMapView::SaveToFile( const char *fName )
     if ( !IsSaveToFileReady() ) {
         throw runtime_error( "THitMapDiTHitMapViewscordant::SaveToFile() - not ready! Please use Draw() first." );
     }
-    char  fNameChip[100];
-    
-    char fNameTemp[100];
-    sprintf( fNameTemp,"%s", fName);
-    strtok( fNameTemp, "." );
-    string suffix( fNameTemp );
-    
-    string filename = common::GetFileName( fChipIndex, suffix, "", ".pdf" );
-    strcpy( fNameChip, filename.c_str() );
 
-    fMapCanvas->Print( fNameChip );
+    char filenameChip[100];
+    char filenameTemp[100];
+    sprintf( filenameTemp,"%s", baseFName);
+    strtok( filenameTemp, "." );
+    string suffix( filenameTemp );
+    
+    // output plot
+    string filenamePlot = common::GetFileName( fChipIndex, suffix, "", ".pdf" );
+    strcpy( filenameChip, filenamePlot.c_str() );
+    fMapCanvas->Print( filenameChip );
+
+    // output ROOT file
+    string filenameRoot = common::GetFileName( fChipIndex, suffix, "", ".root" );
+    strcpy( filenameChip, filenameRoot.c_str() );
+    TString name( filenameChip );
+    TFile outfile( name.Data(), "RECREATE" );
+    outfile.cd();
+    fHitMap->Write();
+    outfile.Close();
 }

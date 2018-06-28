@@ -66,10 +66,10 @@ public:
     bool HasData() const { return fHasData; }
 
     /// write the list of hit pixels to a file
-    void WriteHitsToFile( const char *fName, const bool Recreate );
+    void WriteHitsToFile( const char *baseFName, const bool Recreate );
 
     /// save the drawing(s) to PDF file(s) and save the TH2F to a root file
-    void SaveToFile( const char *fName );
+    void SaveToFile( const char *baseFName );
 
 };
 

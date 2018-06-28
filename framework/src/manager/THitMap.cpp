@@ -113,13 +113,13 @@ void THitMap::SetHicChipName()
 {
     fHicChipName = "Board ";
     fHicChipName += std::to_string( fIdx.boardIndex );
-    fHicChipName = " RCV ";
-    fHicChipName += std::to_string( fIdx.dataReceiver );
     if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
         if (  common::IsMFTladder( fIdx ) ) fHicChipName += " Ladder ";
         if (  common::IsIBhic( fIdx ) ) fHicChipName += " IB hic ";
         fHicChipName += std::to_string( fIdx.deviceId );
     }
+    fHicChipName = " RCV ";
+    fHicChipName += std::to_string( fIdx.dataReceiver );
     fHicChipName += " Chip ";
     fHicChipName += std::to_string( fIdx.chipId );
 }
@@ -158,13 +158,13 @@ string THitMap::GetName( const string prefix ) const
 
     name += "_board ";
     name += std::to_string( fIdx.boardIndex );
-    name += "_rcv";
-    name += std::to_string( fIdx.dataReceiver );
     if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
         if (  common::IsMFTladder( fIdx ) ) name += "_ladder";
         if (  common::IsIBhic( fIdx ) ) name += "_ibhic";
         name += std::to_string( fIdx.deviceId );
     }
+    name += "_rcv";
+    name += std::to_string( fIdx.dataReceiver );
     name += "_chip";
     name += std::to_string( fIdx.chipId );
     return name;

@@ -15,8 +15,6 @@ string common::GetFileName( const common::TChipIndex aChipIndex,
     fileName+= suffix;
     fileName+= "-B";
     fileName+= std::to_string( aChipIndex.boardIndex );
-    fileName+= "-Rx";
-    fileName+= std::to_string( aChipIndex.dataReceiver );
     if ( common::IsMFTladder(aChipIndex) || common::IsIBhic(aChipIndex) ) {
         if ( common::IsMFTladder(aChipIndex) ) {
             fileName+= "-ladder";
@@ -26,6 +24,8 @@ string common::GetFileName( const common::TChipIndex aChipIndex,
         }
         fileName+= std::to_string( aChipIndex.deviceId );
     }
+    fileName+= "-Rx";
+    fileName+= std::to_string( aChipIndex.dataReceiver );
     fileName+= "-chip";
     fileName+= std::to_string( aChipIndex.chipId );
     if ( !optional.empty() ) {
