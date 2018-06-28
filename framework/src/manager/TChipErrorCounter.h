@@ -84,14 +84,18 @@ public:
     TChipErrorCounter();
 
     /// constructor that sets the chip index
-    TChipErrorCounter( const common::TChipIndex aChipIndex,
-                       const unsigned int nInjections );
+    TChipErrorCounter(  const TDeviceType dt,
+                        const common::TChipIndex aChipIndex,
+                        const unsigned int nInjections );
 
     /// destructor
     ~TChipErrorCounter();
     
     /// propagate the verbosity level to data members
     virtual void SetVerboseLevel( const int level );
+
+    /// set the device type
+    void SetDeviceType( const TDeviceType dt );
     
     /// add a corrupted pixel hit to the list
     void AddCorruptedHit( std::shared_ptr<TPixHit> badHit );

@@ -45,10 +45,16 @@ class TErrorCounter : public TVerbosity {
     /// list of hits with bad chip id flag
     std::deque<std::shared_ptr<TPixHit>> fBadChipIdHits;
 
+    /// device type
+    TDeviceType fDeviceType;
+
 public:
     
     /// default constructor
     TErrorCounter();
+
+    /// constructor that inits the device type
+    TErrorCounter( const TDeviceType dt );
 
     /// destructor
     ~TErrorCounter();
@@ -126,7 +132,7 @@ private:
     
     /// add an error counter for a given chip index
     void AddChipErrorCounter( const common::TChipIndex idx,
-                              const unsigned int nInjections );
+                              const unsigned int nInjections  );
     
 };
 

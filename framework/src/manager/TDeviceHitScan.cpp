@@ -44,7 +44,7 @@ fNTriggers( 0 )
         cerr << msg.what() << endl;
         exit( EXIT_FAILURE );
     }
-    fErrorCounter = make_shared<TErrorCounter>();
+    fErrorCounter = make_shared<TErrorCounter>( aDevice->GetDeviceType() );
     fBoardDecoder = make_unique<TBoardDecoder>();
     fChipDecoder  = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
 }
