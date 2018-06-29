@@ -374,7 +374,7 @@ void TSCurveAnalysis::SetHicChipName()
         if (  common::IsIBhic( fIdx ) ) fHicChipName += " IB hic ";
         fHicChipName += std::to_string( fIdx.deviceId );
     }
-    fHicChipName = " RCV ";
+    fHicChipName += " RCV ";
     fHicChipName += std::to_string( fIdx.dataReceiver );
     fHicChipName += " Chip ";
     fHicChipName += std::to_string( fIdx.chipId );
