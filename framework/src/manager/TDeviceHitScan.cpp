@@ -9,6 +9,7 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TScanConfig.h"
+#include "THisto.h"
 #include <stdexcept>
 #include <iostream>
 #include <bitset>
@@ -20,6 +21,7 @@ using namespace std;
 TDeviceHitScan::TDeviceHitScan() :
 TDeviceChipVisitor(),
 fScanConfig( nullptr ),
+fScanHisto( nullptr ),
 fErrorCounter( nullptr ),
 fChipDecoder( nullptr ),
 fBoardDecoder( nullptr ),
@@ -34,6 +36,7 @@ TDeviceHitScan::TDeviceHitScan( shared_ptr<TDevice> aDevice,
                                   shared_ptr<TScanConfig> aScanConfig ) :
 TDeviceChipVisitor( aDevice ),
 fScanConfig( nullptr ),
+fScanHisto( nullptr ),
 fErrorCounter( nullptr ),
 fChipDecoder( nullptr ),
 fNTriggers( 0 )
@@ -44,17 +47,18 @@ fNTriggers( 0 )
         cerr << msg.what() << endl;
         exit( EXIT_FAILURE );
     }
+    fScanHisto = make_shared<TScanHisto>();
     fErrorCounter = make_shared<TErrorCounter>( aDevice->GetDeviceType() );
-    fBoardDecoder = make_unique<TBoardDecoder>();
     fChipDecoder  = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
+    fBoardDecoder = make_unique<TBoardDecoder>();
 }
 
 //___________________________________________________________________
 TDeviceHitScan::~TDeviceHitScan()
 {
-    if ( fScanConfig ) fScanConfig.reset();
     if ( fErrorCounter ) fErrorCounter.reset();
-    if ( fChipDecoder ) fChipDecoder.reset();
+    if ( fScanConfig ) fScanConfig.reset();
+    if ( fScanHisto ) fScanHisto.reset();
 }
 
 //___________________________________________________________________
@@ -69,6 +73,7 @@ void TDeviceHitScan::SetScanConfig( shared_ptr<TScanConfig> aScanConfig )
 //___________________________________________________________________
 void TDeviceHitScan::SetVerboseLevel( const int level )
 {
+    fScanHisto->SetVerboseLevel( level );
     fChipDecoder->SetVerboseLevel( level );
     fBoardDecoder->SetVerboseLevel( level );
     fErrorCounter->SetVerboseLevel( level );
@@ -95,6 +100,11 @@ void TDeviceHitScan::Init()
         cerr << err.what() << endl;
         exit( EXIT_FAILURE );
     }
+    if ( !fScanHisto ) {
+        throw runtime_error( "TDeviceHitScan::Init() - can not use a null pointer for the map of scan histo !" );
+    }
+    fChipDecoder->SetScanHisto( fScanHisto );
+    fErrorCounter->Init( fScanHisto, fNTriggers );
 }
 
 //___________________________________________________________________

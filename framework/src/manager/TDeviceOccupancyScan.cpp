@@ -21,29 +21,21 @@ using namespace std;
 //___________________________________________________________________
 TDeviceOccupancyScan::TDeviceOccupancyScan() :
 TDeviceHitScan(),
-fScanHisto( nullptr ),
 fNTriggersPerTrain( 0 ),
 fTriggerSource( TTriggerSource::kTRIG_INT )
-{ 
-    fScanHisto = make_shared<TScanHisto>();
-}
+{ }
 
 //___________________________________________________________________
 TDeviceOccupancyScan::TDeviceOccupancyScan( shared_ptr<TDevice> aDevice,
                                   shared_ptr<TScanConfig> aScanConfig ) : 
 TDeviceHitScan( aDevice, aScanConfig),
-fScanHisto( nullptr ),
 fNTriggersPerTrain( 0 ),
 fTriggerSource( TTriggerSource::kTRIG_INT )
-{ 
-    fScanHisto = make_shared<TScanHisto>();
-    fChipDecoder->SetScanHisto( fScanHisto );
-}
+{  }
 
 //___________________________________________________________________
 TDeviceOccupancyScan::~TDeviceOccupancyScan()
 {
-    if ( fScanHisto ) fScanHisto.reset();
     fHitMapCollection.clear();
 }
 
@@ -56,12 +48,6 @@ void TDeviceOccupancyScan::Init()
         cerr << err.what() << endl;
         exit( EXIT_FAILURE );
     }
-    if ( !fScanHisto ) {
-        throw runtime_error( "TDeviceOccupancyScan::Init() - can not use a null pointer for the map of scan histo !" );
-    }
-    fChipDecoder->SetScanHisto( fScanHisto );
-    fErrorCounter->Init( fScanHisto, fNTriggers );
-    
     for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         common::TChipIndex aChipIndex = fDevice->GetWorkingChipIndex( ichip );
         AddHitMapToCollection( aChipIndex );
@@ -71,11 +57,10 @@ void TDeviceOccupancyScan::Init()
 //___________________________________________________________________
 void TDeviceOccupancyScan::SetVerboseLevel( const int level )
 {
-    fScanHisto->SetVerboseLevel( level );
+    TDeviceHitScan::SetVerboseLevel( level );
     for ( std::map<int, shared_ptr<THitMapView>>::iterator it = fHitMapCollection.begin(); it != fHitMapCollection.end(); ++it ) {
         ((*it).second)->SetVerboseLevel( level );
     }
-    TDeviceHitScan::SetVerboseLevel( level );
 }
 
 //___________________________________________________________________
@@ -195,7 +180,7 @@ void TDeviceOccupancyScan::AddHisto()
 void TDeviceOccupancyScan::AddHitMapToCollection( const common::TChipIndex idx )
 {
     int int_index = common::GetMapIntIndex( idx );
-    auto hitmap = make_shared<THitMapView>( fScanHisto, idx );
+    auto hitmap = make_shared<THitMapView>( fDevice->GetDeviceType(), fScanHisto, idx );
     fHitMapCollection.insert( std::pair<int, shared_ptr<THitMapView>>(int_index, hitmap) );
 }
 

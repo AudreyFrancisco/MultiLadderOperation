@@ -33,10 +33,7 @@ class TDeviceThresholdScan : public TDeviceMaskScan {
     
     /// number of steps on the injected charge during the scan
     unsigned int fNChargeSteps;
-    
-    /// pointer to current map of histograms (one per chip) of hit pixels
-    std::shared_ptr<TScanHisto> fScanHisto;
-    
+        
     /// list of histogram maps (one per step of the injected charge)
     std::deque<std::shared_ptr<TScanHisto>> fHistoQue;
     

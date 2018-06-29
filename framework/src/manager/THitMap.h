@@ -76,7 +76,9 @@ public:
     THitMap();
     
     /// constructor that sets the chip index and the number of injections / pixel
-    THitMap( const common::TChipIndex aChipIndex, const unsigned int nInjections = 50 );
+    THitMap( const TDeviceType dt,
+             const common::TChipIndex aChipIndex, 
+             const unsigned int nInjections = 50 );
     
     /// destructor
     virtual ~THitMap();

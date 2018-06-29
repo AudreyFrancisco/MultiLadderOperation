@@ -16,6 +16,7 @@
 #include "Common.h"
 
 class TScanConfig;
+class TScanHisto;
 class TErrorCounter;
 class TAlpideDecoder;
 class TBoardDecoder;
@@ -34,6 +35,9 @@ protected:
     /// scan configuration
     std::shared_ptr<TScanConfig> fScanConfig;
     
+    /// map to histograms (one per chip) of hit pixels
+    std::shared_ptr<TScanHisto> fScanHisto;
+
     /// dedicated error counter
     std::shared_ptr<TErrorCounter> fErrorCounter;
     
@@ -60,10 +64,10 @@ public:
     
     /// set the scan configuration
     void SetScanConfig( std::shared_ptr<TScanConfig> aScanConfig );
-    
-    /// propagate the verbosity level to data members
+
+    /// set the verbosity level
     virtual void SetVerboseLevel( const int level );
-    
+
     /// toggle on/off the possibility to rescue a bad chip id
     void SetRescueBadChipId( const bool permit );
     

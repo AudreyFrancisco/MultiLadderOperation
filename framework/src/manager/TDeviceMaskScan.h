@@ -43,6 +43,9 @@ public:
     
     /// destructor
     virtual ~TDeviceMaskScan();
+
+    /// initialization
+    virtual void Init();
                 
 protected:
     

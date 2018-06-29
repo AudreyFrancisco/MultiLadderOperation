@@ -27,10 +27,7 @@ class THitMapView;
 class TDeviceOccupancyScan : public TDeviceHitScan {
     
 protected:
-    
-    /// map to histograms (one per chip) of hit pixels
-    std::shared_ptr<TScanHisto> fScanHisto;
-    
+        
     /// number of triggers per train
     int fNTriggersPerTrain;
 

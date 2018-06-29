@@ -19,49 +19,18 @@ using namespace std;
 
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan() :
-TDeviceMaskScan(),
-fScanHisto( nullptr )
-{
-    fScanHisto = make_shared<TScanHisto>();
-}
+TDeviceMaskScan()
+{ }
 
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan( shared_ptr<TDevice> aDevice,
                                        shared_ptr<TScanConfig> aScanConfig ) :
-TDeviceMaskScan( aDevice, aScanConfig ),
-fScanHisto( nullptr )
-{
-    fScanHisto = make_shared<TScanHisto>();
-    fChipDecoder->SetScanHisto( fScanHisto );
-}
+TDeviceMaskScan( aDevice, aScanConfig )
+{ }
 
 //___________________________________________________________________
 TDeviceDigitalScan::~TDeviceDigitalScan()
-{
-    if ( fScanHisto ) fScanHisto.reset();
-}
-
-//___________________________________________________________________
-void TDeviceDigitalScan::SetVerboseLevel( const int level )
-{
-    fScanHisto->SetVerboseLevel( level );
-    TDeviceMaskScan::SetVerboseLevel( level );
-}
-
-//___________________________________________________________________
-void TDeviceDigitalScan::Init()
-{
-    try {
-        TDeviceHitScan::Init();
-    } catch ( std::exception &err ) {
-        cerr << err.what() << endl;
-        exit( EXIT_FAILURE );
-    }
-    if ( !fScanHisto ) {
-        throw runtime_error( "TDeviceDigitalScan::Init() - can not use a null pointer for the map of scan histo !" );
-    }
-    fErrorCounter->Init( fScanHisto, fNTriggers );
-}
+{ }
 
 //___________________________________________________________________
 void TDeviceDigitalScan::Terminate()

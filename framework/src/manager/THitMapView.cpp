@@ -21,34 +21,35 @@ using namespace std;
 THitMapView::THitMapView() : 
 THitMap(),
 fScanHisto( nullptr ),
-fHitMap( nullptr ),
+fHisto2D( nullptr ),
 fHasData( false )
 {
-    fHitMap = new TH2F( "fHitMap", "",
+    fHisto2D = new TH2F( "fHisto2D", "",
             fXNbinDummy, fXMinDummy, fXMaxDummy,
             fYNbinDummy, fYMinDummy, fYMaxDummy );
-    fHitMap->SetBit( kCanDelete );
+    fHisto2D->SetBit( kCanDelete );
 }
 
 //___________________________________________________________________
-THitMapView::THitMapView(shared_ptr<TScanHisto> aScanHisto, 
+THitMapView::THitMapView(const TDeviceType dt,
+                         shared_ptr<TScanHisto> aScanHisto, 
                          const common::TChipIndex aChipIndex ) : 
-THitMap( aChipIndex ),
+THitMap( dt, aChipIndex ),
 fScanHisto( aScanHisto ),
-fHitMap( nullptr ),
+fHisto2D( nullptr ),
 fHasData( false )
 {
-    fHitMap = new TH2F( "fHitMap", "",
+    fHisto2D = new TH2F( "fHisto2D", "",
             fXNbinDummy, fXMinDummy, fXMaxDummy,
             fYNbinDummy, fYMinDummy, fYMaxDummy );
-    fHitMap->SetBit( kCanDelete );
+    fHisto2D->SetBit( kCanDelete );
 
     fChipIndex = aChipIndex;
 
-    string name = GetName( "fHitMap" );
-    fHitMap->SetName( name.c_str() );
+    string name = GetName( "fHisto2D" );
+    fHisto2D->SetName( name.c_str() );
     string title = GetHistoTitle( fHicChipName );
-    fHitMap->SetTitle( title.c_str() );
+    fHisto2D->SetTitle( title.c_str() );
 }
 
 //___________________________________________________________________
@@ -56,7 +57,7 @@ THitMapView::~THitMapView()
 {
     // don't delete any other pointer to ROOT object
     // ROOT will take care by itself and delete anything in the Canvas
-    if ( (!HasData()) && fHitMap ) delete fHitMap;
+    if ( (!HasData()) && fHisto2D ) delete fHisto2D;
 }
 
 //___________________________________________________________________
@@ -110,8 +111,9 @@ void THitMapView::Draw()
 	//gStyle->SetPalette( 1, 0 ); // pretty palette (rainbow)
 	//gStyle->SetPalette( 7 ); // grey palette
     fMapCanvas->cd();
-    fHitMap->DrawCopy("CONT1Z");
-    //gPad->Update();
+    fHisto2D->Draw("CONT1Z");
+    gPad->Update();
+    fMapCanvas->Update();
     fSaveToFileReady = true;
 }
 
@@ -162,7 +164,7 @@ void THitMapView::WriteHitsToFile( const char *baseFName, const bool Recreate )
             unsigned int row = pixhit.GetRow();
             double hits = (*fScanHisto)(fChipIndex,icol,iaddr);
             if (hits > 0) {
-                fHitMap->Fill( column, row, hits );
+                fHisto2D->Fill( column, row, hits );
                 fprintf(fp, "%d %d %d\n", row, column, (int)hits);
             }
         }
@@ -198,7 +200,7 @@ void THitMapView::SaveToFile( const char *baseFName )
     TString name( filenameChip );
     TFile outfile( name.Data(), "RECREATE" );
     outfile.cd();
-    fHitMap->Write();
+    fHisto2D->Write();
     outfile.Close();
 
     // output plot

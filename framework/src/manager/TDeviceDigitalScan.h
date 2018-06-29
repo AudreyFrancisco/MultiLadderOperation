@@ -20,9 +20,6 @@ class TDevice;
 
 class TDeviceDigitalScan : public TDeviceMaskScan {
     
-    /// map to histograms (one per chip) of hit pixels
-    std::shared_ptr<TScanHisto> fScanHisto;
-    
 public:
 
     /// constructor
@@ -34,13 +31,7 @@ public:
     
     /// destructor
     virtual ~TDeviceDigitalScan();
-    
-    /// propagate the verbosity level to data members
-    void SetVerboseLevel( const int level );
-    
-    /// initialization
-    void Init();
-
+        
     /// terminate
     void Terminate();
     

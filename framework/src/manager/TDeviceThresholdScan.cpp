@@ -387,6 +387,11 @@ void TDeviceThresholdScan::AnalyzeData()
         cout << "TDeviceThresholdScan::AnalyzeData() - start ... " << endl;
     for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TDeviceThresholdScan::AnalyzeData() - working on chip " ;
+        common::DumpId(fDevice->GetWorkingChipIndex( ichip ));
+        cout << endl;
+    }
         common::TChipIndex chipIndex = fDevice->GetWorkingChipIndex( ichip );
         
         for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {

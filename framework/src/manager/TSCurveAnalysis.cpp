@@ -369,14 +369,13 @@ void TSCurveAnalysis::SetHicChipName()
 {
     fHicChipName = "Board ";
     fHicChipName += std::to_string( fIdx.boardIndex );
+    if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
+        if (  common::IsMFTladder( fIdx ) ) fHicChipName += " Ladder ";
+        if (  common::IsIBhic( fIdx ) ) fHicChipName += " IB hic ";
+        fHicChipName += std::to_string( fIdx.deviceId );
+    }
     fHicChipName = " RCV ";
     fHicChipName += std::to_string( fIdx.dataReceiver );
-    if ( common::IsMFTladder( fIdx ) || common::IsIBhic( fIdx) ) {
-        if (  common::IsMFTladder( fIdx ) ) fHicChipName += "Ladder ";
-        if (  common::IsIBhic( fIdx ) ) fHicChipName += "IB hic ";
-        fHicChipName += std::to_string( fIdx.deviceId );
-        fHicChipName += " ";
-    }
     fHicChipName += " Chip ";
     fHicChipName += std::to_string( fIdx.chipId );
 }
