@@ -53,9 +53,6 @@ public:
     /// draw all objects that must be drawn by the class
     void Draw();
 
-    /// transfer the list of pixel hits to the TH2F the chip
-    void FillHitMap();  
-
     /// return the current chip index
     common::TChipIndex GetChipIndex() const { return fChipIndex; }
 
@@ -65,7 +62,7 @@ public:
     /// return true if the chip has some hit
     bool HasData() const { return fHasData; }
 
-    /// write the list of hit pixels to a file
+    /// write the list of hit pixels to a file and fill TH2F* hit map for the chip
     void WriteHitsToFile( const char *baseFName, const bool Recreate );
 
     /// save the drawing(s) to PDF file(s) and save the TH2F to a root file

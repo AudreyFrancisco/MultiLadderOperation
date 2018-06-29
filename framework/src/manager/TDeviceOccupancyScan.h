@@ -67,10 +67,7 @@ public:
     /// return true if the trigger is internally generated 
     bool IsInternalTrigger() const;
 
-    /// fill hit map for all chips
-    void FillHitMaps();
-
-    /// write raw hit data to a text file
+    /// write raw hit data to a text file and to a TH2F*
     void WriteDataToFile( const char *fName, bool Recreate = true );
     
     /// draw and save hit map or distributions

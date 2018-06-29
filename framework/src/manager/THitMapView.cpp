@@ -62,14 +62,6 @@ THitMapView::~THitMapView()
 //___________________________________________________________________
 void THitMapView::BuildCanvas()
 {
-    if ( !HasData() ) {
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::BuildCanvas() - ";
-            common::DumpId( fChipIndex );
-            cout << " : no data => no hit map." <<  endl; 
-        }
-        return;
-    }
     if ( IsCanvasReady() ) {
         if ( GetVerboseLevel() > kTERSE ) {
             cout << "THitMapView::BuildCanvas() - canvas already built, nothing to be done." << endl;
@@ -123,48 +115,15 @@ void THitMapView::Draw()
 }
 
 //___________________________________________________________________
-void THitMapView::FillHitMap()
-{
-    if ( !fScanHisto ) {
-        throw runtime_error( "THitMapView::FillHitMap() - can not use a null pointer for the map of scan histo !" );
-    }
-
-    if ( !(fScanHisto->HasData(fChipIndex)) ) {
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::FillHitMap() - ";
-            common::DumpId( fChipIndex );
-            cout << " : no data => no hit map." <<  endl; 
-        }
-        fHasData = false;
-        return;
-    }
-
-    TPixHit pixhit;
-    pixhit.SetPixChipIndex( fChipIndex );
-    for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
-        for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
-            pixhit.SetDoubleColumn( icol );
-            pixhit.SetAddress( iaddr );
-            unsigned int column = pixhit.GetColumn();
-            unsigned int row = pixhit.GetRow();
-            double hits = (*fScanHisto)(fChipIndex,icol,iaddr);
-            if (hits > 0) {
-                fHitMap->Fill( row, column, hits );
-            }
-        }
-    } 
-    fHasData = true;
-}
-
-//___________________________________________________________________
 void THitMapView::WriteHitsToFile( const char *baseFName, const bool Recreate )
 {
-    if ( !HasData() ) {
+    if ( !(fScanHisto->HasData(fChipIndex)) ) {
         if ( GetVerboseLevel() > kSILENT ) {
             cout << "THitMapView::WriteHitsToFile() - ";
             common::DumpId( fChipIndex );
             cout << " : no data => no hit map." <<  endl; 
         }
+        fHasData = false;
         return;
     }
 
@@ -202,11 +161,13 @@ void THitMapView::WriteHitsToFile( const char *baseFName, const bool Recreate )
             unsigned int row = pixhit.GetRow();
             double hits = (*fScanHisto)(fChipIndex,icol,iaddr);
             if (hits > 0) {
+                fHitMap->Fill( column, row, hits );
                 fprintf(fp, "%d %d %d\n", row, column, (int)hits);
             }
         }
     } 
     if (fp) fclose (fp);
+    fHasData = true;
 }
 
 //___________________________________________________________________

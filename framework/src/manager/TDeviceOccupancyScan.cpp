@@ -118,7 +118,6 @@ void TDeviceOccupancyScan::Go()
 void TDeviceOccupancyScan::Terminate()
 {
     TDeviceChipVisitor::Terminate();
-    FillHitMaps();
     cout << endl;
     fErrorCounter->Dump();
 }
@@ -128,17 +127,6 @@ bool TDeviceOccupancyScan::IsInternalTrigger() const
 {
     if ( fTriggerSource == TTriggerSource::kTRIG_INT ) return true;
     return false;
-}
-
-//___________________________________________________________________
-void TDeviceOccupancyScan::FillHitMaps()
-{
-    if ( !fIsInitDone ) {
-        throw runtime_error( "TDeviceOccupancyScan::FillHitMaps() - not initialized ! Please use Init() first." );
-    }
-    for ( std::map<int, shared_ptr<THitMapView>>::iterator it = fHitMapCollection.begin(); it != fHitMapCollection.end(); ++it ) {
-        ((*it).second)->FillHitMap();
-    }
 }
 
 //___________________________________________________________________
