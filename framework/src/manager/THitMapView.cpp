@@ -111,9 +111,9 @@ void THitMapView::Draw()
 	//gStyle->SetPalette( 1, 0 ); // pretty palette (rainbow)
 	//gStyle->SetPalette( 7 ); // grey palette
     fMapCanvas->cd();
-    fHisto2D->Draw("CONT1Z");
+    fHisto2D->Draw("COLZ SAME");
     gPad->Update();
-    fMapCanvas->Update();
+    fMapCanvas->ForceUpdate();
     fSaveToFileReady = true;
 }
 
