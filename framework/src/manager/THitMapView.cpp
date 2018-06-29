@@ -71,6 +71,7 @@ void THitMapView::BuildCanvas()
 
     fMapCanvas->SetFillColor( kWhite );
     fMapCanvas->SetFillStyle( kFSolid );
+    fMapCanvas->SetRightMargin( 0.12 );
     fMapCanvas->cd();
 
     fH2Dummy->SetStats( kFALSE );
@@ -109,8 +110,8 @@ void THitMapView::Draw()
 	//gStyle->SetPalette( 1, 0 ); // pretty palette (rainbow)
 	//gStyle->SetPalette( 7 ); // grey palette
     fMapCanvas->cd();
-    fHitMap->Draw("CONT1Z");
-    gPad->Update();
+    fHitMap->DrawCopy("CONT1Z");
+    //gPad->Update();
     fSaveToFileReady = true;
 }
 
@@ -191,11 +192,6 @@ void THitMapView::SaveToFile( const char *baseFName )
     strtok( filenameTemp, "." );
     string suffix( filenameTemp );
     
-    // output plot
-    string filenamePlot = common::GetFileName( fChipIndex, suffix, "", ".pdf" );
-    strcpy( filenameChip, filenamePlot.c_str() );
-    fMapCanvas->Print( filenameChip );
-
     // output ROOT file
     string filenameRoot = common::GetFileName( fChipIndex, suffix, "", ".root" );
     strcpy( filenameChip, filenameRoot.c_str() );
@@ -204,4 +200,10 @@ void THitMapView::SaveToFile( const char *baseFName )
     outfile.cd();
     fHitMap->Write();
     outfile.Close();
+
+    // output plot
+    string filenamePlot = common::GetFileName( fChipIndex, suffix, "", ".pdf" );
+    strcpy( filenameChip, filenamePlot.c_str() );
+    fMapCanvas->Print( filenameChip );
+
 }
