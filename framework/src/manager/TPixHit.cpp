@@ -13,7 +13,8 @@ TPixHit::TPixHit() : TVerbosity(),
     fRegion( 0 ),
     fDcol( 0 ),
     fAddress( 0 ),
-    fFlag( TPixFlag::kUNKNOWN )
+    fFlag( TPixFlag::kUNKNOWN ),
+    fBunchCounter( 0 )
 {
     
 }
@@ -31,6 +32,7 @@ TPixHit::TPixHit( const TPixHit& obj )
     fAddress = obj.fAddress;
     fFlag = obj.fFlag;
     fVerboseLevel = obj.fVerboseLevel;
+    fBunchCounter = obj.fBunchCounter;
 }
 
 //___________________________________________________________________
@@ -47,6 +49,7 @@ TPixHit::TPixHit( const shared_ptr<TPixHit> obj )
         fAddress = obj->GetAddress();
         fFlag = obj->GetPixFlag();
         fVerboseLevel = obj->GetVerboseLevel();
+        fBunchCounter = obj->GetBunchCounter();
     }
 }
 
@@ -70,6 +73,7 @@ TPixHit& TPixHit::operator=( const TPixHit& rhs)
         fAddress = rhs.fAddress;
         fFlag = rhs.fFlag;
         fVerboseLevel = rhs.fVerboseLevel;
+        fBunchCounter = rhs.fBunchCounter;
     }
     return *this;
 }

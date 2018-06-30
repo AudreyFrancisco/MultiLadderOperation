@@ -66,6 +66,11 @@ class TPixHit : public TVerbosity {
     
     /// flag to check the status of this hit pixel
     TPixFlag fFlag;
+
+    /// bunch crossing counter
+    unsigned int fBunchCounter;
+
+    // AR: add trigger counter info from the board later !!!
     
     /// illegal chip id, used for initialization
     static const unsigned int ILLEGAL_CHIP_ID = 15;  // i.e. 4'b1111
@@ -97,6 +102,7 @@ public:
     void SetAddress( const unsigned int value );
     inline void SetPixFlag( const TPixFlag flag ) { fFlag = flag; }
     void SetPixChipIndex( const common::TChipIndex idx );
+    void SetBunchCounter( const unsigned int value ) { fBunchCounter = value; };
 
 #pragma mark - getters
 
@@ -109,6 +115,7 @@ public:
     unsigned int GetDoubleColumn() const;
     unsigned int GetAddress() const;
     TPixFlag GetPixFlag() const;
+    unsigned int GetBunchCounter() const { return fBunchCounter; }
     bool IsPixHitCorrupted() const;
     unsigned int GetColumn() const;
     unsigned int GetRow() const;

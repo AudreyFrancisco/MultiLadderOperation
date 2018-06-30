@@ -364,6 +364,7 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
 {
     auto hit = make_shared<TPixHit>();
     hit->SetVerboseLevel( this->GetVerboseLevel() );
+    hit->SetBunchCounter( fBunchCounter );
     
     int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
