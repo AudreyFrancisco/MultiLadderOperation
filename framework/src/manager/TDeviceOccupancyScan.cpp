@@ -228,11 +228,11 @@ void TDeviceOccupancyScan::ConfigureBoards()
         } else { // MOSAIC board
 
             // external trigger settings ---------------
-            // 500 = pulseDelay
-            // 50 = triggerDelay
+            // 500 = pulseDelay : PULSEDELAY
+            // 50 = triggerDelay : STROBEDELAYBOARD
             // internal trigger settings ---------------
-            // 4000 = pulseDelay
-            // 40 = triggerDelay
+            // 4000 = pulseDelay : PULSEDELAY
+            // 40 = triggerDelay : STROBEDELAYBOARD
 
             const bool enablePulse = IsInternalTrigger() ? true : false; // condition ? value_if_true : value_if_false 
             const bool enableTrigger = IsInternalTrigger() ? true : false; 
