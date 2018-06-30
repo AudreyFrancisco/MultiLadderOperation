@@ -385,7 +385,7 @@ void TReadoutBoardMOSAIC::EnableControlInterface(const unsigned int interface, c
 void TReadoutBoardMOSAIC::EnableClockOutputs(const bool en)
 {
     // just a wrapper
-    if ( GetVerboseLevel() ) {
+    if ( TReadoutBoard::GetVerboseLevel() ) {
         cout << "TReadoutBoardMOSAIC::EnableClockOutputs() - ";
         if ( en ) cout << "true" << endl;
         else cout << "false" << endl;
@@ -532,8 +532,11 @@ void TReadoutBoardMOSAIC::init()
     
     for (int i=0; i<(int)MosaicBoardConfig::MAX_TRANRECV; i++){
         fAlpideDataParser[i] = new TAlpideDataParser();
-        fAlpideDataParser[i]->SetId(i);
+        fAlpideDataParser[i]->SetReceiverId(i);
+        fAlpideDataParser[i]->SetBoardId( getBoardId() ); 
         fAlpideDataParser[i]->SetVerboseLevel( this->GetVerboseLevel() );
+        fAlpideDataParser[i]->SetPointerTriggerNum( GetPointerTriggerNum() ); 
+		fAlpideDataParser[i]->SetPointerTriggerTime( GetPointerTriggerTime() ); 
         addDataReceiver(i+1, fAlpideDataParser[i]); // ID 1-10
     }
 

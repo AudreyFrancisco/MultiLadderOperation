@@ -39,8 +39,12 @@
 using namespace std;
 
 TAlpideDataParser::TAlpideDataParser() : MDataReceiver() , TVerbosity(),
-fId( -1 )
+fReceiverId( -1 ),
+fBoardId( -1 ),
+fTrgNum( nullptr ),
+fTrgTime( nullptr )
 {
+    dataReceiverType = kAlpideDataParser;
 }
 
 
@@ -63,7 +67,7 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
             int d = h&0x0f;
             int fsd = *p;
             if ( GetVerboseLevel() >= kCHATTY ) {
-                cout << endl << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_EMPTY_FRAME ID:" << d << "  Frame Start Data:" << std::hex << fsd << endl;
+                cout << endl << std::dec << "Board " << GetBoardId() <<  " RCV " << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " TAlpideDataParser::checkEvent() - CHIP_EMPTY_FRAME ID:" << d << "  Frame Start Data:" << std::hex << fsd << endl;
             }
             lastRegion = -1;
             lastDataField = -1;
@@ -72,30 +76,30 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
             int d = h&0x0f;
             int fsd = *p;
             if ( GetVerboseLevel() >= kCHATTY ) {
-                cout << endl << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_HEADER ID:" << d << " frame start data:" << std::hex << fsd << endl;
+                cout << endl << std::dec << "Board " << GetBoardId() <<  " RCV " << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " TAlpideDataParser::checkEvent() - CHIP_HEADER ID:" << d << " frame start data:" << std::hex << fsd << endl;
             }
 		} else if ((h >> DSHIFT_CHIP_TRAILER) == DCODE_CHIP_TRAILER ) {
             int d = h&0x0f;
             if ( GetVerboseLevel() >= kCHATTY ) {
-                cout << std::dec << fId << " TAlpideDataParser::checkEvent() - CHIP_TRAILER Flags:" << d << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " TAlpideDataParser::checkEvent() - CHIP_TRAILER Flags:" << d << endl;
             }
 			closed = 1;
 			// additional trailer
 			*evFlagsPtr = *p++;
             uint16_t fsd = *evFlagsPtr;
             if (fsd && (GetVerboseLevel() > kTERSE) ){
-                cout << std::dec << fId << " =================== Event with flags != 0 (0x" << std::hex << fsd << ")" << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== Event with flags != 0 (0x" << std::hex << fsd << ")" << endl;
                 if (fsd & 0x01)
-                    cout << std::dec << fId << " =================== Header error" << endl;
+                    cout << std::dec << "Board " << GetBoardId() <<  " RCV " << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== Header error" << endl;
                 if (fsd & 0x02)
-                    cout << std::dec << fId << " =================== 10b8b Decoder error" << endl;
+                    cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== 10b8b Decoder error" << endl;
             }
 		} else if ((h >> DSHIFT_REGION_HEADER) == DCODE_REGION_HEADER ) {
             int d = h&0x1f;
             if ( GetVerboseLevel() >= kCHATTY )
-                cout << std::dec << fId << " TAlpideDataParser::checkEvent() - REGION_HEADER Region:" << d << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " TAlpideDataParser::checkEvent() - REGION_HEADER Region:" << d << endl;
             if ( (d <= lastRegion) && (GetVerboseLevel() >= kCHATTY) ){
-                cout << std::dec << fId << " =================== REGION_HEADER ERROR" << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== REGION_HEADER ERROR" << endl;
             }
             lastRegion = d;
             lastDataField = -1;
@@ -103,13 +107,13 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
 			p++;
             uint16_t dShort = ((h&0x3f) << 8) | *p;
             if ( GetVerboseLevel() >= kCHATTY )
-                cout << std::dec << fId << "  DATA_SHORT Data:" << std::hex << dShort << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << "  DATA_SHORT Data:" << std::hex << dShort << endl;
             if ((lastRegion < 0) && (GetVerboseLevel() >= kCHATTY)){
-                cout << std::dec << fId << " =================== DATA_SHORT Without Region header" << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== DATA_SHORT Without Region header" << endl;
                 lastRegion = 0;
             }
             if ((dShort < lastDataField) && (GetVerboseLevel() >= kCHATTY)){
-                cout << std::dec << fId << " =================== DATA_SHORT ERROR" << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== DATA_SHORT ERROR" << endl;
                 printf("dShort:%x lastDataField:%x\n", dShort, lastDataField);
             }
             lastDataField = dShort;
@@ -119,21 +123,21 @@ long TAlpideDataParser::checkEvent(unsigned char *dBuffer, unsigned char *evFlag
             uint16_t dShort = ((h&0x3f) << 8) | *p++;
             uint16_t hitMap = *p++;
             if ( GetVerboseLevel() >= kCHATTY ){
-                cout << std::dec << fId << "  DATA_LONG  Data:" << std::hex << dShort;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << "  DATA_LONG  Data:" << std::hex << dShort;
                 cout << " hit_map:" << std::hex << hitMap << endl;
             }
             if ((lastRegion < 0) && (GetVerboseLevel() >= kCHATTY)){
-                cout << std::dec << fId << " =================== DATA_LONG Without Region header" << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== DATA_LONG Without Region header" << endl;
                 lastRegion = 0;
             }
             if ((dShort < lastDataField) && (GetVerboseLevel() >= kCHATTY)){
-                cout << std::dec << fId << " =================== DATA_LONG ERROR" << endl;
+                cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " =================== DATA_LONG ERROR" << endl;
                 printf("dShort:%x lastDataField:%x\n", dShort, lastDataField);
             }
             lastDataField = dShort;
 		} else {
 			int d = h;
-			cout << std::dec << fId << " TAlpideDataParser::checkEvent() - Unknow data header: " << std::hex << d << endl;
+			cout << std::dec << "Board " << GetBoardId() <<  " RCV " << GetReceiverId() << " Trigger " << GetTriggerNum() << " @ " << GetTriggerTime() << " TAlpideDataParser::checkEvent() - Unknow data header: " << std::hex << d << endl;
 		}
 	}	
 	

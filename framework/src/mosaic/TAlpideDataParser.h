@@ -42,13 +42,26 @@ public:
 	void flush() {};
 	int  ReadEventData(int &nBytes, unsigned char *buffer);
 	bool hasData() { return (numClosedData!=0); }
-    inline void SetId(int i) { fId = i; }
+    
+	inline void SetReceiverId(const int i) { fReceiverId = i; }
+	inline void SetBoardId(const int i) { fBoardId = i; }
+	void SetPointerTriggerNum( uint32_t* i ) { fTrgNum = i; } 
+	void SetPointerTriggerTime( uint64_t* i ) { fTrgTime = i; }  
+
+	uint32_t GetTriggerNum() const { return *fTrgNum; }
+	uint64_t GetTriggerTime() const { return *fTrgTime; }
+	int GetReceiverId() const { return fReceiverId; }
+	int GetBoardId() const { return fBoardId; }
 
 protected:
 	long parse(int numClosed);
 
 private:
-    int fId;
+    int fReceiverId;
+	int fBoardId;
+	uint32_t* fTrgNum;
+	uint64_t* fTrgTime;
+
 	enum dataCode_e {
 		DCODE_IDLE			 = 0xff,
 		DCODE_CHIP_EMPTY	 = 0x0e,

@@ -43,6 +43,8 @@ class MDataReceiver
 	friend class MBoard;
 
 public:
+	enum DataReceiver_e { kGenConsumer, kAlpideDataParser, kTrgRecorderParser, kBaseReceiver };
+
 	MDataReceiver();
 	virtual ~MDataReceiver();
 
@@ -57,6 +59,7 @@ protected:
 	long blockSrc;
 	dataBuffer_t dataBuffer;
     unsigned char blockHeader[(unsigned int)MosaicIPbus::HEADER_SIZE];
+	int dataReceiverType;
 
 protected:
 	void *getWritePtr(size_t size) 

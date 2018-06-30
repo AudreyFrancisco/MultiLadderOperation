@@ -40,9 +40,18 @@ class TrgRecorderParser : public MDataReceiver, public TVerbosity
 public:
 	TrgRecorderParser();
 	void flush();
-	
+	uint32_t GetTriggerNum() const { return fTrgNum; }
+	uint64_t GetTriggerTime() const { return fTrgTime; }
+
 protected:
 	long parse(int numClosed);
+
+	/// value of the trigger counter read with parse of received trigger data
+	uint32_t fTrgNum;
+
+	/// value of the trigger time (in unit of clock) read with parse of received trigger data
+	uint64_t fTrgTime;
+
 	
 private:
 	uint32_t buf2uint32(unsigned char *buf);

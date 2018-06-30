@@ -38,6 +38,9 @@
 
 TrgRecorderParser::TrgRecorderParser() : MDataReceiver(), TVerbosity()
 {
+	fTrgNum = 0;
+	fTrgTime = 0;
+	dataReceiverType = kTrgRecorderParser;
 }
 
 void TrgRecorderParser::flush()
@@ -87,9 +90,6 @@ long TrgRecorderParser::parse(int numClosed)
 	unsigned char *dBuffer = (unsigned char*) &dataBuffer[0];
 	unsigned char *p = dBuffer;
 	long evSize = TRIGGERDATA_SIZE;
-	uint32_t trgNum;
-	uint64_t trgTime;
-
 
 	// check avalaible data size
 	if (dataBufferUsed < numClosed * evSize){
@@ -101,11 +101,11 @@ long TrgRecorderParser::parse(int numClosed)
 	}
 
 	while (numClosed) {
-		trgNum = buf2uint32(p);	
-		trgTime = buf2uint64(p + 4);
+		fTrgNum = buf2uint32(p);	
+		fTrgTime = buf2uint64(p + 4);
 
 		if ( GetVerboseLevel() > TVerbosity::kTERSE )
-			printf("TrgRecorderParser::parse() - Trigger %d @ %ld\n", trgNum, trgTime);
+			printf("TrgRecorderParser::parse() - Trigger %d @ %ld\n", fTrgNum, fTrgTime);
 
 		p += evSize;
 		numClosed--;

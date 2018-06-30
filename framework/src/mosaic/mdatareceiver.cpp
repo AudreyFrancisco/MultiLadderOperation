@@ -35,6 +35,7 @@ MDataReceiver::MDataReceiver()
 	numClosedData  = 0;
 	blockFlags     = 0;
 	blockSrc       = 0;
+	dataReceiverType = kBaseReceiver;
 }
 
 MDataReceiver::~MDataReceiver()

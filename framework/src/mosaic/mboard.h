@@ -64,7 +64,11 @@ public:
 	void addDataReceiver(int id, MDataReceiver *dc);
 	void flushDataReceivers();
 	static unsigned int buf2ui(unsigned char *buf);
-	inline int getBoardId() const { return boardId; }
+	inline int getBoardId() const { return fBoardId; }
+	uint32_t GetTriggerNum() const { return fTrgNum; }
+	uint64_t GetTriggerTime() const { return fTrgTime; }
+	uint32_t* GetPointerTriggerNum() { return &fTrgNum; }
+	uint64_t* GetPointerTriggerTime() { return &fTrgTime; }
 
 public:
 	MDataGenerator *mDataGenerator;
@@ -73,11 +77,15 @@ public:
 	MTriggerControl *mTriggerControl;
 	I2CSysPll		*mSysPLL;
 
+protected:
+  	uint32_t fTrgNum;
+	uint64_t fTrgTime;
+
 private:
 	void init();
 	ssize_t recvTCP(void *buffer, size_t count, int timeout);
 	ssize_t readTCPData(void *buffer, size_t count, int timeout);
-	int boardId;
+	int fBoardId;
 
 // private:
 public:
