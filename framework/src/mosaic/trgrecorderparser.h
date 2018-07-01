@@ -34,20 +34,30 @@
 #include "mdatareceiver.h"
 #include <stdint.h>
 #include "TVerbosity.h"
+#include "mdictionary.h"
 
 class TrgRecorderParser : public MDataReceiver, public TVerbosity
 {
 public:
 	TrgRecorderParser();
 	void flush();
-	
+	uint32_t GetTriggerNum() const { return fTrgNum; }
+	uint64_t GetTriggerTime() const { return fTrgTime; }
+	long ReadEventData(int &nBytes, unsigned char *buffer);
+
 protected:
 	long parse(int numClosed);
+
+	/// value of the trigger counter read with parse of received trigger data
+	uint32_t fTrgNum;
+
+	/// value of the trigger time (in unit of clock) read with parse of received trigger data
+	uint64_t fTrgTime;
+
 	
 private:
 	uint32_t buf2uint32(unsigned char *buf);
 	uint64_t buf2uint64(unsigned char *buf);
-	static const int TRIGGERDATA_SIZE = 12;	// 4 bytes: Trigger number. 8 bytes: Time stamp
 };
 
 #endif // TRGRECORDERPARSER_H

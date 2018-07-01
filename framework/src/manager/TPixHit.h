@@ -13,7 +13,8 @@
  * column. The region id is also stored.
  *
  * The container also store the board index and the board receiver id used to
- * collect the data from the chip.
+ * collect the data from the chip. The device id (typically used to store the 
+ * ladder id) is also stored.
  *
  * Sanity checks are always run on the validity of the chip id, the region id, the
  * double column id and the address. They are used to put a quality flag on the pixel 
@@ -24,6 +25,7 @@
 #include "Common.h"
 #include "TVerbosity.h"
 #include <memory>
+#include <stdint.h>
 
 enum class TPixFlag {
     kOK = 0 ,
@@ -66,6 +68,15 @@ class TPixHit : public TVerbosity {
     
     /// flag to check the status of this hit pixel
     TPixFlag fFlag;
+
+    /// bunch crossing counter, from the chip
+    unsigned int fBunchCounter;
+
+    /// trigger counter, from the board
+    uint32_t fTrgNum;
+
+    /// trigger time (in units of clock), from the board
+    uint64_t fTrgTime;
     
     /// illegal chip id, used for initialization
     static const unsigned int ILLEGAL_CHIP_ID = 15;  // i.e. 4'b1111
@@ -97,6 +108,9 @@ public:
     void SetAddress( const unsigned int value );
     inline void SetPixFlag( const TPixFlag flag ) { fFlag = flag; }
     void SetPixChipIndex( const common::TChipIndex idx );
+    void SetBunchCounter( const unsigned int value ) { fBunchCounter = value; };
+    void SetTriggerNum( const uint32_t value ) { fTrgNum = value; }
+    void SetTriggerTime( const uint64_t value ) { fTrgTime = value; }
 
 #pragma mark - getters
 
@@ -109,6 +123,9 @@ public:
     unsigned int GetDoubleColumn() const;
     unsigned int GetAddress() const;
     TPixFlag GetPixFlag() const;
+    unsigned int GetBunchCounter() const { return fBunchCounter; }
+    uint32_t GetTriggerNum() const { return fTrgNum; }
+    uint64_t GetTriggerTime() const { return fTrgTime; }
     bool IsPixHitCorrupted() const;
     unsigned int GetColumn() const;
     unsigned int GetRow() const;

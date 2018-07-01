@@ -115,7 +115,7 @@ bool TDeviceOccupancyScan::IsInternalTrigger() const
 }
 
 //___________________________________________________________________
-void TDeviceOccupancyScan::WriteDataToFile( const char *fName, bool Recreate )
+void TDeviceOccupancyScan::WriteDataToFile( bool Recreate )
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceOccupancyScan::WriteHitsToFile() - not initialized ! Please use Init() first." );
@@ -125,12 +125,12 @@ void TDeviceOccupancyScan::WriteDataToFile( const char *fName, bool Recreate )
     }
     
     for ( std::map<int, shared_ptr<THitMapView>>::iterator it = fHitMapCollection.begin(); it != fHitMapCollection.end(); ++it ) {
-        ((*it).second)->WriteHitsToFile( fName, Recreate );    
+        ((*it).second)->WriteHitsToFile( fName.c_str(), Recreate );    
     }
 }
 
 //___________________________________________________________________
-void TDeviceOccupancyScan::DrawAndSaveToFile( const char *fName )
+void TDeviceOccupancyScan::DrawAndSaveToFile()
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceOccupancyScan::DrawAndSaveToFile() - not initialized ! Please use Init() first." );
@@ -142,7 +142,7 @@ void TDeviceOccupancyScan::DrawAndSaveToFile( const char *fName )
         try {
             ((*it).second)->BuildCanvas();
             ((*it).second)->Draw();
-            ((*it).second)->SaveToFile( fName );
+            ((*it).second)->SaveToFile( fName.c_str() );
         } catch ( std::exception &err ) {
             cerr << err.what() << endl;
             exit( EXIT_FAILURE );
@@ -228,11 +228,11 @@ void TDeviceOccupancyScan::ConfigureBoards()
         } else { // MOSAIC board
 
             // external trigger settings ---------------
-            // 500 = pulseDelay
-            // 50 = triggerDelay
+            // 500 = pulseDelay : PULSEDELAY
+            // 50 = triggerDelay : STROBEDELAYBOARD
             // internal trigger settings ---------------
-            // 4000 = pulseDelay
-            // 40 = triggerDelay
+            // 4000 = pulseDelay : PULSEDELAY
+            // 40 = triggerDelay : STROBEDELAYBOARD
 
             const bool enablePulse = IsInternalTrigger() ? true : false; // condition ? value_if_true : value_if_false 
             const bool enableTrigger = IsInternalTrigger() ? true : false; 

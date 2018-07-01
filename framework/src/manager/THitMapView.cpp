@@ -107,8 +107,8 @@ void THitMapView::Draw()
     if ( !IsCanvasReady() ) {
         throw runtime_error( "THitMapView::Draw() - canvas not ready!" );
     }
-    gStyle->SetPalette( 51 ); // DeepSea palette
-	//gStyle->SetPalette( 1, 0 ); // pretty palette (rainbow)
+    //gStyle->SetPalette( 51 ); // DeepSea palette
+	gStyle->SetPalette( 1, 0 ); // pretty palette (rainbow)
 	//gStyle->SetPalette( 7 ); // grey palette
     fMapCanvas->cd();
     fHisto2D->Draw("COLZ SAME");

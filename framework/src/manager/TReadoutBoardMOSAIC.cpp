@@ -51,6 +51,7 @@
 #include "pexception.h"
 #include "mservice.h"
 #include <stdexcept>
+#include "mdictionary.h"
 
 
 using namespace std;
@@ -102,7 +103,6 @@ TReadoutBoardMOSAIC::TReadoutBoardMOSAIC() :
     fBoardConfig( weak_ptr<TBoardConfigMOSAIC>() ),
     fI2cBus( nullptr ),
     fPulser( nullptr ),
-    fDummyReceiver( nullptr ),
     fTrgRecorder( nullptr ),
     fTrgDataParser( nullptr ),
     fCoordinator( nullptr ),
@@ -117,7 +117,6 @@ TReadoutBoardMOSAIC::TReadoutBoardMOSAIC( shared_ptr<TBoardConfigMOSAIC> boardCo
     fBoardConfig( boardConfig ),
     fI2cBus( nullptr ),
     fPulser( nullptr ),
-    fDummyReceiver( nullptr ),
     fTrgRecorder( nullptr ),
     fTrgDataParser( nullptr ),
     fCoordinator( nullptr ),
@@ -132,7 +131,6 @@ TReadoutBoardMOSAIC::TReadoutBoardMOSAIC( shared_ptr<TBoardConfigMOSAIC> boardCo
 //___________________________________________________________________
 TReadoutBoardMOSAIC::~TReadoutBoardMOSAIC()
 {
-    delete fDummyReceiver;
     delete fTrgDataParser;
 
     for (int i=0; i<(int)MosaicBoardConfig::MAX_TRANRECV; i++)
@@ -292,7 +290,7 @@ int  TReadoutBoardMOSAIC::Trigger (int nTriggers)
 //___________________________________________________________________
 int  TReadoutBoardMOSAIC::ReadEventData (int &nBytes, unsigned char *buffer)
 {
-    TAlpideDataParser *dr;
+    MDataReceiver *dr;
     long readDataSize;
     
     // check for data in the receivers buffer
@@ -300,14 +298,16 @@ int  TReadoutBoardMOSAIC::ReadEventData (int &nBytes, unsigned char *buffer)
         if (fAlpideDataParser[i]->hasData())
             return (fAlpideDataParser[i]->ReadEventData(nBytes, buffer));
     }
+    if ( fTrgDataParser->hasData() ) 
+        return (fTrgDataParser->ReadEventData(nBytes, buffer));
     
     // try to read from TCP connection
     shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
     for (;;){
         try {
-            readDataSize = pollTCP(spBoardConfig->GetPollingDataTimeout(), (MDataReceiver **) &dr);
+            readDataSize = pollTCP(spBoardConfig->GetPollingDataTimeout(), &dr);
             if (readDataSize == 0)
-                return -1;
+                return MosaicDict::kEMPTY_EVENT;
         } catch (exception& e) {
             cerr << e.what() << endl;
             StopRun();
@@ -316,10 +316,14 @@ int  TReadoutBoardMOSAIC::ReadEventData (int &nBytes, unsigned char *buffer)
         }
         
         // get event data from the selected data receiver
-        if (dr->hasData())
-            return (dr->ReadEventData(nBytes, buffer));
+        if (dr->hasData()) {
+            TAlpideDataParser* pa = dynamic_cast<TAlpideDataParser*>(dr);
+            if ( pa ) return (pa->ReadEventData(nBytes, buffer));
+            TrgRecorderParser* pt = dynamic_cast<TrgRecorderParser*>(dr);
+            if ( pt ) return (pt->ReadEventData(nBytes, buffer));
+        }
     }
-    return -1;
+    return MosaicDict::kEMPTY_EVENT;
 }
 
 //___________________________________________________________________
@@ -385,7 +389,7 @@ void TReadoutBoardMOSAIC::EnableControlInterface(const unsigned int interface, c
 void TReadoutBoardMOSAIC::EnableClockOutputs(const bool en)
 {
     // just a wrapper
-    if ( GetVerboseLevel() ) {
+    if ( TReadoutBoard::GetVerboseLevel() ) {
         cout << "TReadoutBoardMOSAIC::EnableClockOutputs() - ";
         if ( en ) cout << "true" << endl;
         else cout << "false" << endl;
@@ -445,6 +449,18 @@ MCoordinator::mode_t TReadoutBoardMOSAIC::GetCoordinatorMode() const
 	    return fCoordinator->getMode();
     }
     return MCoordinator::Alone;
+}
+
+//___________________________________________________________________
+uint32_t TReadoutBoardMOSAIC::GetTriggerNum() const
+{
+    return fTrgDataParser->GetTriggerNum();
+}
+
+//___________________________________________________________________
+uint64_t TReadoutBoardMOSAIC::GetTriggerTime() const
+{
+    return fTrgDataParser->GetTriggerTime();
 }
 
 //___________________________________________________________________
@@ -532,8 +548,11 @@ void TReadoutBoardMOSAIC::init()
     
     for (int i=0; i<(int)MosaicBoardConfig::MAX_TRANRECV; i++){
         fAlpideDataParser[i] = new TAlpideDataParser();
-        fAlpideDataParser[i]->SetId(i);
+        fAlpideDataParser[i]->SetReceiverId(i);
+        fAlpideDataParser[i]->SetBoardId( getBoardId() ); 
         fAlpideDataParser[i]->SetVerboseLevel( this->GetVerboseLevel() );
+        fAlpideDataParser[i]->SetPointerTriggerNum( GetPointerTriggerNum() ); 
+		fAlpideDataParser[i]->SetPointerTriggerTime( GetPointerTriggerTime() ); 
         addDataReceiver(i+1, fAlpideDataParser[i]); // ID 1-10
     }
 

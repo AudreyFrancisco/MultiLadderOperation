@@ -65,10 +65,10 @@ public:
     bool IsInternalTrigger() const;
 
     /// write raw hit data to a text file and to a TH2F*
-    void WriteDataToFile( const char *fName, bool Recreate = true );
+    void WriteDataToFile( bool Recreate = true );
     
     /// draw and save hit map or distributions
-    void DrawAndSaveToFile( const char *fName );
+    void DrawAndSaveToFile();
     
 protected:
     

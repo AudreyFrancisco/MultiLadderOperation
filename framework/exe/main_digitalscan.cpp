@@ -64,31 +64,32 @@ int main(int argc, char** argv) {
     }
     
     TDeviceDigitalScan theDeviceTestor( theDevice, theScanConfig );
-    theDeviceTestor.Init();
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.SetRescueBadChipId( true );
-    
-    sleep(1);
+    theDeviceTestor.SetActivateTTree( false );
+
     char chipName[20], suffix[20], fName[100];
     
     time_t       t = time(0);   // get time now
     struct tm *now = localtime( & t );
     sprintf(suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
-
-    theDeviceTestor.Go(); // run the digital scan
-    theDeviceTestor.Terminate();
-    
-    const bool Recreate = true;
-
     if ( !(theDevice->GetNickName()).empty() ) {
         sprintf( chipName, "%s", (theDevice->GetNickName()).c_str() );
         sprintf(fName, "digitalScan_%s_%s.dat", chipName, suffix);
     } else {
         sprintf(fName, "digitalScan_%s.dat", suffix);
     }
-    theDeviceTestor.WriteDataToFile( fName, Recreate );
-    theDeviceTestor.WriteCorruptedHitsToFile( fName, Recreate );
-    theDeviceTestor.DrawAndSaveToFile( fName );
+    theDeviceTestor.SetPrefixFilename( fName );
+    theDeviceTestor.Init();
+    sleep(1);
+    theDeviceTestor.Go(); // run the digital scan
+    theDeviceTestor.Terminate();
+    
+    const bool Recreate = true;
+
+    theDeviceTestor.WriteDataToFile( Recreate );
+    theDeviceTestor.WriteCorruptedHitsToFile( Recreate );
+    theDeviceTestor.DrawAndSaveToFile();
     
     return EXIT_SUCCESS;
 }

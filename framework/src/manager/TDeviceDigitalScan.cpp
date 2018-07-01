@@ -44,7 +44,7 @@ void TDeviceDigitalScan::Terminate()
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
+void TDeviceDigitalScan::WriteDataToFile( bool Recreate )
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - not initialized ! Please use Init() first." );
@@ -60,7 +60,7 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
     FILE *fp;
     
     char fNameTemp[100];
-    sprintf( fNameTemp,"%s", fName);
+    sprintf( fNameTemp,"%s", fName.c_str());
     strtok( fNameTemp, "." );
     string suffix( fNameTemp );
     
@@ -110,7 +110,7 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::WriteCorruptedHitsToFile( const char *fName, bool Recreate )
+void TDeviceDigitalScan::WriteCorruptedHitsToFile( bool Recreate )
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceDigitalScan::WriteCorruptedHitsToFile() - not initialized ! Please use Init() first." );
@@ -118,11 +118,11 @@ void TDeviceDigitalScan::WriteCorruptedHitsToFile( const char *fName, bool Recre
     if ( !fIsTerminated ) {
         throw runtime_error( "TDeviceDigitalScan::WriteCorruptedHitsToFile() - not terminated ! Please use Terminate() first." );
     }
-    fErrorCounter->WriteCorruptedHitsToFile( fName, Recreate );
+    fErrorCounter->WriteCorruptedHitsToFile( fName.c_str(), Recreate );
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::DrawAndSaveToFile( const char *fName )
+void TDeviceDigitalScan::DrawAndSaveToFile()
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceDigitalScan::DrawAndSaveToFile() - not initialized ! Please use Init() first." );
@@ -130,7 +130,7 @@ void TDeviceDigitalScan::DrawAndSaveToFile( const char *fName )
     if ( !fIsTerminated ) {
         throw runtime_error( "TDeviceDigitalScan::DrawAndSaveToFile() - not terminated ! Please use Terminate() first." );
     }
-    fErrorCounter->DrawAndSaveToFile( fName );
+    fErrorCounter->DrawAndSaveToFile( fName.c_str() );
 }
 
 //___________________________________________________________________

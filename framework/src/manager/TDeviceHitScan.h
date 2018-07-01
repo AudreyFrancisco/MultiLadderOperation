@@ -11,6 +11,7 @@
  */
 
 #include <memory>
+#include <string.h>
 #include <vector>
 #include "TDeviceChipVisitor.h"
 #include "Common.h"
@@ -21,6 +22,7 @@ class TErrorCounter;
 class TAlpideDecoder;
 class TBoardDecoder;
 class TDevice;
+class TStorePixHit;
 
 class TDeviceHitScan : public TDeviceChipVisitor {
     
@@ -49,7 +51,16 @@ protected:
     
     /// number of triggers
     int fNTriggers;
-        
+
+    /// storage of the hit pixels in a TTree with time info for all chips in the device
+    std::shared_ptr<TStorePixHit> fStorePixHit;
+
+    /// bool used to decide if ones wants to store the hit pixels in TTree or not 
+    bool fProduceTTree;
+
+    /// part (prefix) of the name of the output files
+    std::string fName;
+
 public:
     
     /// constructor
@@ -57,10 +68,14 @@ public:
     
     /// constructor with a TDevice and a ScanConfig specified
     TDeviceHitScan( std::shared_ptr<TDevice> aDevice,
-                     std::shared_ptr<TScanConfig> aScanConfig );
+                    std::shared_ptr<TScanConfig> aScanConfig,
+                    const bool produceTTree = false  );
     
     /// destructor
     virtual ~TDeviceHitScan();
+
+    /// enable the use of a TTree to gather the pixel hits
+    void SetActivateTTree( const bool en ) { fProduceTTree = en; }
     
     /// set the scan configuration
     void SetScanConfig( std::shared_ptr<TScanConfig> aScanConfig );
@@ -70,18 +85,24 @@ public:
 
     /// toggle on/off the possibility to rescue a bad chip id
     void SetRescueBadChipId( const bool permit );
+
+    /// method that sets part of the name of the output files
+    void SetPrefixFilename( std::string prefixFileName );
     
     /// initialization
     virtual void Init();
     
     /// perform the mask scan of the device
     virtual void Go() = 0;
+
+    /// boolean use to check if ones wants to produce TTree with hit pixels
+    bool IsTTreeActivated() const { return fProduceTTree; }
     
     /// write raw hit data to a text file
-    virtual void WriteDataToFile( const char *fName, bool Recreate = true ) = 0;
+    virtual void WriteDataToFile( bool Recreate = true ) = 0;
     
     /// draw and save hit map or distributions
-    virtual void DrawAndSaveToFile( const char *fName ) = 0;
+    virtual void DrawAndSaveToFile() = 0;
     
 protected:
     

@@ -37,6 +37,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "trgrecorderparser.h"
+#include <iostream>
 
 using namespace std;
 
@@ -60,15 +62,17 @@ void MBoard::init()
 
 	tcp_sockfd = -1;
 	numReceivers = 0;
-	boardId = 0;
+	fBoardId = 0;
+	fTrgNum = 0;
+	fTrgTime = 0;
 }
 
-MBoard::MBoard() 
+MBoard::MBoard()
 {
 	init();
 }
 
-MBoard::MBoard(const char *IPaddr, const int myBoardId, int port) 
+MBoard::MBoard(const char *IPaddr, const int myBoardId, int port)
 {
 	init();
 	setIPaddress(IPaddr, port);
@@ -83,7 +87,7 @@ void MBoard::setIPaddress(const char *IPaddr, int port)
 
 void MBoard::setBoardId(const int number)
 {
-	boardId = number;
+	fBoardId = number;
 }
 
 MBoard::~MBoard() 
@@ -331,6 +335,13 @@ long MBoard::pollData(int timeout)
     	closedDataCounter = dr->numClosedData;
     	if (closedDataCounter > 0) {
       		long parsedBytes = dr->parse(closedDataCounter);
+
+			if ( dr->dataReceiverType == MDataReceiver::kTrgRecorderParser ) {
+        		fTrgNum = dynamic_cast<TrgRecorderParser*>(dr)->GetTriggerNum(); 
+        		fTrgTime = dynamic_cast<TrgRecorderParser*>(dr)->GetTriggerTime();   
+				// AR: debug line to be commented
+        		cout << "MBoard::pollData() - Board " << getBoardId() << " " <<  fTrgNum << " @ " << fTrgTime << endl;
+      		}
 
       		// move unused bytes to the begin of buffer
       		size_t bytesToMove = dr->dataBufferUsed - parsedBytes;
