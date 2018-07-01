@@ -47,10 +47,13 @@ public:
 
 	MDataReceiver();
 	virtual ~MDataReceiver();
+	bool hasData() { return (numClosedData!=0); }
 
 protected:
+
 	virtual long parse(int numClosed) = 0;		// Pure virtual
 	virtual void flush();
+
 
 protected:
 	long dataBufferUsed;

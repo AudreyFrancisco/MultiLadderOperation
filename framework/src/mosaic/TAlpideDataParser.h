@@ -40,8 +40,7 @@ class TAlpideDataParser : public MDataReceiver, public TVerbosity
 public:
 	TAlpideDataParser();
 	void flush() {};
-	int  ReadEventData(int &nBytes, unsigned char *buffer);
-	bool hasData() { return (numClosedData!=0); }
+	long ReadEventData(int &nBytes, unsigned char *buffer);
     
 	inline void SetReceiverId(const int i) { fReceiverId = i; }
 	inline void SetBoardId(const int i) { fBoardId = i; }

@@ -164,7 +164,7 @@ long TAlpideDataParser::parse(int numClosed)
 //
 // Read only one frame of data 
 // return the size of data frame
-int  TAlpideDataParser::ReadEventData(int &nBytes, unsigned char *buffer)
+long TAlpideDataParser::ReadEventData(int &nBytes, unsigned char *buffer)
 {
 	unsigned char *dBuffer = (unsigned char*) &dataBuffer[0];
 	unsigned char *p = dBuffer;
