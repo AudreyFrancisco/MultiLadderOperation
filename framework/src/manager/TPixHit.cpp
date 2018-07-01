@@ -14,10 +14,10 @@ TPixHit::TPixHit() : TVerbosity(),
     fDcol( 0 ),
     fAddress( 0 ),
     fFlag( TPixFlag::kUNKNOWN ),
-    fBunchCounter( 0 )
-{
-    
-}
+    fBunchCounter( 0 ),
+    fTrgNum( 0 ),
+    fTrgTime( 0 )
+{ }
 
 //___________________________________________________________________
 TPixHit::TPixHit( const TPixHit& obj )
@@ -33,6 +33,8 @@ TPixHit::TPixHit( const TPixHit& obj )
     fFlag = obj.fFlag;
     fVerboseLevel = obj.fVerboseLevel;
     fBunchCounter = obj.fBunchCounter;
+    fTrgNum = obj.fTrgNum;
+    fTrgTime = obj.fTrgTime;
 }
 
 //___________________________________________________________________
@@ -50,14 +52,14 @@ TPixHit::TPixHit( const shared_ptr<TPixHit> obj )
         fFlag = obj->GetPixFlag();
         fVerboseLevel = obj->GetVerboseLevel();
         fBunchCounter = obj->GetBunchCounter();
+        fTrgNum = obj->GetTriggerNum();
+        fTrgTime = obj->GetTriggerTime();
     }
 }
 
 //___________________________________________________________________
 TPixHit::~TPixHit()
-{
-    
-}
+{ }
 
 //___________________________________________________________________
 TPixHit& TPixHit::operator=( const TPixHit& rhs)
@@ -74,6 +76,8 @@ TPixHit& TPixHit::operator=( const TPixHit& rhs)
         fFlag = rhs.fFlag;
         fVerboseLevel = rhs.fVerboseLevel;
         fBunchCounter = rhs.fBunchCounter;
+        fTrgNum = rhs.fTrgNum;
+        fTrgTime = rhs.fTrgTime;
     }
     return *this;
 }
@@ -272,16 +276,17 @@ void TPixHit::DumpPixHit( const bool with_reminder )
             || (fDeviceType ==  TDeviceType::kMFT_LADDER4)
             || (fDeviceType ==  TDeviceType::kMFT_LADDER3)
             || (fDeviceType ==  TDeviceType::kMFT_LADDER2) ) {
-            cout << "\t board.receiver.ladder / chip / region.dcol.add (flag) \n" ;
+            cout << "\t [trgNum @ trgTime] board.receiver.ladder / chip / region.dcol.add (flag) \n" ;
         } else {
             if ( fDeviceType ==  TDeviceType::kIBHIC ) {
-                cout << "\t board.receiver.ibhic / chip / region.dcol.add (flag) \n" ;
+                cout << "\t [trgNum @ trgTime] board.receiver.ibhic / chip / region.dcol.add (flag) \n" ;
             } else {
-                cout << "\t board.receiver / chip / region.dcol.add (flag) \n" ;
+                cout << "\t [trgNum @ trgTime] board.receiver / chip / region.dcol.add (flag) \n" ;
             }
         }
     }
-    cout << std::dec << "\t"
+    cout << std::dec << "\t ["
+    << GetTriggerNum() << " @ " << GetTriggerTime() << "] "
     << GetBoardIndex() << ".";
     if ( (fDeviceType ==  TDeviceType::kMFT_LADDER5)
          || (fDeviceType ==  TDeviceType::kMFT_LADDER4)
