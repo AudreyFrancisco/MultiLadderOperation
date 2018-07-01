@@ -53,6 +53,9 @@ private:
     /// the output file
     TFile* fFile;
 
+    /// boolean to monitore the success of the initialization
+    bool fSuccessfulInit;
+
     /// the data to be stored in the TTree for each hit pixel
     TDataSummary fData;
 
@@ -78,6 +81,9 @@ public:
 
     /// initialization 
     void Init();
+
+    /// check if initialization was successfully done
+    bool IsInitOk() const { return fSuccessfulInit; }
 
     /// fill the ROOT TTree with the information from a hit pixel
     void Fill( std::shared_ptr<TPixHit> hit );

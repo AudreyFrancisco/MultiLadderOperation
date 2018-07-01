@@ -15,7 +15,8 @@ using namespace std;
 TStorePixHit::TStorePixHit() : 
 TVerbosity(),
 fTree( nullptr ),
-fFile( nullptr )
+fFile( nullptr ),
+fSuccessfulInit( false )
 {
     fData.boardIndex = 0;
     fData.dataReceiver = 0;
@@ -75,16 +76,22 @@ void TStorePixHit::Init()
                         "boardIndex/i:dataReceiver/i:deviceType/i:deviceId/i:chipId/i:row/i:col/i:bunchNum/i:trgNum/i:trgTime/l" );
         fTree->SetAutoSave( 1000 ); // flush the TTree to disk every 1000 entries
     }
+    fSuccessfulInit = true;
 }
 
 //___________________________________________________________________
 void TStorePixHit::Fill( std::shared_ptr<TPixHit> hit )
 {
+    if ( !IsInitOk() ) {
+        throw runtime_error( "TStorePixHit::Fill() - object not (successfully) initialized ! Please use Init() first." );
+    }
     if ( (!fFile) || (fFile->IsZombie()) ) {
-        throw runtime_error( "TStorePixHit::Fill() - no viable output file !" );
+        fSuccessfulInit = false;
+        throw runtime_error( "TStorePixHit::Fill() - no viable output file ! Please use Init() first." );
     }
     if ( !fTree ) {
-        throw runtime_error( "TStorePixHit::Fill() - no TTree !" );
+        fSuccessfulInit = false;
+        throw runtime_error( "TStorePixHit::Fill() - no TTree ! Please use Init() first." );
     }
     try {
         SetDataSummary( hit );
