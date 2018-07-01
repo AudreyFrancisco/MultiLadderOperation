@@ -74,10 +74,10 @@ public:
     void Go();
     
     /// write raw hit data to a text file
-    void WriteDataToFile( const char *fName, bool Recreate = true );
+    void WriteDataToFile( bool Recreate = true );
     
     /// draw and save threshold, noise and chi2/ndf distributions
-    void DrawAndSaveToFile( const char *fName );
+    void DrawAndSaveToFile();
 
 protected:
     

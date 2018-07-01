@@ -36,13 +36,13 @@ public:
     void Terminate();
     
     /// write raw hit data to a text file
-    void WriteDataToFile( const char *fName, bool Recreate = true );
+    void WriteDataToFile( bool Recreate = true );
 
     /// write list of hit pixels with a bad flag in a text file
-    void WriteCorruptedHitsToFile( const char *fName, bool Recreate = true );
+    void WriteCorruptedHitsToFile( bool Recreate = true );
     
     /// draw and save hit map of bad pixels and their firing frequency distribution
-    void DrawAndSaveToFile( const char *fName );
+    void DrawAndSaveToFile();
 
     /// perform the digital scan of the device
     void Go();
