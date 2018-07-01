@@ -87,7 +87,7 @@ public:
     void SetRescueBadChipId( const bool permit );
 
     /// method that sets part of the name of the output files
-    void SetPrefixFilename( std::string prefixFileName ) { fName = prefixFileName; }
+    void SetPrefixFilename( std::string prefixFileName );
     
     /// initialization
     virtual void Init();

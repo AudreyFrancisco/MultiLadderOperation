@@ -88,6 +88,7 @@ void TDeviceHitScan::SetVerboseLevel( const int level )
     fChipDecoder->SetVerboseLevel( level );
     fBoardDecoder->SetVerboseLevel( level );
     fErrorCounter->SetVerboseLevel( level );
+    fStorePixHit->SetVerboseLevel( level );
     TDeviceChipVisitor::SetVerboseLevel( level );
 }
 
@@ -96,6 +97,23 @@ void TDeviceHitScan::SetRescueBadChipId( const bool permit )
 {
     fChipDecoder->SetRescueBadChipId( permit );
 }
+
+//___________________________________________________________________
+void TDeviceHitScan::SetPrefixFilename( std::string prefixFileName ) 
+{ 
+    fName = prefixFileName; 
+    shared_ptr<TBoardConfigMOSAIC> myMOSAICboardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fDevice->GetBoardConfig(0));
+    if ( myMOSAICboardConfig->IsTrgRecorderEnable() ) {
+        if ( IsTTreeActivated() ) {
+            if ( GetVerboseLevel() > kTERSE ) 
+                cout << "TDeviceHitScan::Init() - output TTree with hit pixels enabled" << endl;
+                fStorePixHit->SetNames( fName.c_str(), fDevice->GetWorkingChipIndex(0) );
+        }
+    } else {
+        fProduceTTree = false;
+    }
+}
+
 
 //___________________________________________________________________
 void TDeviceHitScan::Init()
@@ -119,9 +137,6 @@ void TDeviceHitScan::Init()
     shared_ptr<TBoardConfigMOSAIC> myMOSAICboardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fDevice->GetBoardConfig(0));
     if ( myMOSAICboardConfig->IsTrgRecorderEnable() ) {
         if ( IsTTreeActivated() ) {
-            if ( GetVerboseLevel() > kTERSE ) 
-                cout << "TDeviceHitScan::Init() - output TTree with hit pixels enabled" << endl;
-                fStorePixHit->SetNames( fName.c_str(), fDevice->GetWorkingChipIndex(0) );
                 fStorePixHit->Init();
         }
     } else {
