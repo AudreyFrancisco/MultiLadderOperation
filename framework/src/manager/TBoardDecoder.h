@@ -125,8 +125,7 @@ namespace DAQBoardDecoder {
 namespace MOSAICBoardDecoder {
     
     /// Adapt the (char x 4) -> (unsigned int) conversion depending to the endianess
-    std::uint32_t EndianAdjust(unsigned char *buf);
-
+    std::uint32_t EndianAdjust(unsigned char *buf); // buf2uint32
 }
 
 #endif
