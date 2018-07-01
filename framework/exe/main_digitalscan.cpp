@@ -64,11 +64,10 @@ int main(int argc, char** argv) {
     }
     
     TDeviceDigitalScan theDeviceTestor( theDevice, theScanConfig );
-    theDeviceTestor.Init();
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.SetRescueBadChipId( true );
-    
-    sleep(1);
+    theDeviceTestor.SetActivateTTree( false );
+
     char chipName[20], suffix[20], fName[100];
     
     time_t       t = time(0);   // get time now
@@ -81,6 +80,8 @@ int main(int argc, char** argv) {
         sprintf(fName, "digitalScan_%s.dat", suffix);
     }
     theDeviceTestor.SetPrefixFilename( fName );
+    theDeviceTestor.Init();
+    sleep(1);
     theDeviceTestor.Go(); // run the digital scan
     theDeviceTestor.Terminate();
     
