@@ -192,7 +192,7 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
                 if ( readDataFlag == MosaicDict::kTRGRECORDER_EVENT ) {
                     trgNum = myMOSAIC->GetTriggerNum();
                     trgTime = myMOSAIC->GetTriggerTime();
-                    if ( GetVerboseLevel() > kSILENT ) {
+                    if ( GetVerboseLevel() > kULTRACHATTY ) {
                         cout << "TDeviceHitScan::ReadEventData() - board " 
                              << std::dec << iboard << " trigger recorded " 
                              << trgNum << " @ " << trgTime << endl;

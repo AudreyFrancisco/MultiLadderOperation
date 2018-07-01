@@ -137,7 +137,7 @@ long TrgRecorderParser::ReadEventData(int &nBytes, unsigned char *buffer)
 	fTrgNum = buf2uint32(p);	
 	fTrgTime = buf2uint64(p + 4);
 
-	if ( GetVerboseLevel() > TVerbosity::kTERSE )
+	if ( GetVerboseLevel() > TVerbosity::kULTRACHATTY )
 		printf("TrgRecorderParser::ReadEventData() - Trigger %d @ %ld\n", fTrgNum, fTrgTime);
 
 	// copy the block header to the user buffer
