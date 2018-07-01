@@ -105,9 +105,10 @@ void TDeviceHitScan::SetPrefixFilename( std::string prefixFileName )
     shared_ptr<TBoardConfigMOSAIC> myMOSAICboardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fDevice->GetBoardConfig(0));
     if ( myMOSAICboardConfig->IsTrgRecorderEnable() ) {
         if ( IsTTreeActivated() ) {
-            if ( GetVerboseLevel() > kTERSE ) 
+            if ( GetVerboseLevel() > kTERSE ) {
                 cout << "TDeviceHitScan::Init() - output TTree with hit pixels enabled" << endl;
-                fStorePixHit->SetNames( fName.c_str(), fDevice->GetWorkingChipIndex(0) );
+            }
+            fStorePixHit->SetNames( fName.c_str(), fDevice->GetWorkingChipIndex(0) );
         }
     } else {
         fProduceTTree = false;
