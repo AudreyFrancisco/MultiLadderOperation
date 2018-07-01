@@ -3,6 +3,7 @@
 #include "TPixHit.h"
 #include "THisto.h"
 #include "TErrorCounter.h"
+#include "TStorePixHit.h"
 #include <stdint.h>
 #include <iostream>
 #include <string>
@@ -16,31 +17,38 @@ TAlpideDecoder::TAlpideDecoder() : TVerbosity(),
     fDevice( nullptr ),
     fNewEvent( false ),
     fBunchCounter( 0 ),
+    fTrgNum( 0 ),
+    fTrgTime( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
     fRegion( 32 ),
     fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
-    fErrorCounter( nullptr )
+    fErrorCounter( nullptr ),
+    fStorePixHit( nullptr )
 {
     
 }
 
 //___________________________________________________________________
 TAlpideDecoder::TAlpideDecoder( shared_ptr<TDevice> aDevice,
-                                shared_ptr<TErrorCounter> anErrorCounter ) :
+                                shared_ptr<TErrorCounter> anErrorCounter,
+                                shared_ptr<TStorePixHit> aPixStorage ) :
     TVerbosity(),
     fDevice( nullptr ),
     fNewEvent( false ),
     fBunchCounter( 0 ),
+    fTrgNum( 0 ),
+    fTrgTime( 0 ),
     fFlags( 0 ),
     fChipId( -1 ),
     fRegion( 32 ),
     fRescueBadChipId( false ),
     fDataType( TDataType::kUNKNOWN ),
     fScanHisto( nullptr ),
-    fErrorCounter( nullptr )
+    fErrorCounter( nullptr ),
+    fStorePixHit( aPixStorage )
 {
     try {
         SetDevice( aDevice );
@@ -109,9 +117,13 @@ unsigned int TAlpideDecoder::GetNHits() const
 //___________________________________________________________________
 bool TAlpideDecoder::DecodeEvent( unsigned char* data,
                                  int nBytes,
-                                 unsigned int boardIndex,
-                                 unsigned int boardReceiver )
+                                 const unsigned int boardIndex,
+                                 const unsigned int boardReceiver,
+                                 const uint32_t trgNum,
+                                 const uint64_t trgTime )
 {
+    fTrgNum = trgNum;
+    fTrgTime = trgTime;
     // refresh variables for each new event
     fBunchCounter = 0;
     fFlags  = 0;
@@ -365,6 +377,8 @@ bool TAlpideDecoder::DecodeDataWord( unsigned char* data,
     auto hit = make_shared<TPixHit>();
     hit->SetVerboseLevel( this->GetVerboseLevel() );
     hit->SetBunchCounter( fBunchCounter );
+    hit->SetTriggerNum( fTrgNum );
+    hit->SetTriggerTime( fTrgTime );
     
     int16_t data_field = (((int16_t) data[0]) << 8) + data[1];
 
@@ -485,7 +499,9 @@ void TAlpideDecoder::FillHistoWithEvent()
             unsigned int addr = (fHits.at(i))->GetAddress();
 
             fScanHisto->Incr(idx, dcol, addr);
-            
+            if ( fStorePixHit->IsInitOk() ) {
+                fStorePixHit->Fill( fHits.at(i) );
+            }
             if ( GetVerboseLevel() > kULTRACHATTY ) {
                 cout << "TAlpideDecoder::FillHistoEvent() - add hit" << endl;
                 (fHits.at(i))->DumpPixHit();
@@ -505,8 +521,6 @@ bool TAlpideDecoder::IsValidChipIndex( std::shared_ptr<TPixHit> hit )
     if ( hit ) {
         idx.boardIndex    = hit->GetBoardIndex();
         idx.dataReceiver  = hit->GetBoardReceiver();
-        idx.deviceType    = hit->GetDeviceType();
-        idx.deviceType    = hit->GetDeviceType();
         idx.deviceId      = hit->GetDeviceId();
         idx.chipId        = hit->GetChipId();
         is_valid = common::SameChipIndex( idx, fCurrentChipIndex );
