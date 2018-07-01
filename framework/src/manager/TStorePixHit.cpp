@@ -16,7 +16,8 @@ TStorePixHit::TStorePixHit() :
 TVerbosity(),
 fTree( nullptr ),
 fFile( nullptr ),
-fSuccessfulInit( false )
+fSuccessfulInit( false ),
+fNEntriesAutoSave( 10000 )
 {
     fData.boardIndex = 0;
     fData.dataReceiver = 0;
@@ -54,6 +55,13 @@ void TStorePixHit::SetNames( const char *baseName,
 }
 
 //___________________________________________________________________
+void TStorePixHit::SetCyclicAutoSave( long nEntries )
+{
+    if ( nEntries == 0 ) return;
+    fNEntriesAutoSave = nEntries;
+}
+
+//___________________________________________________________________
 void TStorePixHit::Init()
 {
     if ( fOutFileName.empty() || fTreeName.empty() || fTreeTitle.empty() ) {
@@ -74,7 +82,7 @@ void TStorePixHit::Init()
         fTree = new TTree( fTreeName.c_str(), fTreeTitle.c_str() );
         fTree->Branch( "fData", &fData, 
                         "boardIndex/i:dataReceiver/i:deviceType/i:deviceId/i:chipId/i:row/i:col/i:bunchNum/i:trgNum/i:trgTime/l" );
-        fTree->SetAutoSave( 1000 ); // flush the TTree to disk every 1000 entries
+        fTree->SetAutoSave( fNEntriesAutoSave ); // flush the TTree to disk every N entries
     }
     fSuccessfulInit = true;
 }

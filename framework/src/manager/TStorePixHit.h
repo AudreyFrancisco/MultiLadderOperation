@@ -56,6 +56,9 @@ private:
     /// boolean to monitore the success of the initialization
     bool fSuccessfulInit;
 
+    /// max entries in the buffer after which TTree::AutoSave() is automatically used
+    long fNEntriesAutoSave;
+
     /// the data to be stored in the TTree for each hit pixel
     TDataSummary fData;
 
@@ -78,6 +81,9 @@ public:
 
     /// Set the name of the output ROOT TTree file, the TTree name and title
     void SetNames( const char *baseFName, const common::TChipIndex aChipIndex );
+
+    /// Set the number of entries to be used by TTree::AutoSave()
+    void SetCyclicAutoSave( long nEntries = 10000 );
 
     /// initialization 
     void Init();
