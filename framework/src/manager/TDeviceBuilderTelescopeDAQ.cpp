@@ -41,7 +41,7 @@ void TDeviceBuilderTelescope::SetNChips( const int number )
         fCurrentDevice->SetNChips( number );
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
 }
 
@@ -94,7 +94,7 @@ void TDeviceBuilderTelescope::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     try {
         if ( fCurrentDevice->GetBoardType() != TBoardType::kBOARD_DAQ ) {
@@ -102,7 +102,7 @@ void TDeviceBuilderTelescope::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderTelescope::InitSetup() - start" << endl;
