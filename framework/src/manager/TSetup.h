@@ -31,6 +31,7 @@
 #include <string.h>
 #include <memory>
 #include "TVerbosity.h"
+#include "TMultiDeviceOperator.h"
 
 enum class TDeviceType;
 
@@ -68,6 +69,8 @@ private:
     void SetConfigFileName( const std::string name );
     void SetDeviceNickName( const std::string name );
     void SetDeviceId( const int number );
+
+    friend void TMultiDeviceOperator::AddSetup( const std::string aConfigFileName );
     
 private:
     std::string fConfigFileName;
