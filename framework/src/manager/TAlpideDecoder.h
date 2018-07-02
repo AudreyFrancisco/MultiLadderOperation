@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <stdint.h>
 #include "TVerbosity.h"
 #include "Common.h"
 
@@ -23,6 +24,7 @@ class TPixHit;
 class TDevice;
 class TScanHisto;
 class TErrorCounter;
+class TStorePixHit;
 
 class TAlpideDecoder : public TVerbosity {
     
@@ -36,6 +38,12 @@ private:
     
     /// bunch counter decoded from the chip header
     unsigned int fBunchCounter;
+
+    /// trigger counter, from the board
+    uint32_t fTrgNum;
+
+    /// trigger time (in units of clock), from the board
+    uint64_t fTrgTime;
 
     /// flag decoded from chip trailer
     int fFlags;
@@ -64,15 +72,19 @@ private:
     /// error counter, accumulating over events
     std::shared_ptr<TErrorCounter> fErrorCounter;
 
+    /// provide a TTree storage for hit pixels that passed the sanity checks
+    std::shared_ptr<TStorePixHit> fStorePixHit;
+
     
 public:
 
     /// default constructor
     TAlpideDecoder();
     
-    /// constructor that sets the pointers to the device and to the error counter
+    /// constructor sets the pointers to device, error counter and the hit storage
     TAlpideDecoder( std::shared_ptr<TDevice> aDevice,
-                    std::shared_ptr<TErrorCounter> anErrorCounter );
+                    std::shared_ptr<TErrorCounter> anErrorCounter,
+                    std::shared_ptr<TStorePixHit> aPixStorage );
     
     /// destructor
     ~TAlpideDecoder();
@@ -97,8 +109,10 @@ public:
     
     /// the sole purpose of this class : decode each event read by the readout board
     bool DecodeEvent( unsigned char* data, int nBytes,
-                     unsigned int boardIndex,
-                     unsigned int boardReceiver );
+                     const unsigned int boardIndex,
+                     const unsigned int boardReceiver,
+                     const uint32_t trgNum,
+                     const uint64_t trgTime );
         
 private:
     

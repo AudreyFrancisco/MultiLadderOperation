@@ -21,29 +21,21 @@ using namespace std;
 //___________________________________________________________________
 TDeviceOccupancyScan::TDeviceOccupancyScan() :
 TDeviceHitScan(),
-fScanHisto( nullptr ),
 fNTriggersPerTrain( 0 ),
 fTriggerSource( TTriggerSource::kTRIG_INT )
-{ 
-    fScanHisto = make_shared<TScanHisto>();
-}
+{ }
 
 //___________________________________________________________________
 TDeviceOccupancyScan::TDeviceOccupancyScan( shared_ptr<TDevice> aDevice,
                                   shared_ptr<TScanConfig> aScanConfig ) : 
 TDeviceHitScan( aDevice, aScanConfig),
-fScanHisto( nullptr ),
 fNTriggersPerTrain( 0 ),
 fTriggerSource( TTriggerSource::kTRIG_INT )
-{ 
-    fScanHisto = make_shared<TScanHisto>();
-    fChipDecoder->SetScanHisto( fScanHisto );
-}
+{  }
 
 //___________________________________________________________________
 TDeviceOccupancyScan::~TDeviceOccupancyScan()
 {
-    if ( fScanHisto ) fScanHisto.reset();
     fHitMapCollection.clear();
 }
 
@@ -56,12 +48,6 @@ void TDeviceOccupancyScan::Init()
         cerr << err.what() << endl;
         exit( EXIT_FAILURE );
     }
-    if ( !fScanHisto ) {
-        throw runtime_error( "TDeviceOccupancyScan::Init() - can not use a null pointer for the map of scan histo !" );
-    }
-    fChipDecoder->SetScanHisto( fScanHisto );
-    fErrorCounter->Init( fScanHisto, fNTriggers );
-    
     for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         common::TChipIndex aChipIndex = fDevice->GetWorkingChipIndex( ichip );
         AddHitMapToCollection( aChipIndex );
@@ -71,11 +57,10 @@ void TDeviceOccupancyScan::Init()
 //___________________________________________________________________
 void TDeviceOccupancyScan::SetVerboseLevel( const int level )
 {
-    fScanHisto->SetVerboseLevel( level );
+    TDeviceHitScan::SetVerboseLevel( level );
     for ( std::map<int, shared_ptr<THitMapView>>::iterator it = fHitMapCollection.begin(); it != fHitMapCollection.end(); ++it ) {
         ((*it).second)->SetVerboseLevel( level );
     }
-    TDeviceHitScan::SetVerboseLevel( level );
 }
 
 //___________________________________________________________________
@@ -118,7 +103,6 @@ void TDeviceOccupancyScan::Go()
 void TDeviceOccupancyScan::Terminate()
 {
     TDeviceChipVisitor::Terminate();
-    FillHitMaps();
     cout << endl;
     fErrorCounter->Dump();
 }
@@ -131,18 +115,7 @@ bool TDeviceOccupancyScan::IsInternalTrigger() const
 }
 
 //___________________________________________________________________
-void TDeviceOccupancyScan::FillHitMaps()
-{
-    if ( !fIsInitDone ) {
-        throw runtime_error( "TDeviceOccupancyScan::FillHitMaps() - not initialized ! Please use Init() first." );
-    }
-    for ( std::map<int, shared_ptr<THitMapView>>::iterator it = fHitMapCollection.begin(); it != fHitMapCollection.end(); ++it ) {
-        ((*it).second)->FillHitMap();
-    }
-}
-
-//___________________________________________________________________
-void TDeviceOccupancyScan::WriteDataToFile( const char *fName, bool Recreate )
+void TDeviceOccupancyScan::WriteDataToFile( bool Recreate )
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceOccupancyScan::WriteHitsToFile() - not initialized ! Please use Init() first." );
@@ -152,12 +125,12 @@ void TDeviceOccupancyScan::WriteDataToFile( const char *fName, bool Recreate )
     }
     
     for ( std::map<int, shared_ptr<THitMapView>>::iterator it = fHitMapCollection.begin(); it != fHitMapCollection.end(); ++it ) {
-        ((*it).second)->WriteHitsToFile( fName, Recreate );    
+        ((*it).second)->WriteHitsToFile( fName.c_str(), Recreate );    
     }
 }
 
 //___________________________________________________________________
-void TDeviceOccupancyScan::DrawAndSaveToFile( const char *fName )
+void TDeviceOccupancyScan::DrawAndSaveToFile()
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceOccupancyScan::DrawAndSaveToFile() - not initialized ! Please use Init() first." );
@@ -169,7 +142,7 @@ void TDeviceOccupancyScan::DrawAndSaveToFile( const char *fName )
         try {
             ((*it).second)->BuildCanvas();
             ((*it).second)->Draw();
-            ((*it).second)->SaveToFile( fName );
+            ((*it).second)->SaveToFile( fName.c_str() );
         } catch ( std::exception &err ) {
             cerr << err.what() << endl;
             exit( EXIT_FAILURE );
@@ -207,7 +180,7 @@ void TDeviceOccupancyScan::AddHisto()
 void TDeviceOccupancyScan::AddHitMapToCollection( const common::TChipIndex idx )
 {
     int int_index = common::GetMapIntIndex( idx );
-    auto hitmap = make_shared<THitMapView>( fScanHisto, idx );
+    auto hitmap = make_shared<THitMapView>( fDevice->GetDeviceType(), fScanHisto, idx );
     fHitMapCollection.insert( std::pair<int, shared_ptr<THitMapView>>(int_index, hitmap) );
 }
 
@@ -255,11 +228,11 @@ void TDeviceOccupancyScan::ConfigureBoards()
         } else { // MOSAIC board
 
             // external trigger settings ---------------
-            // 500 = pulseDelay
-            // 50 = triggerDelay
+            // 500 = pulseDelay : PULSEDELAY
+            // 50 = triggerDelay : STROBEDELAYBOARD
             // internal trigger settings ---------------
-            // 4000 = pulseDelay
-            // 40 = triggerDelay
+            // 4000 = pulseDelay : PULSEDELAY
+            // 40 = triggerDelay : STROBEDELAYBOARD
 
             const bool enablePulse = IsInternalTrigger() ? true : false; // condition ? value_if_true : value_if_false 
             const bool enableTrigger = IsInternalTrigger() ? true : false; 

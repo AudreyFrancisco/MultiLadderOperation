@@ -36,6 +36,18 @@ TDeviceMaskScan::~TDeviceMaskScan()
 { }
 
 //___________________________________________________________________
+void TDeviceMaskScan::Init()
+{
+    try {
+        TDeviceHitScan::Init();
+    } catch ( std::exception &err ) {
+        cerr << err.what() << endl;
+        exit( EXIT_FAILURE );
+    }
+    fErrorCounter->Init( fScanHisto, fNTriggers );
+}
+
+//___________________________________________________________________
 void TDeviceMaskScan::InitScanParameters()
 {
     TDeviceHitScan::InitScanParameters();

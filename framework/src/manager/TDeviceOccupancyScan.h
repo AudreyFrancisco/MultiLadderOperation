@@ -27,10 +27,7 @@ class THitMapView;
 class TDeviceOccupancyScan : public TDeviceHitScan {
     
 protected:
-    
-    /// map to histograms (one per chip) of hit pixels
-    std::shared_ptr<TScanHisto> fScanHisto;
-    
+        
     /// number of triggers per train
     int fNTriggersPerTrain;
 
@@ -67,14 +64,11 @@ public:
     /// return true if the trigger is internally generated 
     bool IsInternalTrigger() const;
 
-    /// fill hit map for all chips
-    void FillHitMaps();
-
-    /// write raw hit data to a text file
-    void WriteDataToFile( const char *fName, bool Recreate = true );
+    /// write raw hit data to a text file and to a TH2F*
+    void WriteDataToFile( bool Recreate = true );
     
     /// draw and save hit map or distributions
-    void DrawAndSaveToFile( const char *fName );
+    void DrawAndSaveToFile();
     
 protected:
     

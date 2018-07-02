@@ -9,6 +9,9 @@
 #include "TReadoutBoardDAQ.h"
 #include "TReadoutBoardMOSAIC.h"
 #include "TScanConfig.h"
+#include "THisto.h"
+#include "mdictionary.h"
+#include "TStorePixHit.h"
 #include <stdexcept>
 #include <iostream>
 #include <bitset>
@@ -20,23 +23,32 @@ using namespace std;
 TDeviceHitScan::TDeviceHitScan() :
 TDeviceChipVisitor(),
 fScanConfig( nullptr ),
+fScanHisto( nullptr ),
 fErrorCounter( nullptr ),
 fChipDecoder( nullptr ),
 fBoardDecoder( nullptr ),
-fNTriggers( 0 )
+fNTriggers( 0 ),
+fStorePixHit( nullptr ),
+fProduceTTree( false )
 {
     fErrorCounter = make_shared<TErrorCounter>();
     fBoardDecoder = make_unique<TBoardDecoder>();
+    fStorePixHit = make_shared<TStorePixHit>();
+
 }
 
 //___________________________________________________________________
 TDeviceHitScan::TDeviceHitScan( shared_ptr<TDevice> aDevice,
-                                  shared_ptr<TScanConfig> aScanConfig ) :
+                                shared_ptr<TScanConfig> aScanConfig,
+                                const bool produceTTree ) :
 TDeviceChipVisitor( aDevice ),
 fScanConfig( nullptr ),
+fScanHisto( nullptr ),
 fErrorCounter( nullptr ),
 fChipDecoder( nullptr ),
-fNTriggers( 0 )
+fNTriggers( 0 ),
+fStorePixHit( nullptr ),
+fProduceTTree( produceTTree )
 {
     try {
         SetScanConfig( aScanConfig );
@@ -44,17 +56,20 @@ fNTriggers( 0 )
         cerr << msg.what() << endl;
         exit( EXIT_FAILURE );
     }
+    fScanHisto = make_shared<TScanHisto>();
     fErrorCounter = make_shared<TErrorCounter>( aDevice->GetDeviceType() );
+    fStorePixHit = make_shared<TStorePixHit>();
+    fChipDecoder  = make_unique<TAlpideDecoder>( aDevice, fErrorCounter, fStorePixHit );
     fBoardDecoder = make_unique<TBoardDecoder>();
-    fChipDecoder  = make_unique<TAlpideDecoder>( aDevice, fErrorCounter );
+
 }
 
 //___________________________________________________________________
 TDeviceHitScan::~TDeviceHitScan()
 {
-    if ( fScanConfig ) fScanConfig.reset();
     if ( fErrorCounter ) fErrorCounter.reset();
-    if ( fChipDecoder ) fChipDecoder.reset();
+    if ( fScanConfig ) fScanConfig.reset();
+    if ( fScanHisto ) fScanHisto.reset();
 }
 
 //___________________________________________________________________
@@ -69,9 +84,11 @@ void TDeviceHitScan::SetScanConfig( shared_ptr<TScanConfig> aScanConfig )
 //___________________________________________________________________
 void TDeviceHitScan::SetVerboseLevel( const int level )
 {
+    fScanHisto->SetVerboseLevel( level );
     fChipDecoder->SetVerboseLevel( level );
     fBoardDecoder->SetVerboseLevel( level );
     fErrorCounter->SetVerboseLevel( level );
+    fStorePixHit->SetVerboseLevel( level );
     TDeviceChipVisitor::SetVerboseLevel( level );
 }
 
@@ -80,6 +97,24 @@ void TDeviceHitScan::SetRescueBadChipId( const bool permit )
 {
     fChipDecoder->SetRescueBadChipId( permit );
 }
+
+//___________________________________________________________________
+void TDeviceHitScan::SetPrefixFilename( std::string prefixFileName ) 
+{ 
+    fName = prefixFileName; 
+    shared_ptr<TBoardConfigMOSAIC> myMOSAICboardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fDevice->GetBoardConfig(0));
+    if ( myMOSAICboardConfig->IsTrgRecorderEnable() ) {
+        if ( IsTTreeActivated() ) {
+            if ( GetVerboseLevel() > kTERSE ) {
+                cout << "TDeviceHitScan::Init() - output TTree with hit pixels enabled" << endl;
+            }
+            fStorePixHit->SetNames( fName.c_str(), fDevice->GetWorkingChipIndex(0) );
+        }
+    } else {
+        fProduceTTree = false;
+    }
+}
+
 
 //___________________________________________________________________
 void TDeviceHitScan::Init()
@@ -94,6 +129,19 @@ void TDeviceHitScan::Init()
     } catch ( std::exception &err ) {
         cerr << err.what() << endl;
         exit( EXIT_FAILURE );
+    }
+    if ( !fScanHisto ) {
+        throw runtime_error( "TDeviceHitScan::Init() - can not use a null pointer for the map of scan histo !" );
+    }
+    fChipDecoder->SetScanHisto( fScanHisto );
+    fErrorCounter->Init( fScanHisto, fNTriggers );
+    shared_ptr<TBoardConfigMOSAIC> myMOSAICboardConfig = dynamic_pointer_cast<TBoardConfigMOSAIC>(fDevice->GetBoardConfig(0));
+    if ( myMOSAICboardConfig->IsTrgRecorderEnable() ) {
+        if ( IsTTreeActivated() ) {
+                fStorePixHit->Init();
+        }
+    } else {
+        fProduceTTree = false;
     }
 }
 
@@ -119,14 +167,17 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
         
     unsigned int itrg = 0;
     unsigned int nTrials = 0;
+    uint32_t trgNum = 0;
+	uint64_t trgTime = 0;
 
     if ( nTriggers <= 0 ) nTriggers = fNTriggers;
     
     while( itrg < nTriggers * fDevice->GetNWorkingChipsPerBoard( iboard ) ) {
         
-        unsigned int nBad       = 0;
+        unsigned int nBad  = 0;
+        int readDataFlag = (fDevice->GetBoard( iboard ))->ReadEventData(n_bytes_data, buffer);
         
-        if ( (fDevice->GetBoard( iboard ))->ReadEventData(n_bytes_data, buffer) == -1) {
+        if ( readDataFlag == MosaicDict::kEMPTY_EVENT ) {
             
             // no event available in buffer yet, wait a bit
             usleep(100);
@@ -145,7 +196,36 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
             continue;
             
         } else {
-            
+
+            shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( iboard );
+            fBoardDecoder->SetBoardType( boardConfig->GetBoardType() );
+
+            if ( boardConfig->GetBoardType() == TBoardType::kBOARD_MOSAIC ) {
+
+                shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( iboard ));
+                fBoardDecoder->SetFirmwareVersion( myMOSAIC->GetFwIdString() );
+
+                if ( readDataFlag == MosaicDict::kTRGRECORDER_EVENT ) {
+                    trgNum = myMOSAIC->GetTriggerNum();
+                    trgTime = myMOSAIC->GetTriggerTime();
+                    if ( GetVerboseLevel() > kULTRACHATTY ) {
+                        cout << "TDeviceHitScan::ReadEventData() - board " 
+                             << std::dec << iboard << " trigger recorded " 
+                             << trgNum << " @ " << trgTime << endl;
+                    }
+                    continue;
+                }
+            }
+                        
+            // decode readout board event
+            fBoardDecoder->DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
+            if ( fBoardDecoder->GetMosaicDecoder10b8bError() ) {
+                fErrorCounter->IncrementN8b10b( fBoardDecoder->GetMosaicChannel() );
+            }
+            if ( fBoardDecoder->GetMosaicTimeout() ) {
+                fErrorCounter->IncrementNTimeout();
+            }
+
             if ( GetVerboseLevel() > kVERBOSE ) {
                 cout << "TDeviceHitScan::ReadEventData() - board "
                 << std::dec << iboard
@@ -157,21 +237,6 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
                 cout << endl;
             }
             
-            // decode readout board event
-            shared_ptr<TBoardConfig> boardConfig = fDevice->GetBoardConfig( iboard );
-            fBoardDecoder->SetBoardType( boardConfig->GetBoardType() );
-            if ( boardConfig->GetBoardType() == TBoardType::kBOARD_MOSAIC ) {
-                shared_ptr<TReadoutBoardMOSAIC> myMOSAIC = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard( iboard ));
-                fBoardDecoder->SetFirmwareVersion( myMOSAIC->GetFwIdString() );
-            }
-            fBoardDecoder->DecodeEvent( buffer, n_bytes_data, n_bytes_header, n_bytes_trailer );
-            if ( fBoardDecoder->GetMosaicDecoder10b8bError() ) {
-                fErrorCounter->IncrementN8b10b( fBoardDecoder->GetMosaicChannel() );
-            }
-            if ( fBoardDecoder->GetMosaicTimeout() ) {
-                fErrorCounter->IncrementNTimeout();
-            }
-            
             // decode Chip event
             int n_bytes_chipevent = n_bytes_data-n_bytes_header;// - n_bytes_trailer;
             if ( fBoardDecoder->GetMosaicEoeCount() < 2) {
@@ -179,7 +244,8 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
             }
             bool isOk = fChipDecoder->DecodeEvent(buffer + n_bytes_header, n_bytes_chipevent,
                                                   iboard,
-                                                  fBoardDecoder->GetMosaicChannel() );
+                                                  fBoardDecoder->GetMosaicChannel(),
+                                                  trgNum, trgTime );
             
             if ( !isOk ) {
                 if ( GetVerboseLevel() > kSILENT ) {

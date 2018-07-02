@@ -54,7 +54,7 @@ fHitMap( nullptr )
     fIdx.deviceType = dt;
     fIdx.deviceId = aChipIndex.deviceId;
     fIdx.chipId = aChipIndex.chipId;
-    fHitMap = make_shared<THitMapDiscordant>( aChipIndex, nInjections );
+    fHitMap = make_shared<THitMapDiscordant>( dt, fIdx, nInjections );
     fHitMap->BuildCanvas();
 }
 
@@ -177,6 +177,7 @@ void TChipErrorCounter::ClassifyCorruptedHits()
 void TChipErrorCounter::Dump()
 {
     if ( !fFilledErrorCounters ) {
+        if ( GetVerboseLevel() > kVERBOSE )
         cerr << "TChipErrorCounter::Dump() - corrupted hit counters empty ! Please use FindCorruptedHits() first. " << endl;
     }
     cout << endl;

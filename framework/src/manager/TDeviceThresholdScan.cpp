@@ -199,7 +199,7 @@ void TDeviceThresholdScan::Terminate()
 }
 
 //___________________________________________________________________
-void TDeviceThresholdScan::DrawAndSaveToFile( const char *fName )
+void TDeviceThresholdScan::DrawAndSaveToFile()
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceThresholdScan::DrawAndSaveToFile() - not initialized ! Please use Init() first." );
@@ -209,12 +209,12 @@ void TDeviceThresholdScan::DrawAndSaveToFile( const char *fName )
     }
     for ( std::map<int, shared_ptr<TSCurveAnalysis>>::iterator it = fAnalyserCollection.begin(); it != fAnalyserCollection.end(); ++it ) {
         ((*it).second)->DrawDistributions();
-        ((*it).second)->SaveToFile( fName );
+        ((*it).second)->SaveToFile( fName.c_str() );
     }
 }
 
 //___________________________________________________________________
-void TDeviceThresholdScan::WriteDataToFile( const char *fName, bool Recreate )
+void TDeviceThresholdScan::WriteDataToFile( bool Recreate )
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceThresholdScan::WriteDataToFile() - not initialized ! Please use Init() first." );
@@ -230,9 +230,9 @@ void TDeviceThresholdScan::WriteDataToFile( const char *fName, bool Recreate )
     FILE *fp;
     
     char fNameTemp[100];
-    sprintf( fNameTemp,"%s", fName);
+    sprintf( fNameTemp,"%s", fName.c_str() );
     strtok( fNameTemp, "." );
-    string suffix( fNameTemp );
+    string suffix( fNameTemp ); 
     
     for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         
@@ -387,6 +387,11 @@ void TDeviceThresholdScan::AnalyzeData()
         cout << "TDeviceThresholdScan::AnalyzeData() - start ... " << endl;
     for ( unsigned int ichip = 0; ichip < fDevice->GetNWorkingChips(); ichip++ ) {
         
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TDeviceThresholdScan::AnalyzeData() - working on chip " ;
+        common::DumpId(fDevice->GetWorkingChipIndex( ichip ));
+        cout << endl;
+    }
         common::TChipIndex chipIndex = fDevice->GetWorkingChipIndex( ichip );
         
         for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {

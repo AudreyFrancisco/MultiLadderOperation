@@ -75,9 +75,10 @@ fHistoLegend( nullptr )
 }
 
 //___________________________________________________________________
-THitMapDiscordant::THitMapDiscordant( const common::TChipIndex aChipIndex,
+THitMapDiscordant::THitMapDiscordant( const TDeviceType dt,
+                                      const common::TChipIndex aChipIndex,
                                       const unsigned int nInjections ) :
-THitMap( aChipIndex, nInjections ),
+THitMap( dt, aChipIndex, nInjections ),
 fNDeadPixels( 0 ),
 fNInefficientPixels( 0 ),
 fNHotPixels( 0 ),
@@ -255,7 +256,7 @@ void THitMapDiscordant::BuildCanvas()
 
     fFireCanvas->cd();
 
-    fHistoLegend = new TLegend( 0.21, 0.65, 0.42, 0.90 );
+    fHistoLegend = new TLegend( 0.21, 0.65, 0.52, 0.90 );
     fHistoLegend->SetBorderSize(0);
     fHistoLegend->SetTextSize( 0.03 );
     fHistoLegend->SetLineColor( kBlack );

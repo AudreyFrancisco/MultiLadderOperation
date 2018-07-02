@@ -70,7 +70,8 @@ enum class MosaicIPbus : int { // previously in ipbus.h
     IPBUS_PROTOCOL_VERSION  = 2,
 	WRONG_PROTOCOL_VERSION  = 3,
 	RCV_LONG_TIMEOUT        = 2000, // timeout in ms for the first rx datagrams
-	RCV_SHORT_TIMEOUT       = 100 // timeout in ms for rx datagrams
+	RCV_SHORT_TIMEOUT       = 100,  // timeout in ms for rx datagrams
+	TRIGGERDATA_SIZE        = 12    // 4 bytes: Trigger number. 8 bytes: Time stamp
 };
 
 // IPBus info codes (errors)
@@ -125,6 +126,10 @@ class MosaicDict
 	MosaicDict(const MosaicDict&); // Disallowed
 
 public:
+	enum EventFlag {
+        kEMPTY_EVENT = -1,
+        kTRGRECORDER_EVENT = -2
+    };
 
 	static MosaicDict& instance() { return s; }
 

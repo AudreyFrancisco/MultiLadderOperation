@@ -115,7 +115,8 @@ public:
     THitMapDiscordant();
     
     /// constructor that sets the chip index
-    THitMapDiscordant( const common::TChipIndex aChipIndex,
+    THitMapDiscordant( const TDeviceType dt,
+                       const common::TChipIndex aChipIndex,
                        const unsigned int nInjections  );
     
     /// destructor

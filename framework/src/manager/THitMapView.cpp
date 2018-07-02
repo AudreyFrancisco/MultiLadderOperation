@@ -21,34 +21,35 @@ using namespace std;
 THitMapView::THitMapView() : 
 THitMap(),
 fScanHisto( nullptr ),
-fHitMap( nullptr ),
+fHisto2D( nullptr ),
 fHasData( false )
 {
-    fHitMap = new TH2F( "fHitMap", "",
+    fHisto2D = new TH2F( "fHisto2D", "",
             fXNbinDummy, fXMinDummy, fXMaxDummy,
             fYNbinDummy, fYMinDummy, fYMaxDummy );
-    fHitMap->SetBit( kCanDelete );
+    fHisto2D->SetBit( kCanDelete );
 }
 
 //___________________________________________________________________
-THitMapView::THitMapView(shared_ptr<TScanHisto> aScanHisto, 
+THitMapView::THitMapView(const TDeviceType dt,
+                         shared_ptr<TScanHisto> aScanHisto, 
                          const common::TChipIndex aChipIndex ) : 
-THitMap( aChipIndex ),
+THitMap( dt, aChipIndex ),
 fScanHisto( aScanHisto ),
-fHitMap( nullptr ),
+fHisto2D( nullptr ),
 fHasData( false )
 {
-    fHitMap = new TH2F( "fHitMap", "",
+    fHisto2D = new TH2F( "fHisto2D", "",
             fXNbinDummy, fXMinDummy, fXMaxDummy,
             fYNbinDummy, fYMinDummy, fYMaxDummy );
-    fHitMap->SetBit( kCanDelete );
+    fHisto2D->SetBit( kCanDelete );
 
     fChipIndex = aChipIndex;
 
-    string name = GetName( "fHitMap" );
-    fHitMap->SetName( name.c_str() );
+    string name = GetName( "fHisto2D" );
+    fHisto2D->SetName( name.c_str() );
     string title = GetHistoTitle( fHicChipName );
-    fHitMap->SetTitle( title.c_str() );
+    fHisto2D->SetTitle( title.c_str() );
 }
 
 //___________________________________________________________________
@@ -56,20 +57,12 @@ THitMapView::~THitMapView()
 {
     // don't delete any other pointer to ROOT object
     // ROOT will take care by itself and delete anything in the Canvas
-    if ( (!HasData()) && fHitMap ) delete fHitMap;
+    if ( (!HasData()) && fHisto2D ) delete fHisto2D;
 }
 
 //___________________________________________________________________
 void THitMapView::BuildCanvas()
 {
-    if ( !HasData() ) {
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::BuildCanvas() - ";
-            common::DumpId( fChipIndex );
-            cout << " : no data => no hit map." <<  endl; 
-        }
-        return;
-    }
     if ( IsCanvasReady() ) {
         if ( GetVerboseLevel() > kTERSE ) {
             cout << "THitMapView::BuildCanvas() - canvas already built, nothing to be done." << endl;
@@ -79,6 +72,7 @@ void THitMapView::BuildCanvas()
 
     fMapCanvas->SetFillColor( kWhite );
     fMapCanvas->SetFillStyle( kFSolid );
+    fMapCanvas->SetRightMargin( 0.12 );
     fMapCanvas->cd();
 
     fH2Dummy->SetStats( kFALSE );
@@ -113,58 +107,26 @@ void THitMapView::Draw()
     if ( !IsCanvasReady() ) {
         throw runtime_error( "THitMapView::Draw() - canvas not ready!" );
     }
-    gStyle->SetPalette( 51 ); // DeepSea palette
-	//gStyle->SetPalette( 1, 0 ); // pretty palette (rainbow)
+    //gStyle->SetPalette( 51 ); // DeepSea palette
+	gStyle->SetPalette( 1, 0 ); // pretty palette (rainbow)
 	//gStyle->SetPalette( 7 ); // grey palette
     fMapCanvas->cd();
-    fHitMap->Draw("CONT1Z");
+    fHisto2D->Draw("COLZ SAME");
     gPad->Update();
+    fMapCanvas->ForceUpdate();
     fSaveToFileReady = true;
-}
-
-//___________________________________________________________________
-void THitMapView::FillHitMap()
-{
-    if ( !fScanHisto ) {
-        throw runtime_error( "THitMapView::FillHitMap() - can not use a null pointer for the map of scan histo !" );
-    }
-
-    if ( !(fScanHisto->HasData(fChipIndex)) ) {
-        if ( GetVerboseLevel() > kSILENT ) {
-            cout << "THitMapView::FillHitMap() - ";
-            common::DumpId( fChipIndex );
-            cout << " : no data => no hit map." <<  endl; 
-        }
-        fHasData = false;
-        return;
-    }
-
-    TPixHit pixhit;
-    pixhit.SetPixChipIndex( fChipIndex );
-    for ( unsigned int icol = 0; icol <= common::MAX_DCOL; icol ++ ) {
-        for ( unsigned int iaddr = 0; iaddr <= common::MAX_ADDR; iaddr ++ ) {
-            pixhit.SetDoubleColumn( icol );
-            pixhit.SetAddress( iaddr );
-            unsigned int column = pixhit.GetColumn();
-            unsigned int row = pixhit.GetRow();
-            double hits = (*fScanHisto)(fChipIndex,icol,iaddr);
-            if (hits > 0) {
-                fHitMap->Fill( row, column, hits );
-            }
-        }
-    } 
-    fHasData = true;
 }
 
 //___________________________________________________________________
 void THitMapView::WriteHitsToFile( const char *baseFName, const bool Recreate )
 {
-    if ( !HasData() ) {
+    if ( !(fScanHisto->HasData(fChipIndex)) ) {
         if ( GetVerboseLevel() > kSILENT ) {
             cout << "THitMapView::WriteHitsToFile() - ";
             common::DumpId( fChipIndex );
             cout << " : no data => no hit map." <<  endl; 
         }
+        fHasData = false;
         return;
     }
 
@@ -202,11 +164,13 @@ void THitMapView::WriteHitsToFile( const char *baseFName, const bool Recreate )
             unsigned int row = pixhit.GetRow();
             double hits = (*fScanHisto)(fChipIndex,icol,iaddr);
             if (hits > 0) {
+                fHisto2D->Fill( column, row, hits );
                 fprintf(fp, "%d %d %d\n", row, column, (int)hits);
             }
         }
     } 
     if (fp) fclose (fp);
+    fHasData = true;
 }
 
 //___________________________________________________________________
@@ -230,17 +194,18 @@ void THitMapView::SaveToFile( const char *baseFName )
     strtok( filenameTemp, "." );
     string suffix( filenameTemp );
     
-    // output plot
-    string filenamePlot = common::GetFileName( fChipIndex, suffix, "", ".pdf" );
-    strcpy( filenameChip, filenamePlot.c_str() );
-    fMapCanvas->Print( filenameChip );
-
     // output ROOT file
     string filenameRoot = common::GetFileName( fChipIndex, suffix, "", ".root" );
     strcpy( filenameChip, filenameRoot.c_str() );
     TString name( filenameChip );
     TFile outfile( name.Data(), "RECREATE" );
     outfile.cd();
-    fHitMap->Write();
+    fHisto2D->Write();
     outfile.Close();
+
+    // output plot
+    string filenamePlot = common::GetFileName( fChipIndex, suffix, "", ".pdf" );
+    strcpy( filenameChip, filenamePlot.c_str() );
+    fMapCanvas->Print( filenameChip );
+
 }

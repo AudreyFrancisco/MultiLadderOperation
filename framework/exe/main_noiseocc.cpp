@@ -65,30 +65,31 @@ int main(int argc, char** argv) {
     }
     
     TDeviceOccupancyScan theDeviceTestor( theDevice, theScanConfig );
-    theDeviceTestor.Init();
     theDeviceTestor.SetVerboseLevel( mySetup.GetVerboseLevel() );
     theDeviceTestor.SetRescueBadChipId( true );
+    theDeviceTestor.SetActivateTTree( true );
     
-    sleep(1);
     char chipName[20], suffix[20], fName[100];
     
     time_t       t = time(0);   // get time now
     struct tm *now = localtime( & t );
     sprintf(suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
-
-    theDeviceTestor.Go(); // run the noise scan
-    theDeviceTestor.Terminate();
-    
-    const bool Recreate = true;
-
     if ( !(theDevice->GetNickName()).empty() ) {
         sprintf( chipName, "%s", (theDevice->GetNickName()).c_str() );
         sprintf(fName, "noiseScan_%s_%s.dat", chipName, suffix);
     } else {
         sprintf(fName, "noiseScan_%s.dat", suffix);
     }
-    theDeviceTestor.WriteDataToFile( fName, Recreate );
-    theDeviceTestor.DrawAndSaveToFile( fName );
+    theDeviceTestor.SetPrefixFilename( fName );
+    theDeviceTestor.Init();
+    sleep(1);
+    theDeviceTestor.Go(); // run the noise scan
+    theDeviceTestor.Terminate();
+    
+    const bool Recreate = true;
+
+    theDeviceTestor.WriteDataToFile( Recreate );
+    theDeviceTestor.DrawAndSaveToFile();
     
     return EXIT_SUCCESS;
 }

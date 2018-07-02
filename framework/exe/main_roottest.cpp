@@ -47,7 +47,7 @@ int main() {
         
         const unsigned int nInjections = 50;
         std::shared_ptr<THitMapDiscordant> hitmap =
-            make_shared<THitMapDiscordant>( idx, nInjections );
+            make_shared<THitMapDiscordant>( idx.deviceType, idx, nInjections );
         hitmap->BuildCanvas();
         
         const unsigned int size = 67;

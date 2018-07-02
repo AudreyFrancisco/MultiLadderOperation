@@ -26,7 +26,7 @@ class THitMapView : public THitMap {
     std::shared_ptr<TScanHisto> fScanHisto;
 
     /// 2D histo to be filled with the hit map of the current chip
-    TH2F* fHitMap;
+    TH2F* fHisto2D;
 
     /// a boolean that will be true if there is any pixel hit on that chip
     bool fHasData;
@@ -41,8 +41,9 @@ public:
     THitMapView();
 
     /// constructor that sets the chip index and the container of the list of hit pixels
-    THitMapView( std::shared_ptr<TScanHisto> aScanHisto, 
-                    const common::TChipIndex aChipIndex );
+    THitMapView( const TDeviceType dt,
+                 std::shared_ptr<TScanHisto> aScanHisto, 
+                 const common::TChipIndex aChipIndex );
 
     /// destructor
     virtual ~THitMapView();
@@ -53,19 +54,16 @@ public:
     /// draw all objects that must be drawn by the class
     void Draw();
 
-    /// transfer the list of pixel hits to the TH2F the chip
-    void FillHitMap();  
-
     /// return the current chip index
     common::TChipIndex GetChipIndex() const { return fChipIndex; }
 
     /// return the TH2F* hit map for the chip
-    TH2F* GetHitMap() { return fHitMap; }
+    TH2F* GetHitMap() { return fHisto2D; }
 
     /// return true if the chip has some hit
     bool HasData() const { return fHasData; }
 
-    /// write the list of hit pixels to a file
+    /// write the list of hit pixels to a file and fill TH2F* hit map for the chip
     void WriteHitsToFile( const char *baseFName, const bool Recreate );
 
     /// save the drawing(s) to PDF file(s) and save the TH2F to a root file

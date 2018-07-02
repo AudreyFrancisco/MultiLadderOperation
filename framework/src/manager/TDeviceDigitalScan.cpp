@@ -19,49 +19,18 @@ using namespace std;
 
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan() :
-TDeviceMaskScan(),
-fScanHisto( nullptr )
-{
-    fScanHisto = make_shared<TScanHisto>();
-}
+TDeviceMaskScan()
+{ }
 
 //___________________________________________________________________
 TDeviceDigitalScan::TDeviceDigitalScan( shared_ptr<TDevice> aDevice,
                                        shared_ptr<TScanConfig> aScanConfig ) :
-TDeviceMaskScan( aDevice, aScanConfig ),
-fScanHisto( nullptr )
-{
-    fScanHisto = make_shared<TScanHisto>();
-    fChipDecoder->SetScanHisto( fScanHisto );
-}
+TDeviceMaskScan( aDevice, aScanConfig )
+{ }
 
 //___________________________________________________________________
 TDeviceDigitalScan::~TDeviceDigitalScan()
-{
-    if ( fScanHisto ) fScanHisto.reset();
-}
-
-//___________________________________________________________________
-void TDeviceDigitalScan::SetVerboseLevel( const int level )
-{
-    fScanHisto->SetVerboseLevel( level );
-    TDeviceMaskScan::SetVerboseLevel( level );
-}
-
-//___________________________________________________________________
-void TDeviceDigitalScan::Init()
-{
-    try {
-        TDeviceHitScan::Init();
-    } catch ( std::exception &err ) {
-        cerr << err.what() << endl;
-        exit( EXIT_FAILURE );
-    }
-    if ( !fScanHisto ) {
-        throw runtime_error( "TDeviceDigitalScan::Init() - can not use a null pointer for the map of scan histo !" );
-    }
-    fErrorCounter->Init( fScanHisto, fNTriggers );
-}
+{ }
 
 //___________________________________________________________________
 void TDeviceDigitalScan::Terminate()
@@ -75,7 +44,7 @@ void TDeviceDigitalScan::Terminate()
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
+void TDeviceDigitalScan::WriteDataToFile( bool Recreate )
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceDigitalScan::WriteDataToFile() - not initialized ! Please use Init() first." );
@@ -91,7 +60,7 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
     FILE *fp;
     
     char fNameTemp[100];
-    sprintf( fNameTemp,"%s", fName);
+    sprintf( fNameTemp,"%s", fName.c_str());
     strtok( fNameTemp, "." );
     string suffix( fNameTemp );
     
@@ -141,7 +110,7 @@ void TDeviceDigitalScan::WriteDataToFile( const char *fName, bool Recreate )
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::WriteCorruptedHitsToFile( const char *fName, bool Recreate )
+void TDeviceDigitalScan::WriteCorruptedHitsToFile( bool Recreate )
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceDigitalScan::WriteCorruptedHitsToFile() - not initialized ! Please use Init() first." );
@@ -149,11 +118,11 @@ void TDeviceDigitalScan::WriteCorruptedHitsToFile( const char *fName, bool Recre
     if ( !fIsTerminated ) {
         throw runtime_error( "TDeviceDigitalScan::WriteCorruptedHitsToFile() - not terminated ! Please use Terminate() first." );
     }
-    fErrorCounter->WriteCorruptedHitsToFile( fName, Recreate );
+    fErrorCounter->WriteCorruptedHitsToFile( fName.c_str(), Recreate );
 }
 
 //___________________________________________________________________
-void TDeviceDigitalScan::DrawAndSaveToFile( const char *fName )
+void TDeviceDigitalScan::DrawAndSaveToFile()
 {
     if ( !fIsInitDone ) {
         throw runtime_error( "TDeviceDigitalScan::DrawAndSaveToFile() - not initialized ! Please use Init() first." );
@@ -161,7 +130,7 @@ void TDeviceDigitalScan::DrawAndSaveToFile( const char *fName )
     if ( !fIsTerminated ) {
         throw runtime_error( "TDeviceDigitalScan::DrawAndSaveToFile() - not terminated ! Please use Terminate() first." );
     }
-    fErrorCounter->DrawAndSaveToFile( fName );
+    fErrorCounter->DrawAndSaveToFile( fName.c_str() );
 }
 
 //___________________________________________________________________

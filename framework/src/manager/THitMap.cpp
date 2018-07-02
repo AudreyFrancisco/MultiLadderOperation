@@ -35,6 +35,7 @@ fSaveToFileReady( false )
 {
     fIdx.boardIndex = 0;
     fIdx.dataReceiver = 0;
+    fIdx.deviceType = TDeviceType::kUNKNOWN;
     fIdx.deviceId = 0;
     fIdx.chipId = 0;
     fMapCanvas = new TCanvas( "cv" );
@@ -48,7 +49,9 @@ fSaveToFileReady( false )
 }
 
 //___________________________________________________________________
-THitMap::THitMap( const common::TChipIndex aChipIndex, const unsigned int nInjections ) :
+THitMap::THitMap( const TDeviceType dt,
+                  const common::TChipIndex aChipIndex, 
+                  const unsigned int nInjections ) :
 TVerbosity(),
 fYaxisTitle( "Row" ),
 fXaxisTitle( "Column" ),
@@ -64,7 +67,7 @@ fSaveToFileReady( false )
     
     fIdx.boardIndex = aChipIndex.boardIndex;
     fIdx.dataReceiver = aChipIndex.dataReceiver;
-    fIdx.deviceType = aChipIndex.deviceType;
+    fIdx.deviceType = dt;
     fIdx.deviceId = aChipIndex.deviceId;
     fIdx.chipId = aChipIndex.chipId;
     
@@ -118,7 +121,7 @@ void THitMap::SetHicChipName()
         if (  common::IsIBhic( fIdx ) ) fHicChipName += " IB hic ";
         fHicChipName += std::to_string( fIdx.deviceId );
     }
-    fHicChipName = " RCV ";
+    fHicChipName += " RCV ";
     fHicChipName += std::to_string( fIdx.dataReceiver );
     fHicChipName += " Chip ";
     fHicChipName += std::to_string( fIdx.chipId );

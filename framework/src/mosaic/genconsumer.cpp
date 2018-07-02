@@ -37,6 +37,7 @@ GenConsumer::GenConsumer()
 {
   eventSize    = 0;
   expectedData = 0;
+  dataReceiverType = kGenConsumer;
 }
 
 void GenConsumer::flush() { expectedData = 0; }

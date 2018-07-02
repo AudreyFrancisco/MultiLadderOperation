@@ -114,6 +114,8 @@ public:
     //std::shared_ptr<MCoordinator> GetCoordinatorHandle() { return fCoordinator; };
     std::string  GetRegisterDump();
     MCoordinator::mode_t GetCoordinatorMode() const;
+    std::uint32_t GetTriggerNum() const;
+    std::uint64_t GetTriggerTime() const;
 
     void SendBroadcastReset();
     void SendBroadcastROReset();

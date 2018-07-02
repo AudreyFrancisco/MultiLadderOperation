@@ -33,10 +33,7 @@ class TDeviceThresholdScan : public TDeviceMaskScan {
     
     /// number of steps on the injected charge during the scan
     unsigned int fNChargeSteps;
-    
-    /// pointer to current map of histograms (one per chip) of hit pixels
-    std::shared_ptr<TScanHisto> fScanHisto;
-    
+        
     /// list of histogram maps (one per step of the injected charge)
     std::deque<std::shared_ptr<TScanHisto>> fHistoQue;
     
@@ -77,10 +74,10 @@ public:
     void Go();
     
     /// write raw hit data to a text file
-    void WriteDataToFile( const char *fName, bool Recreate = true );
+    void WriteDataToFile( bool Recreate = true );
     
     /// draw and save threshold, noise and chi2/ndf distributions
-    void DrawAndSaveToFile( const char *fName );
+    void DrawAndSaveToFile();
 
 protected:
     

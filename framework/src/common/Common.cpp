@@ -43,7 +43,6 @@ bool common::SameChipIndex( const common::TChipIndex lhs, const common::TChipInd
     bool equality = false;
     if ( (lhs.boardIndex == rhs.boardIndex)
         && (lhs.dataReceiver == rhs.dataReceiver)
-        && (lhs.deviceType == rhs.deviceType)
         && (lhs.deviceId == rhs.deviceId)
         && (lhs.chipId == rhs.chipId) ) {
         equality = true;
