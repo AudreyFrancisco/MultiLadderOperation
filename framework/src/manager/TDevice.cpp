@@ -74,10 +74,6 @@ void TDevice::SetStartChipId( const unsigned int Id )
 //___________________________________________________________________
 void TDevice::SetUniqueBoardId( const unsigned int id )
 {
-    if ( IsConfigFrozen() ) {
-        cerr << "TDevice::SetUniqueBoardId() - not allowed: config already created !" << endl;
-        return;
-    }
     fUniqueBoardId = id;
 }
 
