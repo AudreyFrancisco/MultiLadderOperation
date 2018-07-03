@@ -55,19 +55,19 @@ void TMultiDeviceOperator::AddSetup( const std::string aConfigFileName )
     shared_ptr<TDevice> theDevice = mySetup->GetDevice();
     const int nBoards = theDevice->GetNBoards( false );
     if ( !nBoards ) {
-        cerr << "TMultiDeviceOperator::AddSetup() - " << fNDevices << " , config file " << aConfigFileName << endl;
+        cerr << "TMultiDeviceOperator::AddSetup() - #" << fNDevices << " , config file " << aConfigFileName << endl;
         throw runtime_error( "TMultiDeviceOperator::AddSetup() - No board found!" );
     }    
     const int nWorkingChips = theDevice->GetNWorkingChips();
     if ( !nWorkingChips ) {
-        cerr << "TMultiDeviceOperator::AddSetup() - " << fNDevices << ", config file " << aConfigFileName << endl;
+        cerr << "TMultiDeviceOperator::AddSetup() - #" << fNDevices << ", config file " << aConfigFileName << endl;
         throw runtime_error( "TMultiDeviceOperator::AddSetup() - No working chip found!" );
     }
 
     fSetups.push_back( move(mySetup) );
     fDevices.push_back( (fSetups.back())->GetDevice() );
     if ( GetVerboseLevel() > kTERSE ) {
-        cout << "TMultiDeviceOperator::AddSetup() - added setup " << fNDevices << " with config file " << aConfigFileName << endl;
+        cout << "TMultiDeviceOperator::AddSetup() - added setup #" << fNDevices << " with config file " << aConfigFileName << endl << endl;
     }
     fNDevices++;
 }
@@ -297,6 +297,7 @@ void TMultiDeviceOperator::DoTrigger( const int nTriggers )
                 exit( EXIT_FAILURE );
         }
     }
+    cout << "Motte :  TMultiDeviceOperator::DoTrigger()" << endl;
 }
 
 //___________________________________________________________________
