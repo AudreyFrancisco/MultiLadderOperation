@@ -78,7 +78,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     try {
         if ( fCurrentDevice->GetBoardType() != TBoardType::kBOARD_DAQ ) {
@@ -86,7 +86,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderOBSingleDAQ::InitSetup() - start" << endl;
@@ -98,7 +98,7 @@ void TDeviceBuilderOBSingleDAQ::InitSetup()
         FindDAQBoards();
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     if ( fCurrentDevice->GetNBoards( false ) != 1 ) {
         throw runtime_error( "TDeviceBuilderOBSingleDAQ::InitSetup() - Error in creating readout board object." );

@@ -38,6 +38,7 @@ protected:
   	int MasterSlaveModeOn; // default 1: activated; 0: off (backward compatibility with old firmware)
 	int MasterSlaveMode; // default 0: alone; 1: master; 2: slave
 	int TrgRecorderEnable; // default 0: disable trigger recording; 1: enable
+	int DeviceId; // the Id of the ladder (or stave) being read by the MOSAIC
     
     // Receiver map to data links
     static const int RCVMAP[];
@@ -65,6 +66,7 @@ public:
 	bool          IsInverted                () { return((bool)Inverted); }
     MosaicReceiverSpeed GetSpeedMode();
     int GetRCVMAP( const unsigned int i ) const;
+	int GetDeviceId() const { return DeviceId; }
 
 	// Setters
 	void SetIPaddress          (const char *AIPaddress);
@@ -81,6 +83,7 @@ public:
 	void SetTrgRecorderEnable  (const int ATrgRecorderEnable)              { TrgRecorderEnable = ATrgRecorderEnable; }
     void SetInvertedData       (const bool value)                          { Inverted = (int)value; }
 	void SetSpeedMode          (const MosaicReceiverSpeed ASpeedMode);
+	void SetDeviceId           (const int id)                              { DeviceId = id; }
 };
 
 #endif   /* BOARDCONFIGMOSAIC_H */

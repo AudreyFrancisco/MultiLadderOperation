@@ -18,7 +18,7 @@
 
 using namespace std;
 
-const string TSetup::NEWALPIDEVERSION = "2.02_mft";
+const string TSetup::NEWALPIDEVERSION = "2.1_mft";
 
 #pragma mark - Constructors/destructor
 
@@ -75,7 +75,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                 cout << "-c <configuration_file> : Sets the configuration file used" << endl << endl;
                 cout << "-n <nick_name> : Sets the nick name of the single chip on carrier board" << endl << endl;
                 cout << "-l <ladder_id> : Sets the ladder id (unsigned integer)" << endl;
-                exit(0);
+                exit( EXIT_FAILURE );
                 break;
             case 'v':  // sets the verbose level
                 SetVerboseLevel( atoi(optarg) );
@@ -103,7 +103,7 @@ void TSetup::DecodeCommandParameters(int argc, char **argv)
                         cerr << "Unknown option character `" << std::hex << optopt << std::dec << "`" << endl;
                     }
                 }
-                exit(0);
+                exit( EXIT_FAILURE );
             default:
                 return;
         }
@@ -130,7 +130,7 @@ void TSetup::ReadConfigFile()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     
     bool isConfigFrozen = false;
@@ -146,13 +146,13 @@ void TSetup::ReadConfigFile()
                 dt = ReadDeviceType( Rest );
             } catch ( std::runtime_error &err ) {
                 cerr << err.what() << endl;
-                exit(0);
+                exit( EXIT_FAILURE );
             }
             try {
                 InitDeviceBuilder( dt );
             } catch ( std::runtime_error &err ) {
                 cerr << err.what() << endl;
-                exit(0);
+                exit( EXIT_FAILURE );
             }
         }
         int nChips = 0;
@@ -180,7 +180,7 @@ void TSetup::ReadConfigFile()
             fDeviceBuilder->CreateDeviceConfig();
         } catch ( std::runtime_error &err ) {
             cerr << err.what() << endl;
-            exit(0);
+            exit( EXIT_FAILURE );
         }
         if ( fDevice ) {
             isConfigFrozen = fDevice->IsConfigFrozen();
@@ -360,7 +360,7 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
         fDeviceBuilder->SetDeviceType( dt );
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     fDevice = fDeviceBuilder->GetCurrentDevice();
     if ( (!fDeviceNickName.empty()) && (fDevice->GetNChips() == 1) ) {
@@ -370,6 +370,10 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
     if ( dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder) ) {
         // restricted to MFT ladders
         dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder)->SetDeviceId( fdeviceId );
+    }
+    if ( dynamic_pointer_cast<TDeviceBuilderIB>(fDeviceBuilder) ) {
+        // restricted to IB hic
+        dynamic_pointer_cast<TDeviceBuilderIB>(fDeviceBuilder)->SetDeviceId( fdeviceId );
     }
 }
 
@@ -389,7 +393,7 @@ void TSetup::SetConfigFileName( const string name )
             }
         } catch ( std::invalid_argument &err ) {
             cerr << err.what() << endl;
-            exit(0);
+            exit( EXIT_FAILURE );
         }
     }
 }

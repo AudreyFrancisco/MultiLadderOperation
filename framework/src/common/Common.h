@@ -62,6 +62,9 @@ namespace common {
     /// dump to screen the id
     extern void DumpId( const TChipIndex aChipIndex );
 
+    /// dump to screen the id
+    extern void DumpDeviceId( const TChipIndex aChipIndex );
+
     /// id of the last region of the chip
     const unsigned int MAX_REGION = 31;  // [0 .. 31] 32 regions
     

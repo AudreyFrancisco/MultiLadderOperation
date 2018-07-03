@@ -14,6 +14,7 @@
 
 #include "TDeviceMaskScan.h"
 #include <deque>
+#include <map>
 
 class TScanConfig;
 class TScanHisto;

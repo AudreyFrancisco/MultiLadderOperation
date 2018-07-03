@@ -25,7 +25,8 @@ TDevice::TDevice() : TVerbosity(),
     fBoardType( TBoardType::kBOARD_UNKNOWN ),
     fDeviceType( TDeviceType::kUNKNOWN ),
     fNickName( "" ),
-    fDeviceId( 0 )
+    fDeviceId( 0 ),
+    fUniqueBoardId( 0 )
 { }
 
 //___________________________________________________________________
@@ -69,6 +70,13 @@ void TDevice::SetStartChipId( const unsigned int Id )
     }
     fStartChipId = Id;
 }
+
+//___________________________________________________________________
+void TDevice::SetUniqueBoardId( const unsigned int id )
+{
+    fUniqueBoardId = id;
+}
+
 
 //___________________________________________________________________
 void TDevice::SetBoardType( const TBoardType bt )

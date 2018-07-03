@@ -44,6 +44,9 @@ public:
     #pragma mark - init / terminate
     virtual void Init();
     virtual void Terminate();
+
+    // getter
+    bool IsInitDone() const { return fIsInitDone; }
     
     #pragma mark - forward operations to each Alpide in the device
     void DoActivateConfigMode();

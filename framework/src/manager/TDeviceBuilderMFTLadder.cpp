@@ -117,7 +117,7 @@ void TDeviceBuilderMFTLadder::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     try {
         if ( fCurrentDevice->GetBoardType() != TBoardType::kBOARD_MOSAIC ) {
@@ -125,7 +125,7 @@ void TDeviceBuilderMFTLadder::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     if ( GetVerboseLevel() > kTERSE ) {
         cout << "TDeviceBuilderMFTLadder::InitSetup() - start" << endl;
@@ -191,12 +191,21 @@ void TDeviceBuilderMFTLadder::InitSetup()
         fCurrentDevice->AddChip( alpide );
         (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
     }
+
+    // Check if the device id was given when TSetup or in the config file.
+    // We assume that the non-zero device id in the config file must be used if no 
+    // id was given when TSetup (i.e. the device id still has its default value).
+    const unsigned int configDeviceId = boardConfig->GetDeviceId();
+    if ( (fCurrentDevice->GetDeviceId() == 0) && (configDeviceId != 0)  ) {
+        fCurrentDevice->SetDeviceId( configDeviceId );
+    }
+
     fCurrentDevice->EnableClockOutputs( true );
     try {
         CheckControlInterface();
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderMFTLadder::InitSetup() - end" << endl;

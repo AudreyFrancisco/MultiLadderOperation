@@ -61,7 +61,8 @@ void TDeviceFifoTest::Go()
         fErrCount5 = (MAX_REGION+1)*(MAX_OFFSET+1);
         fErrCountF = (MAX_REGION+1)*(MAX_OFFSET+1);
 
-        fIdx.boardIndex = fDevice->GetBoardIndexByChip(fCurrentChipIndex);
+        //fIdx.boardIndex = fDevice->GetBoardIndexByChip(fCurrentChipIndex);
+        fIdx.boardIndex = fDevice->GetUniqueBoardId();
         fIdx.dataReceiver = fDevice->GetChipReceiverById( fDevice->GetChip(fCurrentChipIndex)->GetChipId() );
         fIdx.deviceType = fDevice->GetDeviceType();
         fIdx.deviceId = fDevice->GetDeviceId();

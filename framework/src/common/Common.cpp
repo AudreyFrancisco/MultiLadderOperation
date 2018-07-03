@@ -83,6 +83,20 @@ void common::DumpId( const TChipIndex aChipIndex )
 }
 
 //___________________________________________________________________
+void common::DumpDeviceId( const TChipIndex aChipIndex )
+{
+    if ( common::IsMFTladder(aChipIndex) ) cout << "[board.ladder] = [" ;
+    else {
+            if ( common::IsIBhic(aChipIndex) ) cout << "[board.ibhic] = [" ;
+            else cout << "[board] = ["; 
+        }
+    cout << aChipIndex.boardIndex;
+    if ( common::IsMFTladder(aChipIndex) || common::IsIBhic(aChipIndex) )
+        cout << "." << aChipIndex.deviceId;
+    cout << "]" ;
+}
+
+//___________________________________________________________________
 int common::GetMapIntIndex( const common::TChipIndex idx )
 {
     int int_index =  (idx.deviceId << 12)

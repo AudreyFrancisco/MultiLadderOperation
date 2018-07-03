@@ -3,10 +3,11 @@
  *
  * \note
  * The default configuration file for this test for a MFT ladder is 
- * ConfigMFTladder_NoiseOccScan.cfg
+ * ConfigMFTladder_NoiseOccScan.cfg for an internal trigger. For an external trigger,
+ * please use ConfigMFTladder_NoiseOccScan_ext.cfg
  *
  * \warning
- * The current code can not correctly handle a number N > 1 of readout boards
+ * The current code can not correctly handle a number N > 1 of readout boards per device
  * (currently only one is written). See for e.g. TDeviceBuilder::SetDeviceParamValue().
  * For MFT, this is enough since the implemented device types (the different
  * types of MFT ladders) only need one readout board to be entirely read.
