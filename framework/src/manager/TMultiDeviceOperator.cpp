@@ -22,9 +22,7 @@ fScanType( MultiDeviceScanType::kNOISE_OCC_SCAN ),
 fNDevices( 0 ),
 fIsAdmissionClosed( false ),
 fIsInitDone( false )
-{
-    SetVerboseLevel( 2 );
-}
+{ }
 
 //___________________________________________________________________
 TMultiDeviceOperator::~TMultiDeviceOperator()
