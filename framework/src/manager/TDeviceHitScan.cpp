@@ -143,6 +143,10 @@ void TDeviceHitScan::Init()
     } else {
         fProduceTTree = false;
     }
+    shared_ptr<TReadoutBoardMOSAIC> myMOSAICboard = dynamic_pointer_cast<TReadoutBoardMOSAIC>(fDevice->GetBoard(0));
+    if ( GetVerboseLevel() > kTERSE ) {
+        myMOSAICboard->DumpConfig();
+    }
 }
 
 //___________________________________________________________________
@@ -176,6 +180,7 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
     unsigned int nTrials = 0;
     uint32_t trgNum = 0;
 	uint64_t trgTime = 0;
+    unsigned int uniqueBoardId = fDevice->GetUniqueBoardId(); 
 
     if ( nTriggers <= 0 ) nTriggers = fNTriggers;
     
@@ -192,7 +197,7 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
             if ( nTrials == TDeviceHitScan::MAXTRIALS ) {
                 if ( GetVerboseLevel() > kSILENT ) {
                     cout << "TDeviceHitScan::ReadEventData() - board "
-                    << std::dec << iboard
+                    << std::dec << uniqueBoardId
                     << " , reached " << nTrials
                     << " timeouts, giving up on this point." << endl;
                 }
@@ -217,7 +222,7 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
                     trgTime = myMOSAIC->GetTriggerTime();
                     if ( GetVerboseLevel() > kULTRACHATTY ) {
                         cout << "TDeviceHitScan::ReadEventData() - board " 
-                             << std::dec << iboard << " trigger recorded " 
+                             << std::dec << uniqueBoardId << " trigger recorded " 
                              << trgNum << " @ " << trgTime << endl;
                     }
                     continue;
@@ -235,7 +240,7 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
 
             if ( GetVerboseLevel() > kVERBOSE ) {
                 cout << "TDeviceHitScan::ReadEventData() - board "
-                << std::dec << iboard
+                << std::dec << uniqueBoardId
                 << " , received event " << itrg << " with length "
                 << n_bytes_data << endl;
                 for ( int iByte = 0; iByte < n_bytes_data; ++iByte ) {
@@ -257,7 +262,7 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
             if ( !isOk ) {
                 if ( GetVerboseLevel() > kSILENT ) {
                     cout << "TDeviceHitScan::ReadEventData() - board "
-                    << std::dec << iboard
+                    << std::dec << uniqueBoardId
                     << " , found bad event " << endl;
                 }
                 fErrorCounter->IncrementNCorruptEvent();

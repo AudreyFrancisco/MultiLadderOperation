@@ -120,6 +120,7 @@ public:
     void SendBroadcastReset();
     void SendBroadcastROReset();
     void SendBroadcastBCReset();
+    void DumpConfig();
 
 private:
 	void init();
