@@ -40,6 +40,16 @@ void TDeviceBuilderIB::SetDeviceType( const TDeviceType dt )
 }
 
 //___________________________________________________________________
+void TDeviceBuilderIB::SetDeviceId( const unsigned int number )
+{
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TDeviceBuilderIB::SetDeviceId() - " << number << endl;
+    }
+    fCurrentDevice->SetDeviceId( number );
+}
+
+
+//___________________________________________________________________
 void TDeviceBuilderIB::SetVerboseLevel( const int level )
 {
     if ( level > kTERSE ) {
@@ -144,6 +154,14 @@ void TDeviceBuilderIB::InitSetup()
         alpide->SetReadoutBoard( fCurrentDevice->GetBoard(0) );
         fCurrentDevice->AddChip( alpide );
         (fCurrentDevice->GetBoard(0))->AddChipConfig( chipConfig );
+    }
+
+    // Check if the device id was given when TSetup or in the config file.
+    // We assume that the non-zero device id in the config file must be used if no 
+    // id was given when TSetup (i.e. the device id still has its default value).
+    const unsigned int configDeviceId = boardConfig->GetDeviceId();
+    if ( (fCurrentDevice->GetDeviceId() == 0) && (configDeviceId != 0)  ) {
+        fCurrentDevice->SetDeviceId( configDeviceId );
     }
 
     fCurrentDevice->EnableClockOutputs( true );

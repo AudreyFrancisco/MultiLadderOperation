@@ -371,6 +371,10 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
         // restricted to MFT ladders
         dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder)->SetDeviceId( fdeviceId );
     }
+    if ( dynamic_pointer_cast<TDeviceBuilderIB>(fDeviceBuilder) ) {
+        // restricted to IB hic
+        dynamic_pointer_cast<TDeviceBuilderIB>(fDeviceBuilder)->SetDeviceId( fdeviceId );
+    }
 }
 
 //___________________________________________________________________
