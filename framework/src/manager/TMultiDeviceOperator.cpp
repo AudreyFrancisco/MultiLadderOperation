@@ -22,7 +22,7 @@ fNDevices( 0 ),
 fIsAdmissionClosed( false ),
 fIsInitDone( false )
 {
-
+    SetVerboseLevel( 2 );
 }
 
 //___________________________________________________________________
