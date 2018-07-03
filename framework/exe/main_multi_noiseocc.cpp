@@ -19,15 +19,20 @@
 
 using namespace std;
 
-// Example of usage :
-// ./test_multi_digitalscan 
+// Example of usage : for a verbosity level 3
+// ./test_multi_digitalscan 3
 //
 
-int main() {
-//int main(int argc, char** argv) {
+int main(int argc, char** argv) {
 
     TMultiDeviceOperator myOperator;
     myOperator.SetScanType( MultiDeviceScanType::kNOISE_OCC_SCAN );
+    if ( argc >= 2 ) {
+        const int level = atoi(argv[1]);
+        myOperator.SetVerboseLevel( level );
+    } else {
+        myOperator.SetVerboseLevel( 2 );
+    }
 
     char suffix[20], fName[100];
     
