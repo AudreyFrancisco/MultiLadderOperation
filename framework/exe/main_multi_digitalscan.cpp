@@ -34,11 +34,13 @@ int main() {
     time_t       t = time(0);   // get time now
     struct tm *now = localtime( & t );
     sprintf(suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
-    sprintf(fName, "digitalScan_%s.dat", suffix);
+    sprintf(fName, "multidigitalScan_%s.dat", suffix);
     myOperator.SetPrefixFilename( fName );
     try {
         myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_DigitalScan.cfg");
         myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder1.cfg");
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder2.cfg");
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder3.cfg");
         myOperator.CloseAdmission();
         myOperator.Go();
         myOperator.Terminate();
