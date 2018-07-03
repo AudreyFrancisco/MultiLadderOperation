@@ -50,8 +50,8 @@ void TStorePixHit::SetNames( const char *baseName,
     // name of the output ROOT file
     SetFileName( prefix.c_str(), aChipIndex );
 
-    // name and title of the TTree
-    SetTreeNameAndTitle( aChipIndex );
+    // title of the TTree
+    SetTreeTitle( aChipIndex );
 }
 
 //___________________________________________________________________
@@ -64,7 +64,7 @@ void TStorePixHit::SetCyclicAutoSave( long nEntries )
 //___________________________________________________________________
 void TStorePixHit::Init()
 {
-    if ( fOutFileName.empty() || fTreeName.empty() || fTreeTitle.empty() ) {
+    if ( fOutFileName.empty() || fTreeTitle.empty() ) {
         throw runtime_error( "TStorePixHit::Init() - empty output names ! Please use SetNames() first." );
     }
     if ( !fFile ) {
@@ -77,9 +77,9 @@ void TStorePixHit::Init()
     }
     if ( !fTree ) {
         if ( GetVerboseLevel() > kTERSE ) {
-            cout << "TStorePixHit::Init() - creating tree named " << fTreeName << endl;
+            cout << "TStorePixHit::Init() - creating tree in file " << fOutFileName << endl;
         }
-        fTree = new TTree( fTreeName.c_str(), fTreeTitle.c_str() );
+        fTree = new TTree( "pixTree", fTreeTitle.c_str() );
         fTree->Branch( "fData", &fData, 
                         "boardIndex/i:dataReceiver/i:deviceType/i:deviceId/i:chipId/i:row/i:col/i:bunchNum/i:trgNum/i:trgTime/l" );
         fTree->SetAutoSave( fNEntriesAutoSave ); // flush the TTree to disk every N entries
@@ -159,21 +159,8 @@ void TStorePixHit::SetFileName( string prefix, const common::TChipIndex aChipInd
 }
 
 //___________________________________________________________________
-void TStorePixHit::SetTreeNameAndTitle( const common::TChipIndex aChipIndex )
+void TStorePixHit::SetTreeTitle( const common::TChipIndex aChipIndex )
 {
-    fTreeName = "tree";
-    fTreeName += "-B";
-    fTreeName += std::to_string( aChipIndex.boardIndex );
-    if ( common::IsMFTladder(aChipIndex) || common::IsIBhic(aChipIndex) ) {
-        if ( common::IsMFTladder(aChipIndex) ) {
-            fTreeName += "-ladder";
-        }
-        if ( common::IsIBhic(aChipIndex) ) {
-            fTreeName += "-ibhic";
-        }
-        fTreeName += std::to_string( aChipIndex.deviceId );
-    }
-
     fTreeTitle = "Events ";
     fTreeTitle += " Board ";
     fTreeTitle += std::to_string( aChipIndex.boardIndex );
