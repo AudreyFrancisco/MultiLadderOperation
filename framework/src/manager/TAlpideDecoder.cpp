@@ -500,7 +500,9 @@ void TAlpideDecoder::FillHistoWithEvent()
 
             fScanHisto->Incr(idx, dcol, addr);
             if ( fStorePixHit->IsInitOk() ) {
-                fStorePixHit->Fill( fHits.at(i) );
+                shared_ptr<TPixHit> singleHit( new TPixHit( fHits.at(i) ) ); // deep copy
+                singleHit->SetBoardIndex( fDevice->GetUniqueBoardId() );
+                fStorePixHit->Fill( singleHit );
             }
             if ( GetVerboseLevel() > kULTRACHATTY ) {
                 cout << "TAlpideDecoder::FillHistoEvent() - add hit" << endl;

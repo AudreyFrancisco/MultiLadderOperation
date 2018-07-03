@@ -66,6 +66,7 @@ void TMultiDeviceOperator::AddSetup( const std::string aConfigFileName )
 
     fSetups.push_back( move(mySetup) );
     fDevices.push_back( (fSetups.back())->GetDevice() );
+    (fDevices.back())->SetUniqueBoardId( fNDevices );
     if ( GetVerboseLevel() > kTERSE ) {
         cout << "TMultiDeviceOperator::AddSetup() - added setup #" << fNDevices << " with config file " << aConfigFileName << endl << endl;
     }
@@ -297,7 +298,6 @@ void TMultiDeviceOperator::DoTrigger( const int nTriggers )
                 exit( EXIT_FAILURE );
         }
     }
-    cout << "Motte :  TMultiDeviceOperator::DoTrigger()" << endl;
 }
 
 //___________________________________________________________________

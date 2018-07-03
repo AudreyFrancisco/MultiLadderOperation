@@ -49,7 +49,8 @@ class TDevice : public TVerbosity {
     std::vector<std::shared_ptr<TChipConfig>> fChipConfigs;
     std::vector<unsigned int> fNWorkingChipsPerBoard;
     std::vector<common::TChipIndex> fWorkingChipIndexList;
-    
+    unsigned int fUniqueBoardId; // will be populated when multi-device operations with MOSAIC
+
 public:
     // Constructors/destructor
     TDevice();
@@ -59,6 +60,7 @@ public:
     void SetNChips( const unsigned int number );
     void SetNModules( const unsigned int number );
     void SetStartChipId( const unsigned int Id );
+    void SetUniqueBoardId( const unsigned int id );
     void SetBoardType( const TBoardType bt );
     void SetDeviceType( const TDeviceType dt );
     void SetNickName( const std::string name );
@@ -116,6 +118,7 @@ public:
     bool                            IsValidChipIndex( const common::TChipIndex idx ) const;
     bool                            IsValidChipId( const unsigned int chipId ) const;
     int                             GetChipReceiverById( const unsigned int chipId );
+    unsigned int                    GetUniqueBoardId() const { return fUniqueBoardId; }
     
 };
 

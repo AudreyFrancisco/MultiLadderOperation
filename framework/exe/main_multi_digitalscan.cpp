@@ -23,7 +23,8 @@ using namespace std;
 // ./test_multi_digitalscan 
 //
 
-int main(int argc, char** argv) {
+int main() {
+//int main(int argc, char** argv) {
 
     TMultiDeviceOperator myOperator;
     myOperator.SetScanType( MultiDeviceScanType::kDIGITAL_SCAN );
