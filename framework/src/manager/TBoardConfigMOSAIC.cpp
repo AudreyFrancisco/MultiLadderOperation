@@ -28,11 +28,12 @@ TBoardConfigMOSAIC::TBoardConfigMOSAIC( const char *AConfigFileName ) : TBoardCo
   	MasterSlaveModeOn = (int)MosaicBoardConfig::DEF_MASTERSLAVEMODEENABLE;
 	MasterSlaveMode = (int)MosaicBoardConfig::DEF_MASTERSLAVEMODE; 
 	TrgRecorderEnable = (int)MosaicBoardConfig::DEF_TRGRECORDERENABLE;
+	DeviceId = 0;
 
 	if (AConfigFileName) { // Read Configuration file
 		try {
 			if(AConfigFileName == NULL || strlen(AConfigFileName) == 0) throw std::invalid_argument("TBoardConfigMOSAIC::TBoardConfigMOSAIC() - invalid filename");
-			fhConfigFile = fopen(AConfigFileName,"r"); // opens the file
+				fhConfigFile = fopen(AConfigFileName,"r"); // opens the file
 			} catch (...) {
 				throw std::invalid_argument("TBoardConfigMOSAIC::TBoardConfigMOSAIC() - file does not exist !");
 			}
@@ -64,6 +65,7 @@ void TBoardConfigMOSAIC::InitParamMap()
   	fSettings["MASTERSLAVEMODEON"]         = &MasterSlaveModeOn;
 	fSettings["MASTERSLAVEMODE"]           = &MasterSlaveMode;
 	fSettings["TRGRECORDERENABLE"]         = &TrgRecorderEnable;
+	fSettings["DEVICEID"]                  = &DeviceId;
   
 	TBoardConfig::InitParamMap();
 }

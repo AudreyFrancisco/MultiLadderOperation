@@ -15,6 +15,7 @@
 #include <vector>
 #include "TDeviceChipVisitor.h"
 #include "Common.h"
+#include "TMultiDeviceOperator.h"
 
 class TScanConfig;
 class TScanHisto;
@@ -103,6 +104,9 @@ public:
     
     /// draw and save hit map or distributions
     virtual void DrawAndSaveToFile() = 0;
+
+    /// return the current number of hits seen by the alpide decoder
+    unsigned int GetNHits() const;
     
 protected:
     
@@ -126,12 +130,11 @@ protected:
     
     /// stop the readout
     void StopReadout();
-
-    /// global reset + read out reset + bunch crossing counter reset
-    void DoBroadcastReset();
     
     /// check if there is any hit for the requested chip index
     virtual bool HasData( const common::TChipIndex idx ) = 0;
+
+    friend void TMultiDeviceOperator::ReadEventDataByDevice( const unsigned int id, const int nTriggers );
 
 };
 

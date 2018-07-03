@@ -54,13 +54,13 @@ TAlpideDecoder::TAlpideDecoder( shared_ptr<TDevice> aDevice,
         SetDevice( aDevice );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     try {
         SetErrorCounter( anErrorCounter );
     } catch ( exception& msg ) {
         cerr << msg.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
 }
 

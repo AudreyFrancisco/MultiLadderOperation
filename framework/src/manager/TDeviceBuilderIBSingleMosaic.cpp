@@ -85,7 +85,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     try {
         if ( fCurrentDevice->GetBoardType() != TBoardType::kBOARD_MOSAIC ) {
@@ -93,7 +93,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     if ( GetVerboseLevel() > kTERSE ) {
         cout << "TDeviceBuilderIBSingleMosaic::InitSetup() - start" << endl;
@@ -148,7 +148,7 @@ void TDeviceBuilderIBSingleMosaic::InitSetup()
         CheckControlInterface();
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
 
     if ( GetVerboseLevel() > kTERSE ) {

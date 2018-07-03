@@ -90,7 +90,7 @@ void TDeviceBuilderHalfStave::InitSetup()
         }
     } catch (std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     try {
         if ( fCurrentDevice->GetBoardType() != TBoardType::kBOARD_MOSAIC ) {
@@ -98,7 +98,7 @@ void TDeviceBuilderHalfStave::InitSetup()
         }
     } catch ( std::runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     if ( fVerboseLevel > kTERSE ) {
         cout << "TDeviceBuilderHalfStave::InitSetup() - start" << endl;
@@ -135,7 +135,7 @@ void TDeviceBuilderHalfStave::InitSetup()
         CheckControlInterface();
     } catch ( runtime_error &err ) {
         cerr << err.what() << endl;
-        exit(0);
+        exit( EXIT_FAILURE );
     }
     sleep(5);
     MakeDaisyChain();

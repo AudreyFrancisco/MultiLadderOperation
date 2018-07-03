@@ -87,6 +87,7 @@ foreach (EXECNAME
     roottest
     thresholdscan
     noiseocc
+    multi_digitalscan
 #    scantest
 #    dacscan
 #    noiseocc_ext
