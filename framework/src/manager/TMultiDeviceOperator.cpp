@@ -11,6 +11,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
+#include "Common.h"
 
 using namespace std;
 
@@ -328,6 +329,14 @@ void TMultiDeviceOperator::ReadEventData(  const int nTriggers )
 void TMultiDeviceOperator::TerminateDigitalScan()
 {
     for ( unsigned int id = 0; id < fDeviceOperators.size(); id++ ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            common::TChipIndex aChipIndex = (fDevices.at(id))->GetWorkingChipIndex(0);
+            aChipIndex.boardIndex = id;
+            cout << "TMultiDeviceOperator::TerminateDigitalScan() - " ;
+            common::DumpDeviceId( aChipIndex );
+            cout << " -------------------------------" << endl;
+
+        }
         shared_ptr<TDeviceDigitalScan> myDeviceTestor = dynamic_pointer_cast<TDeviceDigitalScan>(fDeviceOperators.at(id));
         myDeviceTestor->Terminate();
         const bool Recreate = true;
@@ -341,6 +350,14 @@ void TMultiDeviceOperator::TerminateDigitalScan()
 void TMultiDeviceOperator::TerminateNoiseOccScan()
 {
     for ( unsigned int id = 0; id < fDeviceOperators.size(); id++ ) {
+        if ( GetVerboseLevel() > kTERSE ) {
+            common::TChipIndex aChipIndex = (fDevices.at(id))->GetWorkingChipIndex(0);
+            aChipIndex.boardIndex = id;
+            cout << "TMultiDeviceOperator::TerminateNoiseOccScan() - " ;
+            common::DumpDeviceId( aChipIndex );
+            cout << " -------------------------------" << endl;
+
+        }
         shared_ptr<TDeviceOccupancyScan> myDeviceTestor = dynamic_pointer_cast<TDeviceOccupancyScan>(fDeviceOperators.at(id));
         myDeviceTestor->Terminate();
         const bool Recreate = true;
