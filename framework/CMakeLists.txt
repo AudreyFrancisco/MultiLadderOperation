@@ -88,7 +88,10 @@ foreach (EXECNAME
     thresholdscan
     noiseocc
     multi_digitalscan
-    multi_noiseocc
+    multi_noiseocc_ext
+    multi_noiseocc_int
+    multi_noiseocc_ext_BB3
+    multi_noiseocc_int_BB3
 #    scantest
 #    dacscan
 #    noiseocc_ext
