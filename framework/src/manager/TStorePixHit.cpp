@@ -83,6 +83,7 @@ void TStorePixHit::Init()
         fTree->Branch( "fData", &fData, 
                         "boardIndex/i:dataReceiver/i:deviceType/i:deviceId/i:chipId/i:row/i:col/i:bunchNum/i:trgNum/i:trgTime/l" );
         fTree->SetAutoSave( fNEntriesAutoSave ); // flush the TTree to disk every N entries
+        fTree->SetDirectory( fFile );
     }
     fSuccessfulInit = true;
 }
