@@ -37,6 +37,15 @@ void TDeviceBuilder::CreateDevice()
 }
 
 //___________________________________________________________________
+void TDeviceBuilder::SetDeviceId( const unsigned int number )
+{
+    if ( GetVerboseLevel() > kTERSE ) {
+        cout << "TDeviceBuilder::SetDeviceId() - " << number << endl;
+    }
+    fCurrentDevice->SetDeviceId( number );
+}
+
+//___________________________________________________________________
 void TDeviceBuilder::SetDeviceType( const TDeviceType dt )
 {
     if ( !fCurrentDevice ) {

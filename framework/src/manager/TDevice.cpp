@@ -114,6 +114,9 @@ void TDevice::SetDeviceId( const unsigned int number )
     if ( IsSetupFrozen() ) {
         cerr << "TDevice::SetDeviceId() - not allowed: setup already done !" << endl;
         return;
+    } 
+    if ( GetVerboseLevel() > kSILENT ) {
+        cout << "TDevice::SetDeviceId() - " << number << endl;
     }
     fDeviceId = number;
 }

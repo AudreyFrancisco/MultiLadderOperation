@@ -26,6 +26,7 @@ const string TSetup::NEWALPIDEVERSION = "2.2_mft";
 TSetup::TSetup() : TVerbosity(),
     fConfigFileName( "../config/ConfigSingleChipMOSAIC.cfg" ),
     fDeviceNickName( "" ),
+    fdeviceId( 0 ),
     fConfigFile( nullptr ),
     fDeviceBuilder( nullptr ),
     fDevice( nullptr ),
@@ -367,14 +368,7 @@ void TSetup::InitDeviceBuilder( TDeviceType dt )
         // restricted to single chips on carrier board
         fDeviceBuilder->SetDeviceNickName( fDeviceNickName );
     }
-    if ( dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder) ) {
-        // restricted to MFT ladders
-        dynamic_pointer_cast<TDeviceBuilderMFTLadder>(fDeviceBuilder)->SetDeviceId( fdeviceId );
-    }
-    if ( dynamic_pointer_cast<TDeviceBuilderIB>(fDeviceBuilder) ) {
-        // restricted to IB hic
-        dynamic_pointer_cast<TDeviceBuilderIB>(fDeviceBuilder)->SetDeviceId( fdeviceId );
-    }
+    fDeviceBuilder->SetDeviceId( fdeviceId );
 }
 
 //___________________________________________________________________
