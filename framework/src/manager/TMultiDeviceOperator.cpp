@@ -314,13 +314,18 @@ void TMultiDeviceOperator::ReadEventDataByDevice( const unsigned int id, const i
 //___________________________________________________________________
 void TMultiDeviceOperator::ReadEventData(  const int nTriggers )
 {
-    vector<thread> datathread;
     for ( unsigned int id = 0; id < fDeviceOperators.size(); id++ ) {
-        datathread.push_back( thread( &TMultiDeviceOperator::ReadEventDataByDevice, this, id, nTriggers ) );
+        fReadingThreadList.push_back( thread( &TMultiDeviceOperator::ReadEventDataByDevice, this, id, nTriggers ) );
     }
-    for ( auto &t : datathread ) {
+    for ( auto &t : fReadingThreadList ) {
         t.join();
     }
+    for ( unsigned int i = 0; i < fReadingThreadList.size(); i++ ) {
+        if ( (fReadingThreadList.at(i)).joinable() ) {
+            (fReadingThreadList.at(i)).detach();
+        } 
+    }
+    fReadingThreadList.clear();
 }
 
 //___________________________________________________________________

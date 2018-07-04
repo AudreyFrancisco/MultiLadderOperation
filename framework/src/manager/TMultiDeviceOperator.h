@@ -18,6 +18,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <thread>
 #include "TVerbosity.h"
 
 class TDevice;
@@ -41,6 +42,10 @@ private:
 
     /// vector of operators on the devices, owned by the class
     std::vector<std::shared_ptr<TDeviceHitScan>> fDeviceOperators;
+
+    /// vector of threads
+    std::vector<std::thread> fReadingThreadList;  
+    
 
     /// type of scan to be performed on all devices
     MultiDeviceScanType fScanType;
