@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <thread>
 #include "Common.h"
+#include "TROOT.h"
+//#include <ROOT/TThreadExecutor.hxx>
 
 using namespace std;
 
@@ -87,6 +89,13 @@ void TMultiDeviceOperator::CloseAdmission()
     if ( GetVerboseLevel() > kTERSE ) {
         cout << "TMultiDeviceOperator::CloseAdmission() - found  " << fNDevices << " devices" << endl;
     }
+    const unsigned int nthreads = fNDevices;
+    ROOT::EnableImplicitMT(nthreads);
+    ROOT::EnableThreadSafety(); 	
+    gROOT->SetBatch();
+    // Create the pool of workers
+    //ROOT::TThreadExecutor pool(nThreads);
+
     for ( unsigned int i = 0; i < fNDevices; i++ ) {
         
         shared_ptr<TDevice> theDevice = (fSetups.at(i))->GetDevice();
