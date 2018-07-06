@@ -276,12 +276,12 @@ void TPixHit::DumpPixHit( const bool with_reminder )
             || (fDeviceType ==  TDeviceType::kMFT_LADDER4)
             || (fDeviceType ==  TDeviceType::kMFT_LADDER3)
             || (fDeviceType ==  TDeviceType::kMFT_LADDER2) ) {
-            cout << "\t [trgNum @ trgTime] board.receiver.ladder / chip / region.col.add (flag) \n" ;
+            cout << "\t [trgNum @ trgTime] board.receiver.ladder / chip / region.row.col (flag) \n" ;
         } else {
             if ( fDeviceType ==  TDeviceType::kIBHIC ) {
-                cout << "\t [trgNum @ trgTime] board.receiver.ibhic / chip / region.col.add (flag) \n" ;
+                cout << "\t [trgNum @ trgTime] board.receiver.ibhic / chip / region.row.col (flag) \n" ;
             } else {
-                cout << "\t [trgNum @ trgTime] board.receiver / chip / region.col.add (flag) \n" ;
+                cout << "\t [trgNum @ trgTime] board.receiver / chip / region.row.col (flag) \n" ;
             }
         }
     }
