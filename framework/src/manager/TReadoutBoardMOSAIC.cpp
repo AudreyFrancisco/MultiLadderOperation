@@ -502,7 +502,30 @@ void TReadoutBoardMOSAIC::SendBroadcastBCReset()
 	}
 }
 
-
+//___________________________________________________________________
+void TReadoutBoardMOSAIC::DumpConfig()
+{
+    shared_ptr<TBoardConfigMOSAIC> spBoardConfig = fBoardConfig.lock();
+    cout << "TReadoutBoardMOSAIC::DumpConfig() ---------------------------" << endl;
+    cout << "TCPPORTNUMBER             = " << spBoardConfig->GetTCPport() << endl; 
+	cout << "NUMBEROFCONTROLINTERFACES = " << spBoardConfig->GetCtrlInterfaceNum() << endl;
+	cout << "CONTROLINTERFACEPHASE     = " << spBoardConfig->GetCtrlInterfacePhase() << endl;
+	cout << "CONTROLAFTHRESHOLD        = " << spBoardConfig->GetCtrlAFThreshold() << endl;
+	cout << "CONTROLLATENCYMODE        = " << spBoardConfig->GetCtrlLatMode() << endl;
+	cout << "CONTROLTIMEOUT            = " << spBoardConfig->GetCtrlTimeout() << endl;
+	cout << "POLLINGDATATIMEOUT        = " << spBoardConfig->GetPollingDataTimeout() << endl;
+	cout << "DATALINKPOLARITY          = " << spBoardConfig->IsInverted() << endl;
+	cout << "DATALINKSPEED             = " << (int)spBoardConfig->GetSpeedMode() << endl;
+	cout << "MANCHESTERDISABLED        = " << spBoardConfig->GetManchesterDisable() << endl;
+  	cout << "MASTERSLAVEMODEON         = " << spBoardConfig->IsMasterSlaveModeOn() << endl;
+	cout << "MASTERSLAVEMODE           = " << spBoardConfig->GetMasterSlaveMode() << endl;
+	cout << "TRGRECORDERENABLE         = " << spBoardConfig->IsTrgRecorderEnable() << endl;
+    cout << "STROBEDELAYBOARD          = " << spBoardConfig->GetTriggerDelay() << endl;
+    cout << "PULSEDELAY                = " << spBoardConfig->GetPulseDelay() << endl;
+    cout << "TRIGGERSOURCE             = " << (int)spBoardConfig->GetTriggerSource() << endl;
+	cout << "DEVICEID                  = " << spBoardConfig->GetDeviceId() << endl;
+    cout << "TReadoutBoardMOSAIC::DumpConfig() ---------------------------" << endl << endl;
+}
 
 #pragma mark - private methods
 
@@ -563,13 +586,44 @@ void TReadoutBoardMOSAIC::init()
     
     if ( spBoardConfig->IsMasterSlaveModeOn() ) {
         try {
+            if ( GetVerboseLevel() > kSILENT ) {
+                cout << "TReadoutBoardMOSAIC::init() - MCoordinator mode = ";
+            }
             // Master/Slave coordinator
             fCoordinator = make_unique<MCoordinator>(mIPbus, WbbBaseAddress::add_coordinator);
             switch ( (int)spBoardConfig->GetMasterSlaveMode() ) {
-                case 0 : fCoordinator->setMode(MCoordinator::Alone);  break;
-                case 1 : fCoordinator->setMode(MCoordinator::Master); break;
-                case 2 : fCoordinator->setMode(MCoordinator::Slave);  break;
-                default : fCoordinator->setMode(MCoordinator::Alone); break;
+                case 0 : 
+                    { 
+                        fCoordinator->setMode(MCoordinator::Alone);  
+                        if ( GetVerboseLevel() > kSILENT ) {
+                            cout << "Alone " << endl;
+                        }
+                        break; 
+                    }
+                case 1 : 
+                    { 
+                        fCoordinator->setMode(MCoordinator::Master); 
+                        if ( GetVerboseLevel() > kSILENT ) {
+                            cout << "Master " << endl;
+                        }
+                        break; 
+                    }
+                case 2 : 
+                    { 
+                        fCoordinator->setMode(MCoordinator::Slave);  
+                        if ( GetVerboseLevel() > kSILENT ) {
+                            cout << "Slave " << endl;
+                        }
+                        break; 
+                    }
+                default : 
+                    { 
+                        fCoordinator->setMode(MCoordinator::Alone); 
+                        if ( GetVerboseLevel() > kSILENT ) {
+                            cout << "Slave " << endl;
+                        }
+                        break; 
+                    }
             }
         } catch (...) {
             throw runtime_error( "TReadoutBoardMOSAIC::init() - Could not communicate with the Master/Slave coordinator, please upgrade your firmware or disable MASTERSLAVEMODEON setting for the MOSAIC board!");

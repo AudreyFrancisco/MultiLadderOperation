@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <thread>
 #include "Common.h"
+#include "TROOT.h"
+//#include <ROOT/TThreadExecutor.hxx>
 
 using namespace std;
 
@@ -22,9 +24,7 @@ fScanType( MultiDeviceScanType::kNOISE_OCC_SCAN ),
 fNDevices( 0 ),
 fIsAdmissionClosed( false ),
 fIsInitDone( false )
-{
-    SetVerboseLevel( 2 );
-}
+{ }
 
 //___________________________________________________________________
 TMultiDeviceOperator::~TMultiDeviceOperator()
@@ -89,6 +89,13 @@ void TMultiDeviceOperator::CloseAdmission()
     if ( GetVerboseLevel() > kTERSE ) {
         cout << "TMultiDeviceOperator::CloseAdmission() - found  " << fNDevices << " devices" << endl;
     }
+    const unsigned int nthreads = fNDevices;
+    ROOT::EnableImplicitMT(nthreads);
+    ROOT::EnableThreadSafety(); 	
+    gROOT->SetBatch();
+    // Create the pool of workers
+    //ROOT::TThreadExecutor pool(nThreads);
+
     for ( unsigned int i = 0; i < fNDevices; i++ ) {
         
         shared_ptr<TDevice> theDevice = (fSetups.at(i))->GetDevice();
@@ -316,13 +323,18 @@ void TMultiDeviceOperator::ReadEventDataByDevice( const unsigned int id, const i
 //___________________________________________________________________
 void TMultiDeviceOperator::ReadEventData(  const int nTriggers )
 {
-    vector<thread> datathread;
     for ( unsigned int id = 0; id < fDeviceOperators.size(); id++ ) {
-        datathread.push_back( thread( &TMultiDeviceOperator::ReadEventDataByDevice, this, id, nTriggers ) );
+        fReadingThreadList.push_back( thread( &TMultiDeviceOperator::ReadEventDataByDevice, this, id, nTriggers ) );
     }
-    for ( auto &t : datathread ) {
+    for ( auto &t : fReadingThreadList ) {
         t.join();
     }
+    for ( unsigned int i = 0; i < fReadingThreadList.size(); i++ ) {
+        if ( (fReadingThreadList.at(i)).joinable() ) {
+            (fReadingThreadList.at(i)).detach();
+        } 
+    }
+    fReadingThreadList.clear();
 }
 
 //___________________________________________________________________

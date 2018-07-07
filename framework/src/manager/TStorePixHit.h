@@ -65,9 +65,6 @@ private:
     /// name of the output file that will store the TTree
     std::string fOutFileName;
 
-    /// name of the TTree
-    std::string fTreeName;
-
     /// title of the TTree
     std::string fTreeTitle;
 
@@ -79,7 +76,7 @@ public:
     /// default destructor
     virtual ~TStorePixHit();
 
-    /// Set the name of the output ROOT TTree file, the TTree name and title
+    /// Set the name of the output ROOT TTree file, the TTree title
     void SetNames( const char *baseFName, const common::TChipIndex aChipIndex );
 
     /// Set the number of entries to be used by TTree::AutoSave()
@@ -106,7 +103,7 @@ private:
     void SetFileName( std::string prefix, const common::TChipIndex aChipIndex );
     
     /// construct the name and title of the TTree with board + device id
-    void SetTreeNameAndTitle( const common::TChipIndex aChipIndex );
+    void SetTreeTitle( const common::TChipIndex aChipIndex );
 
 };
 

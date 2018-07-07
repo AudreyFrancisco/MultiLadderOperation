@@ -19,15 +19,20 @@
 
 using namespace std;
 
-// Example of usage :
-// ./test_multi_digitalscan 
+// Example of usage : for a verbosity level 3
+// ./test_multi_digitalscan 3
 //
 
-int main() {
-//int main(int argc, char** argv) {
+int main(int argc, char** argv) {
 
     TMultiDeviceOperator myOperator;
     myOperator.SetScanType( MultiDeviceScanType::kNOISE_OCC_SCAN );
+    if ( argc >= 2 ) {
+        const int level = atoi(argv[1]);
+        myOperator.SetVerboseLevel( level );
+    } else {
+        myOperator.SetVerboseLevel( 2 );
+    }
 
     char suffix[20], fName[100];
     
@@ -37,10 +42,11 @@ int main() {
     sprintf(fName, "multinoiseScan_%s.dat", suffix);
     myOperator.SetPrefixFilename( fName );
     try {
-        myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_NoiseOccScan_ext.cfg");
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ext_ladder1.cfg");
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ext_ladder2.cfg");
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ext_ladder3.cfg");
+        myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_NoiseOccScan.cfg"); // internal trigger config is given by the Master MOSAIC
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder1_BB3.cfg"); // Slave
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder2_BB3.cfg"); // Slave
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder3_BB3.cfg"); // Slave
+
         myOperator.CloseAdmission();
         myOperator.Go();
         myOperator.Terminate();

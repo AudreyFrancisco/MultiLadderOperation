@@ -68,15 +68,6 @@ void TDeviceBuilderMFTLadder::SetVerboseLevel( const int level )
 }
 
 //___________________________________________________________________
-void TDeviceBuilderMFTLadder::SetDeviceId( const unsigned int number )
-{
-    if ( GetVerboseLevel() > kTERSE ) {
-        cout << "TDeviceBuilderMFTLadder::SetDeviceId() - " << number << endl;
-    }
-    fCurrentDevice->SetDeviceId( number );
-}
-
-//___________________________________________________________________
 void TDeviceBuilderMFTLadder::CreateDeviceConfig()
 {
     if ( fCurrentDevice->IsConfigFrozen() ) {

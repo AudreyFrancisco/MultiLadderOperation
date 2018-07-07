@@ -43,6 +43,7 @@ public:
 
     #pragma mark - Device creation and initialisation
     void CreateDevice();
+    void SetDeviceId( const unsigned int number );
     virtual void SetDeviceType( const TDeviceType dt );
     virtual void CreateDeviceConfig() = 0;
     void SetDeviceParamValue( const char *Name, const char *Value, int Chip );

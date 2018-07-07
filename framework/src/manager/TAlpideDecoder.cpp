@@ -474,7 +474,6 @@ void TAlpideDecoder::FillHistoWithEvent()
     if ( !fScanHisto ) {
         throw runtime_error( "TAlpideDecoder::FillHistoEvent() - can not use a null pointer to fScanHisto !" );
     }
-
     common::TChipIndex idx;
     
     for ( unsigned int i = 0; i < fHits.size(); i++ ) {
@@ -499,14 +498,14 @@ void TAlpideDecoder::FillHistoWithEvent()
             unsigned int addr = (fHits.at(i))->GetAddress();
 
             fScanHisto->Incr(idx, dcol, addr);
-            if ( fStorePixHit->IsInitOk() ) {
-                shared_ptr<TPixHit> singleHit( new TPixHit( fHits.at(i) ) ); // deep copy
-                singleHit->SetBoardIndex( fDevice->GetUniqueBoardId() );
-                fStorePixHit->Fill( singleHit );
-            }
             if ( GetVerboseLevel() > kULTRACHATTY ) {
                 cout << "TAlpideDecoder::FillHistoEvent() - add hit" << endl;
                 (fHits.at(i))->DumpPixHit();
+            }
+            if ( fStorePixHit->IsInitOk() ) {
+                //shared_ptr<TPixHit> singleHit( new TPixHit( fHits.at(i) ) ); // deep copy
+                (fHits.at(i))->SetBoardIndex( fDevice->GetUniqueBoardId() );
+                fStorePixHit->Fill( fHits.at(i) );
             }
 
         }

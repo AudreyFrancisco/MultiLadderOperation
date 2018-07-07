@@ -26,25 +26,27 @@ using namespace std;
 int main(int argc, char** argv) {
 
     TMultiDeviceOperator myOperator;
-    myOperator.SetScanType( MultiDeviceScanType::kDIGITAL_SCAN );
+    myOperator.SetScanType( MultiDeviceScanType::kNOISE_OCC_SCAN );
     if ( argc >= 2 ) {
         const int level = atoi(argv[1]);
         myOperator.SetVerboseLevel( level );
     } else {
         myOperator.SetVerboseLevel( 2 );
     }
+
     char suffix[20], fName[100];
     
     time_t       t = time(0);   // get time now
     struct tm *now = localtime( & t );
     sprintf(suffix, "%02d%02d%02d_%02d%02d%02d", now->tm_year - 100, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
-    sprintf(fName, "multidigitalScan_%s.dat", suffix);
+    sprintf(fName, "multinoiseScan_%s.dat", suffix);
     myOperator.SetPrefixFilename( fName );
     try {
-        myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_DigitalScan.cfg");
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder1.cfg");
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder2.cfg");
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder3.cfg");
+        myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_NoiseOccScan.cfg"); // internal trigger config is given by the Master MOSAIC
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder1.cfg"); // Slave
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder2.cfg"); // Slave
+        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder3.cfg"); // Slave
+
         myOperator.CloseAdmission();
         myOperator.Go();
         myOperator.Terminate();

@@ -40,16 +40,6 @@ void TDeviceBuilderIB::SetDeviceType( const TDeviceType dt )
 }
 
 //___________________________________________________________________
-void TDeviceBuilderIB::SetDeviceId( const unsigned int number )
-{
-    if ( GetVerboseLevel() > kTERSE ) {
-        cout << "TDeviceBuilderIB::SetDeviceId() - " << number << endl;
-    }
-    fCurrentDevice->SetDeviceId( number );
-}
-
-
-//___________________________________________________________________
 void TDeviceBuilderIB::SetVerboseLevel( const int level )
 {
     if ( level > kTERSE ) {
