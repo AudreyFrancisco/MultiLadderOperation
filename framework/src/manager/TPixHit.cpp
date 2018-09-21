@@ -245,7 +245,7 @@ unsigned int TPixHit::GetColumn() const
         cerr << "TPixHit::GetColumn() - Warning, return value probably meaningless" << endl;
     }
     unsigned int column = fDcol * 2;
-    int leftRight = ((fAddress % 4) < 2 ? 1:0); // Left or right column within the double column
+    int leftRight = ( ((fAddress%4)==1) || ((fAddress%4)==2) ) ? 1 : 0; // pALPIDE-3 / ALPIDE: left or right column within the double column 
     
     column += leftRight;
     
@@ -259,8 +259,6 @@ unsigned int TPixHit::GetRow() const
         cerr << "TPixHit::GetRow() - Warning, return value probably meaningless" << endl;
     }
     unsigned int row = fAddress / 2;         // This is OK for the top-right and the bottom-left pixel within a group of 4
-    if ((fAddress % 4) == 3) row -= 1;      // adjust the top-left pixel
-    if ((fAddress % 4) == 0) row += 1;      // adjust the bottom-right pixel
     return row;
 }
 
