@@ -54,20 +54,20 @@ protected:
 class MIPBusError : public MException 
 {
 public:
-	explicit MIPBusError(const std::string& __arg);
+	explicit MIPBusError(const std::string& __arg, const std::string &__address = "");
 };
 
 // IPBus error - Remote Bus Write error
 class MIPBusErrorWrite : public MException 
 {
 public:
-	explicit MIPBusErrorWrite(const std::string& __arg);
+	explicit MIPBusErrorWrite(const std::string& __arg, const std::string &__address = "");
 };
 
 // IPBus error - Remote Bus Read error
 class MIPBusErrorReadTimeout : public MException {
 public:
-	explicit MIPBusErrorReadTimeout(const std::string &__arg);
+	explicit MIPBusErrorReadTimeout(const std::string &__arg, const std::string &__address = "");
 };
 
 // IPBus over UDP error

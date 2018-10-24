@@ -46,6 +46,7 @@ public:
     IPbusUDP(const char *brdName, const int port = (int)MosaicIPbus::DEFAULT_UDP_PORT);
     virtual ~IPbusUDP();
     void setIPaddress(const char *brdName, const int port = (int)MosaicIPbus::DEFAULT_UDP_PORT);
+	const std::string getIPaddress() { return m_address; };
 	void execute();
 	const std::string name() { return "IPbusUDP"; }
 
@@ -55,6 +56,7 @@ private:
 	void sockWrite();
 
 private:
+	std::string m_address;
 	int sockfd;
 	struct sockaddr_in sockAddress;
 	int rcvTimoutTime;
