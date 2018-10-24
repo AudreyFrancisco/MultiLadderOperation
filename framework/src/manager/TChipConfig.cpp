@@ -59,8 +59,9 @@ const int  TChipConfig::DTU_CFG_PLL_PHASE  = 8;
 const int  TChipConfig::DTU_CFG_PLL_STAGES = 1;
 
 const int  TChipConfig::DTU_DACS_PLL_CHARGE_PUMP    = 8;
-const int  TChipConfig::DTU_DACS_HIGH_SPEED_DRIVER  = 15;
-const int  TChipConfig::DTU_DACS_PREEMP_DRIVER      = 15;
+const int  TChipConfig::DTU_DACS_HIGH_SPEED_DRIVER  = 8;
+const int  TChipConfig::DTU_DACS_PREEMP_DRIVER      = 0;
+
 
 const bool TChipConfig::DTU_TEST1_TEST_ENABLE = false;
 const bool TChipConfig::DTU_TEST1_PRBS_ENABLE = false;
