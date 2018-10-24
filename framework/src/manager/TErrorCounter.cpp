@@ -9,6 +9,7 @@ using namespace std;
 TErrorCounter::TErrorCounter() :
 fNTimeout( 0 ),
 fNCorruptEvent( 0 ),
+fNEventOverSizeError( 0 ),
 fDeviceType( TDeviceType::kUNKNOWN )
 {
     
@@ -17,6 +18,7 @@ fDeviceType( TDeviceType::kUNKNOWN )
 TErrorCounter::TErrorCounter( const TDeviceType dt ) :
 fNTimeout( 0 ),
 fNCorruptEvent( 0 ),
+fNEventOverSizeError( 0 ),
 fDeviceType( dt )
 {
     
@@ -155,7 +157,8 @@ void TErrorCounter::Dump()
 
     cout << endl;
     cout << "------------------------------- TErrorCounter::Dump() " << endl;
-    cout << "Number of corrupted events: " << std::dec << fNCorruptEvent << endl;
+    cout << "Number of event over size errors: " << std::dec << fNEventOverSizeError << endl;
+    cout << "Number of corrupted events: " <<  fNCorruptEvent << endl;
     cout << "Number of timeout: " << fNTimeout << endl;
     cout << "Number of hits with bad chip id: " << fBadChipIdHits.size() << endl;
     cout << "-------------------------------" << endl << endl;
