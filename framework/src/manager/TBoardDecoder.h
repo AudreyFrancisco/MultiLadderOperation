@@ -30,6 +30,7 @@ class TBoardDecoder : public TVerbosity {
     bool fMOSAIC_overflow;
     bool fMOSAIC_headerError;  // the received Frame contains error in the transmission
     bool fMOSAIC_decoder10b8bError; // the MOSAIC board reports a 10b8b conversion error
+    bool fMOSAIC_eventOverSizeError; // the MOSAIC board reports an Event Over Size Error
     
     // DAQ board
     bool            fDAQ_almostFull;
@@ -69,6 +70,7 @@ public:
     inline bool GetMosaicOverflow() const { return fMOSAIC_overflow; }
     inline bool GetMosaicHeaderError() const { return fMOSAIC_headerError; }
     inline bool GetMosaicDecoder10b8bError() const { return fMOSAIC_decoder10b8bError; }
+    inline bool GetMosaicEventOverSizeError() const { return fMOSAIC_eventOverSizeError; }
     
     inline std::uint32_t GetDaqFirmwareVersion() const { return fDAQ_firmwareVersion; }
     inline int GetDaqHeaderType() const { return fDAQ_headerType; }

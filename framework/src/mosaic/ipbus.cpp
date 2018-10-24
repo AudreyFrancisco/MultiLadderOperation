@@ -29,12 +29,15 @@
  * 21/12/2015	Added mutex for multithread operation
  */
 #include "ipbus.h"
+#include "ipbusudp.h"
 #include "mexception.h"
 #include <iostream>
 #include <stdio.h>
 #include <cstdio>
 #include <stdlib.h>
 #include <string>
+
+using namespace std;
 
 // #define TRACE_IPBUS
 
@@ -272,52 +275,59 @@ void IPbus::processAnswer()
     	dumpRxData();
 #endif
 
+
 		for (int i = 0; i < numTransactions; i++){
+
+			IPbusUDP *udpbus  = dynamic_cast<IPbusUDP *>(this);
+      		string    address = "";
+
+      		if (udpbus) address = udpbus->getIPaddress();
+
 			if ((rxSize - rxPtr) < 4){
 				// printf("\n\n numTransactions:%d size:%d\n\n", numTransactions, rxSize-rxPtr);
-				throw MIPBusError("Wrong answer size");
+				throw MIPBusError("Wrong answer size", address);
 			}
 
 			getHeader(&tr);
 		
 			// check the header
             if (tr.version != (int)MosaicIPbus::IPBUS_PROTOCOL_VERSION) {
-				throw MIPBusError("Wrong version in answer");
+				throw MIPBusError("Wrong version in answer", address);
 			}
 
 			if (tr.transactionId != transactionList[i].transactionId) {
-				throw MIPBusError("Wrong transaction ID in answer");
+				throw MIPBusError("Wrong transaction ID in answer", address);
 			}
 			if (i == 0) {
 				pktId = tr.transactionId;
 			}
 
 			if (tr.typeId != transactionList[i].typeId) {
-				throw MIPBusError("Wrong transaction type in answer");
+				throw MIPBusError("Wrong transaction type in answer", address);
 			}
 
 			if (tr.infoCode != MosaicDict::instance().iPbusInfoCode(MosaicIPbusInfoCode::infoCodeSuccess)){
 				switch (tr.infoCode){
 					case (int)MosaicIPbusInfoCode::infoCodeBadHeader:
-						throw MIPBusError("Remote bus error BAD HEADER");
+						throw MIPBusError("Remote bus error BAD HEADER", address);
 					case (int)MosaicIPbusInfoCode::infoCodeBusErrRead:
-						throw MIPBusError("Remote bus error in read");
+						throw MIPBusError("Remote bus error in read", address);
 					case (int)MosaicIPbusInfoCode::infoCodeBusErrWrite:
-						throw MIPBusErrorWrite("Remote bus error in write");
+						throw MIPBusErrorWrite("Remote bus error in write", address);
 					case (int)MosaicIPbusInfoCode::infoCodeBusTimeoutRead:
-						throw MIPBusError("Remote bus timeout in read");
+						throw MIPBusErrorReadTimeout("Remote bus timeout in read", address);
 					case (int)MosaicIPbusInfoCode::infoCodeBusTimeoutWrite:
-						throw MIPBusError("Remote bus timeout in write");
+						throw MIPBusError("Remote bus timeout in write", address);
 					case (int)MosaicIPbusInfoCode::infoCodeBufferOverflaw:
-						throw MIPBusError("Remote bus overflow TX buffer error");
+						throw MIPBusError("Remote bus overflow TX buffer error", address);
 					case (int)MosaicIPbusInfoCode::infoCodeBufferUnderflaw:
-						throw MIPBusError("Remote bus underflow RX buffer error");
+						throw MIPBusError("Remote bus underflow RX buffer error", address);
 					default: return;
 				}
 			}
 		
 			if (tr.words != transactionList[i].words) {
-				throw MIPBusError("Wrong number of words in transaction answer");
+				throw MIPBusError("Wrong number of words in transaction answer", address);
 			}
 		
 			// get data
@@ -327,7 +337,7 @@ void IPbus::processAnswer()
 				tr.typeId == MosaicDict::instance().iPbusTransaction(MosaicIPbusTransaction::typeIdRMWsum) ){
 
 				if ((rxSize - rxPtr) < (tr.words * 4))
-					throw MIPBusError("Wrong answer size");
+					throw MIPBusError("Wrong answer size", address);
 			
 				if (transactionList[i].readDataPtr != NULL)
 					for (int j = 0; j < tr.words; j++)

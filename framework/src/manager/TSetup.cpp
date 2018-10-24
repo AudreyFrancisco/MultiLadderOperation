@@ -18,7 +18,7 @@
 
 using namespace std;
 
-const string TSetup::NEWALPIDEVERSION = "2.2_mft";
+const string TSetup::NEWALPIDEVERSION = "2.3_mft";
 
 #pragma mark - Constructors/destructor
 

@@ -39,6 +39,9 @@ class TErrorCounter : public TVerbosity {
     /// number of corrupted events
     unsigned int fNCorruptEvent;
     
+    /// number of event over size errors
+    unsigned int fNEventOverSizeError;
+
     /// error counter (one per chip index)
     std::map<int, TChipErrorCounter> fCounterCollection;
 
@@ -99,8 +102,11 @@ public:
 
     /// set the number of corrupted events to the given value
     inline void SetNCorruptEvent( const unsigned int value ) { fNCorruptEvent = value; }
+ 
+    /// set the number of event over size errors
+    inline void SetNEventOverSizeError( const unsigned int value ) { fNEventOverSizeError = value; }
 
-    /// propagate the verbosity level to data members
+   /// propagate the verbosity level to data members
     virtual void SetVerboseLevel( const int level );
     
 #pragma mark - increment
@@ -112,6 +118,10 @@ public:
     /// increment the number of corrupted events by the given value
     inline void IncrementNCorruptEvent( const unsigned int value = 1 )
     { fNCorruptEvent += value; }
+
+    /// increment the number of event over size errors
+    inline void IncrementNEventOverSizeError(const unsigned int value = 1 )
+    { fNEventOverSizeError += value; }
 
     /// increment the number of 8b10b encoder errors by the given value
     void IncrementN8b10b( const unsigned int boardReceiver,
@@ -127,6 +137,10 @@ public:
 
     /// return the number of corrupted events
     inline unsigned int GetNCorruptEvent() const { return fNCorruptEvent; }
+
+    /// return the number of event over size errors
+    inline unsigned int GetNEventOverSizeError() const { return fNEventOverSizeError; }
+
 
 private:
     

@@ -47,7 +47,8 @@ MException::~MException() throw()
 
 MIPBusUDPError::MIPBusUDPError(const string& arg)
 {
-	 msg = "IPBusUDP Error: " + arg;
+
+	msg = "IPBusUDP Error: " + arg;
 }
 
 // IPBus over UDP Timeout
@@ -56,21 +57,36 @@ MIPBusUDPTimeout::MIPBusUDPTimeout()
 }
 
 // IPBus error
-MIPBusError::MIPBusError(const string& arg)
+MIPBusError::MIPBusError(const string& arg, const string &address)
 {
-	 msg = "IPBus Error: " + arg;
+	if (address.length() > 0) {
+    	msg = "IPBus Error (address " + address + "): " + arg;
+  	}
+  	else {
+		msg = "IPBus Error: " + arg;
+	  }
 }
 
 // IPBus error - Remote Bus Write error
-MIPBusErrorWrite::MIPBusErrorWrite(const string& arg)
+MIPBusErrorWrite::MIPBusErrorWrite(const string& arg, const string &address)
 {
-	 msg = "IPBus Error: " + arg;
+	if (address.length() > 0) {
+    	msg = "IPBus Error (address " + address + "): " + arg;
+  	}
+  	else {
+		msg = "IPBus Error: " + arg;
+	}
 }
 
 // IPBus error - Remote Bus Read error
-MIPBusErrorReadTimeout::MIPBusErrorReadTimeout(const string &arg) 
+MIPBusErrorReadTimeout::MIPBusErrorReadTimeout(const string &arg, const string &address) 
 { 
-	msg = "IPBus Error: " + arg; 
+	if (address.length() > 0) {
+    	msg = "IPBus Error (address " + address + "): " + arg;
+  	}
+  	else {
+		msg = "IPBus Error: " + arg; 
+	}
 }
 
 // Data connection over TCP error

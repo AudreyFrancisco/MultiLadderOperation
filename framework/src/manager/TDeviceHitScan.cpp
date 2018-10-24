@@ -237,6 +237,9 @@ unsigned int TDeviceHitScan::ReadEventData( const unsigned int iboard, int nTrig
             if ( fBoardDecoder->GetMosaicTimeout() ) {
                 fErrorCounter->IncrementNTimeout();
             }
+            if ( fBoardDecoder->GetMosaicEventOverSizeError() ) {
+                fErrorCounter->IncrementNEventOverSizeError();
+            }
 
             if ( GetVerboseLevel() > kVERBOSE ) {
                 cout << "TDeviceHitScan::ReadEventData() - board "
