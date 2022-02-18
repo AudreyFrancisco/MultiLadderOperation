@@ -42,10 +42,10 @@ int main(int argc, char** argv) {
     sprintf(fName, "multinoiseScan_%s.dat", suffix);
     myOperator.SetPrefixFilename( fName );
     try {
-        myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_NoiseOccScan.cfg"); // internal trigger config is given by the Master MOSAIC
+ //       myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_NoiseOccScan.cfg"); // internal trigger config is given by the Master MOSAIC
         myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder1.cfg"); // Slave
         myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder2.cfg"); // Slave
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder3.cfg"); // Slave
+ //       myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_NoiseOccScan_ladder3.cfg"); // Slave
 
         myOperator.CloseAdmission();
         myOperator.Go();

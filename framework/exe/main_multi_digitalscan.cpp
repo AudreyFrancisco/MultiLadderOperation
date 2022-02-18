@@ -41,10 +41,10 @@ int main(int argc, char** argv) {
     sprintf(fName, "multidigitalScan_%s.dat", suffix);
     myOperator.SetPrefixFilename( fName );
     try {
-        myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_DigitalScan.cfg");
+    //    myOperator.AddSetup( "../config/multiboard/ConfigIBtelescope_DigitalScan.cfg");
         myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder1.cfg");
         myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder2.cfg");
-        myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder3.cfg");
+    //    myOperator.AddSetup( "../config/multiboard/ConfigMFTladder_DigitalScan_ladder3.cfg");
         myOperator.CloseAdmission();
         myOperator.Go();
         myOperator.Terminate();
